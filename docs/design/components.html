@@ -1,0 +1,249 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Компоненти — КП УЗН Деснянського району</title>
+<link rel="preload" href="./fonts/inter-cyrlat-var.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="./tokens.css">
+<link rel="stylesheet" href="./components.css">
+</head>
+<body>
+<a class="skip" href="#main">Перейти до вмісту</a>
+
+<header class="site-header">
+  <div class="container site-header__bar">
+    <a class="brand" href="/">
+      <svg class="brand__mark" width="32" height="32" viewBox="0 0 32 32" aria-hidden="true">
+        <circle cx="16" cy="16" r="15" fill="#2F583F"></circle>
+        <path d="M16 6c5 2 7.5 5.6 7.5 9.6 0 4-3.3 7-7.5 7s-7.5-3-7.5-7C8.5 11.6 11 8 16 6z" fill="#A8D89D"></path>
+        <path d="M16 23.5V11" stroke="#2F583F" stroke-width="1.8" stroke-linecap="round"></path>
+        <path d="M9.2 24.5c4.5-1.6 9.1-1.6 13.6 0" stroke="#EBF3D2" stroke-width="1.8" stroke-linecap="round" fill="none"></path>
+      </svg>
+      <span class="brand__name">КП УЗН<span>Деснянського району</span></span>
+    </a>
+    <details class="nav">
+      <summary aria-label="Меню" role="button">
+        <svg width="22" height="16" viewBox="0 0 22 16" aria-hidden="true">
+          <rect width="22" height="2" y="0" fill="#1D4332"></rect>
+          <rect width="22" height="2" y="7" fill="#1D4332"></rect>
+          <rect width="22" height="2" y="14" fill="#1D4332"></rect>
+        </svg>
+      </summary>
+      <ul class="nav__list">
+        <li><a href="/about/">Про підприємство</a>
+          <ul class="nav__sub">
+            <li><a href="/about/public-info/">Публічна інформація</a></li>
+            <li><a href="/tenders/">Наші закупівлі</a></li>
+          </ul>
+        </li>
+        <li><a href="/services/">Послуги</a></li>
+        <li><span aria-current="page">Куди звертатися</span></li>
+        <li><a href="/contacts/">Контакти</a></li>
+      </ul>
+    </details>
+  </div>
+</header>
+
+<main id="main">
+
+  <!-- Перший екран (варіант А) -->
+  <section class="section container">
+    <h1>Доглядаємо зелень Деснянського району</h1>
+    <p>Парки, сквери, газони й дерева району — утримання, обрізка, полив та аварійні роботи.</p>
+    <a class="btn btn--block" href="/where-to-ask/">Куди звертатися
+      <svg class="ico" width="18" height="14" viewBox="0 0 18 14" aria-hidden="true"><path d="M10 0l8 7-8 7v-5H0V5h10z" fill="currentColor"></path></svg>
+    </a>
+    <a class="tel mt-2" href="tel:+380443373501">
+      <svg class="ico" width="18" height="18" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 1h3l1 4-2 1a9 9 0 005 5l1-2 4 1v3H13A12 12 0 013 3z" fill="currentColor"></path></svg>
+      <span><span class="tel__num">+38 (044) 337-35-01</span><span class="tel__hint">Приймальня, Пн–Пт 08:00–17:00</span></span>
+    </a>
+    <div class="nums mt-6">
+      <div class="num"><span class="num__v">[цифра]</span><span class="num__l">площа утримання</span></div>
+      <div class="num"><span class="num__v">[цифра]</span><span class="num__l">об’єктів</span></div>
+      <div class="num"><span class="num__v">30+</span><span class="num__l">послуг</span></div>
+    </div>
+  </section>
+
+  <!-- Сценарії -->
+  <section class="section container">
+    <h2>Що сталося?</h2>
+    <div class="grid grid--3">
+      <article class="card scenario">
+        <h3 class="scenario__q">Дерево загрожує впасти</h3>
+        <p class="card__text">Виїжджає бригада, обстежує дерево й виконує аварійне видалення.</p>
+        <a class="tel" href="tel:+380674480511">
+          <svg class="ico" width="18" height="18" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 1h3l1 4-2 1a9 9 0 005 5l1-2 4 1v3H13A12 12 0 013 3z" fill="currentColor"></path></svg>
+          <span class="tel__num">[телефон]</span>
+        </a>
+        <p class="scenario__hours">Відповідають: цілодобово</p>
+      </article>
+      <article class="card scenario scenario--alert">
+        <span class="scenario__badge">Аварійна ситуація</span>
+        <h3 class="scenario__q">Дерево впало на дорогу або машину</h3>
+        <p class="card__text">Оперативний черговий приймає виклик і направляє аварійну бригаду.</p>
+        <a class="tel" href="tel:+380674480511">
+          <svg class="ico" width="18" height="18" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 1h3l1 4-2 1a9 9 0 005 5l1-2 4 1v3H13A12 12 0 013 3z" fill="currentColor"></path></svg>
+          <span class="tel__num">[телефон чергового]</span>
+        </a>
+        <p class="scenario__hours">Відповідають: цілодобово</p>
+      </article>
+      <article class="card scenario">
+        <h3 class="scenario__q">Не скошений газон</h3>
+        <p class="card__text">Дільниця вносить адресу в графік викошування на найближчий тиждень.</p>
+        <a class="tel" href="tel:+380443373501">
+          <svg class="ico" width="18" height="18" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 1h3l1 4-2 1a9 9 0 005 5l1-2 4 1v3H13A12 12 0 013 3z" fill="currentColor"></path></svg>
+          <span class="tel__num">+38 (044) 337-35-01</span>
+        </a>
+        <p class="scenario__hours">Відповідають: Пн–Пт 08:00–17:00</p>
+      </article>
+    </div>
+  </section>
+
+  <!-- Послуги -->
+  <section class="section container">
+    <h2>Послуги</h2>
+    <div class="grid grid--3">
+      <article class="card service">
+        <h3 class="card__title">Видалення аварійних дерев</h3>
+        <p class="card__text">Обстеження дерева та його видалення з прибиранням порубкових залишків.</p>
+        <div class="tag-row">
+          <span class="tag">Для мешканців</span>
+          <span class="tag tag--line">У межах утримання</span>
+        </div>
+        <div class="service__foot">
+          <a class="tel" href="tel:+380443373501">
+            <svg class="ico" width="18" height="18" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 1h3l1 4-2 1a9 9 0 005 5l1-2 4 1v3H13A12 12 0 013 3z" fill="currentColor"></path></svg>
+            <span class="tel__num">+38 (044) 337-35-01</span>
+          </a>
+        </div>
+      </article>
+      <article class="card service">
+        <h3 class="card__title">Оренда автовишки</h3>
+        <p class="card__text">Надання автовишки з оператором для робіт на висоті.</p>
+        <div class="tag-row">
+          <span class="tag">Для юридичних осіб</span>
+          <span class="tag tag--line">Платна</span>
+        </div>
+        <div class="service__foot">
+          <a class="tel" href="tel:+380443373501">
+            <svg class="ico" width="18" height="18" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 1h3l1 4-2 1a9 9 0 005 5l1-2 4 1v3H13A12 12 0 013 3z" fill="currentColor"></path></svg>
+            <span><span class="tel__num">+38 (044) 337-35-01</span><span class="tel__hint">Уточнення — у приймальні</span></span>
+          </a>
+        </div>
+      </article>
+      <article class="card service">
+        <h3 class="card__title">Озеленення прибудинкової території</h3>
+        <p class="card__text">Висадження дерев, кущів і квітників за погодженим планом.</p>
+        <div class="tag-row">
+          <span class="tag">Для ОСББ</span>
+          <span class="tag tag--line">Платна</span>
+        </div>
+        <div class="service__foot">
+          <a class="tel" href="tel:+380443373501">
+            <svg class="ico" width="18" height="18" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 1h3l1 4-2 1a9 9 0 005 5l1-2 4 1v3H13A12 12 0 013 3z" fill="currentColor"></path></svg>
+            <span class="tel__num">+38 (044) 337-35-01</span>
+          </a>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <!-- Керівництво -->
+  <section class="section container">
+    <h2>Керівництво</h2>
+    <div class="grid grid--2">
+      <article class="card leader">
+        <div class="leader__head">
+          <svg class="leader__photo" viewBox="0 0 88 88" role="img" aria-label="Фото відсутнє">
+            <rect width="88" height="88" fill="#EBF3D2"></rect>
+            <circle cx="44" cy="34" r="15" fill="#A8D89D"></circle>
+            <path d="M14 82c3-17 15-26 30-26s27 9 30 26z" fill="#A8D89D"></path>
+          </svg>
+          <div>
+            <h3 class="leader__name">Карп Євген Анатолійович</h3>
+            <p class="leader__post">Директор, на посаді з 16.11.2015</p>
+          </div>
+        </div>
+        <a class="tel" href="tel:+380443373501">
+          <svg class="ico" width="18" height="18" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 1h3l1 4-2 1a9 9 0 005 5l1-2 4 1v3H13A12 12 0 013 3z" fill="currentColor"></path></svg>
+          <span class="tel__num">+38 (044) 337-35-01</span>
+        </a>
+        <details class="leader__bio">
+          <summary>Біографія</summary>
+          <p>[Текст біографії — Замовник. До підтвердження картка не публікується.]</p>
+        </details>
+      </article>
+      <article class="card leader">
+        <div class="leader__head">
+          <svg class="leader__photo" viewBox="0 0 88 88" role="img" aria-label="Фото відсутнє">
+            <rect width="88" height="88" fill="#EBF3D2"></rect>
+            <circle cx="44" cy="34" r="15" fill="#A8D89D"></circle>
+            <path d="M14 82c3-17 15-26 30-26s27 9 30 26z" fill="#A8D89D"></path>
+          </svg>
+          <div>
+            <h3 class="leader__name">[ПІБ]</h3>
+            <p class="leader__post">[Посада]</p>
+          </div>
+        </div>
+        <details class="leader__bio">
+          <summary>Біографія</summary>
+          <p>[Текст біографії — Замовник.]</p>
+        </details>
+      </article>
+    </div>
+  </section>
+
+  <!-- Реквізити -->
+  <section class="section container">
+    <h2>Реквізити</h2>
+    <table class="specs">
+      <tbody>
+        <tr><th scope="row">Повна назва</th><td>Комунальне підприємство «Управління з утримання зелених насаджень Деснянського району м. Києва»</td></tr>
+        <tr><th scope="row">ЄДРПОУ</th><td>04589645</td></tr>
+        <tr><th scope="row">Адреса</th><td>02232, м. Київ, вул. Героїв Енергетиків, 26</td></tr>
+        <tr><th scope="row">Графік роботи</th><td>Пн–Пт 08:00–17:00, обід 12:00–13:00</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+</main>
+
+<footer class="site-footer">
+  <div class="container">
+    <div class="site-footer__grid">
+      <div>
+        <h2>КП УЗН Деснянського району</h2>
+        <p>ЄДРПОУ 04589645<br>02232, м. Київ,<br>вул. Героїв Енергетиків, 26<br>Пн–Пт 08:00–17:00</p>
+      </div>
+      <div>
+        <h2>Куди звертатися</h2>
+        <a class="tel" href="tel:+380443373501">
+          <svg class="ico" width="18" height="18" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 1h3l1 4-2 1a9 9 0 005 5l1-2 4 1v3H13A12 12 0 013 3z" fill="currentColor"></path></svg>
+          <span><span class="tel__num">+38 (044) 337-35-01</span><span class="tel__hint">Приймальня</span></span>
+        </a>
+        <a class="tel" href="tel:+380674480511">
+          <svg class="ico" width="18" height="18" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 1h3l1 4-2 1a9 9 0 005 5l1-2 4 1v3H13A12 12 0 013 3z" fill="currentColor"></path></svg>
+          <span><span class="tel__num">[телефон чергового]</span><span class="tel__hint">Оперативний черговий, цілодобово</span></span>
+        </a>
+      </div>
+      <div>
+        <h2>Підприємства мережі</h2>
+        <ul class="list-bare">
+          <li><a class="ext" href="https://kyivzelenbud.com/" target="_blank" rel="noopener noreferrer">kyivzelenbud.com</a></li>
+          <li><a class="ext" href="https://desna.kyivzelenbud.com/" target="_blank" rel="noopener noreferrer">desna.kyivzelenbud.com</a></li>
+        </ul>
+      </div>
+      <div>
+        <h2>Ми в мережі</h2>
+        <ul class="list-bare">
+          <li><a class="ext" href="https://www.facebook.com/kpuzndesn" target="_blank" rel="noopener noreferrer">Facebook</a></li>
+        </ul>
+      </div>
+    </div>
+    <p class="site-footer__note">Інформація оновлена: 13.11.2026</p>
+  </div>
+</footer>
+</body>
+</html>

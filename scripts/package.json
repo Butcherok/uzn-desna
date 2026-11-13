@@ -1,0 +1,13 @@
+{
+  "name": "@uzn/scripts",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Проверки сборки и синхронизация источников (ТЗ 7, 10.4).",
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@uzn/shared": "*"
+  }
+}

@@ -1,0 +1,60 @@
+/* Оформление самого документа. В сборку сайта не идёт. */
+.doc { padding-bottom: var(--s-16); }
+.doc__head { background: var(--c-deep); color: var(--c-bg); padding-block: var(--s-8); }
+.doc__head h1 { color: var(--c-bg); }
+.doc__head p { color: var(--c-sand); max-width: 60ch; }
+.doc__toc { display: flex; flex-wrap: wrap; gap: var(--s-2); margin-top: var(--s-4); }
+.doc__toc a { color: var(--c-bg); border: 1px solid var(--c-mint); border-radius: var(--r-pill); padding: 4px 12px; text-decoration: none; font-size: var(--fs-caption); }
+.doc__toc a:hover { background: rgba(255,255,255,.1); color: var(--c-bg); }
+
+.doc h2 { margin-top: var(--s-10); border-top: 2px solid var(--c-ink); padding-top: var(--s-4); }
+.doc h3 { margin-top: var(--s-6); }
+.note { background: var(--c-pale); border-left: 4px solid var(--c-mid); padding: var(--s-3) var(--s-4); border-radius: 0 var(--r-sm) var(--r-sm) 0; margin: var(--s-4) 0; }
+.note p:last-child { margin-bottom: 0; }
+.note--warn { background: #F6E6E1; border-left-color: var(--c-alert); }
+
+.demo { background: var(--c-surface); border: 1px dashed var(--c-olive); border-radius: var(--r-md); padding: var(--s-4); margin: var(--s-4) 0; }
+.demo--col { max-width: 360px; }
+.demo__label { font-size: var(--fs-caption); color: var(--c-deep); margin: 0 0 var(--s-3); text-transform: uppercase; letter-spacing: .04em; }
+
+table.t { width: 100%; border-collapse: collapse; margin: var(--s-4) 0; font-size: var(--fs-caption); }
+table.t th, table.t td { border: 1px solid var(--c-line); padding: var(--s-2) var(--s-3); text-align: left; vertical-align: top; }
+table.t th { background: var(--c-pale); font-weight: 600; }
+table.t code { font-size: .95em; }
+
+code, pre { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+pre { background: var(--c-ink); color: var(--c-bg); padding: var(--s-4); border-radius: var(--r-sm); overflow-x: auto; font-size: 13px; line-height: 1.5; }
+code { background: var(--c-pale); padding: 1px 5px; border-radius: 4px; font-size: .9em; }
+pre code { background: none; padding: 0; color: inherit; }
+
+.swatches { display: grid; gap: var(--s-3); grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); margin: var(--s-4) 0; }
+.sw { border: 1px solid var(--c-line); border-radius: var(--r-sm); overflow: hidden; background: var(--c-surface); }
+.sw__box { height: 64px; display: flex; align-items: flex-end; padding: 6px 8px; font-size: 12px; font-weight: 600; }
+.sw__meta { padding: var(--s-2) var(--s-3); font-size: 12px; line-height: 1.4; }
+.sw__meta b { display: block; font-size: 13px; }
+.sw__meta span { color: var(--c-deep); }
+
+.scale-row { display: flex; align-items: baseline; gap: var(--s-4); border-bottom: 1px solid var(--c-line); padding: var(--s-3) 0; flex-wrap: wrap; }
+.scale-row > .k { flex: none; width: 110px; font-size: 12px; color: var(--c-deep); }
+
+.frames { display: flex; gap: var(--s-6); overflow-x: auto; padding-bottom: var(--s-4); align-items: flex-start; }
+.frame { flex: none; }
+.frame__cap { font-size: var(--fs-caption); color: var(--c-deep); margin: 0 0 var(--s-2); }
+.frame__box { border: 1px solid var(--c-olive); border-radius: var(--r-sm); overflow: hidden; background: var(--c-bg); }
+.frame iframe { border: 0; display: block; background: var(--c-bg); }
+.frame--360 .frame__box { width: 360px; height: 720px; }
+.frame--360 iframe { width: 360px; height: 720px; }
+.frame--600 .frame__box { width: 450px; height: 720px; }
+.frame--600 iframe { width: 600px; height: 960px; transform: scale(.75); transform-origin: 0 0; }
+.frame--1024 .frame__box { width: 512px; height: 720px; }
+.frame--1024 iframe { width: 1024px; height: 1440px; transform: scale(.5); transform-origin: 0 0; }
+
+.logos { display: grid; gap: var(--s-4); grid-template-columns: 1fr; }
+@media (min-width: 600px) { .logos { grid-template-columns: repeat(3, 1fr); } }
+.logo-card { border: 1px solid var(--c-line); border-radius: var(--r-md); background: var(--c-surface); padding: var(--s-4); }
+.logo-card h4 { margin-top: 0; }
+.logo-sizes { display: flex; align-items: center; gap: var(--s-4); flex-wrap: wrap; margin: var(--s-3) 0; }
+.logo-dark { background: var(--c-deep); border-radius: var(--r-sm); padding: var(--s-3); display: inline-flex; gap: var(--s-3); align-items: center; }
+.logo-mono { color: var(--c-ink); }
+.ok { color: var(--c-deep); font-weight: 600; }
+.bad { color: var(--c-alert); font-weight: 600; }

@@ -1,0 +1,13 @@
+{
+  "name": "@uzn/server",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "API бэкенда версии 2 (ТЗ 8). В версии 1 пакет пуст.",
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@uzn/shared": "*"
+  }
+}
