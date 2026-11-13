@@ -10,7 +10,7 @@
     "typecheck": "astro check --minimumFailingSeverity error"
   },
   "dependencies": {
-    "@astrojs/react": "^4.0.0",
+    "@astrojs/react": "^7.1.6",
     "@uzn/shared": "*",
     "astro": "^7.0.0",
     "react": "^19.0.0",
