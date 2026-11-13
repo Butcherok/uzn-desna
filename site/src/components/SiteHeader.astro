@@ -1,0 +1,66 @@
+---
+/**
+ * Шапка и верхнее меню (ТЗ 3.1). Меню построено на `details`/`summary`:
+ * работает с выключенным JavaScript (ТЗ 11.7, п. 4).
+ * Логотипа нет — заглушка 29, выводится текстовое название (ТЗ 5.3, п. 6).
+ */
+import { ENTERPRISE, NAV, withBase } from '../config/site';
+
+interface Props {
+  currentPath: string;
+}
+
+const { currentPath } = Astro.props;
+const isCurrent = (path: string): boolean => path === currentPath;
+---
+
+<header class="site-header">
+  <div class="container site-header__bar">
+    <a class="brand" href={withBase('/')} aria-label={`${ENTERPRISE.nameShort}, головна`}>
+      <span class="brand__name">
+        КП УЗН
+        <span>Деснянського району</span>
+      </span>
+    </a>
+
+    <details class="nav">
+      <summary aria-label="Меню розділів">
+        <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path
+            d="M3 6h18M3 12h18M3 18h18"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"></path>
+        </svg>
+      </summary>
+
+      <ul class="nav__list">
+        {
+          NAV.map((item) => (
+            <li>
+              {isCurrent(item.path) ? (
+                <span aria-current="page">{item.label}</span>
+              ) : (
+                <a href={withBase(item.path)}>{item.label}</a>
+              )}
+              {item.children && (
+                <ul class="nav__sub">
+                  {item.children.map((child) => (
+                    <li>
+                      {isCurrent(child.path) ? (
+                        <span aria-current="page">{child.label}</span>
+                      ) : (
+                        <a href={withBase(child.path)}>{child.label}</a>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </li>
+          ))
+        }
+      </ul>
+    </details>
+  </div>
+</header>

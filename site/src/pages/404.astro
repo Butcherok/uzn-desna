@@ -1,0 +1,21 @@
+---
+/** Страница 404 по правилу ТЗ 3.3. Код ответа задаёт GitHub Pages. */
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { formatPhone } from '@uzn/shared';
+import { ENTERPRISE, withBase } from '../config/site';
+
+const phone = formatPhone(ENTERPRISE.phoneStored);
+---
+
+<BaseLayout section="Сторінку не знайдено" path="/404.html">
+  <h1>Сторінку не знайдено</h1>
+  <p>Можливо, адреса набрана з помилкою або сторінку перенесено.</p>
+
+  <ul class="list-bare mt-6">
+    <li><a href={withBase('/')}>Головна</a></li>
+    <li><a href={withBase('/where-to-ask/')}>Куди звертатися</a></li>
+    <li><a href={withBase('/contacts/')}>Контакти</a></li>
+  </ul>
+
+  <p class="mt-6">Приймальня: <a href={`tel:${ENTERPRISE.phoneStored}`}>{phone}</a></p>
+</BaseLayout>

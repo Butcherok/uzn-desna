@@ -1,0 +1,58 @@
+{
+  "name": "uzn-desna",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Сайт-візитка КП УЗН Деснянського району м. Києва",
+  "license": "UNLICENSED",
+  "engines": {
+    "node": ">=22.22.0"
+  },
+  "workspaces": [
+    "shared",
+    "site",
+    "server",
+    "scripts"
+  ],
+  "scripts": {
+    "dev": "npm run dev --workspace site",
+    "build": "npm run build --workspace site",
+    "preview": "npm run preview --workspace site",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "data:check": "tsx scripts/bin/data-check.ts",
+    "budget:check": "node scripts/bin/budget-check.mjs",
+    "secrets:check": "node scripts/bin/secrets-check.mjs",
+    "ci": "npm run typecheck && npm run lint && npm run format:check && npm run test && npm run data:check && npm run build && npm run budget:check && npm run secrets:check",
+    "prepare": "husky"
+  },
+  "lint-staged": {
+    "*.{ts,tsx,mjs,js,astro}": [
+      "prettier --write",
+      "eslint --fix"
+    ],
+    "*.{json,md,css,yml,yaml}": [
+      "prettier --write"
+    ]
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.0",
+    "eslint": "^10.0.0",
+    "eslint-plugin-astro": "^1.0.0",
+    "globals": "^17.0.0",
+    "husky": "^9.0.0",
+    "lint-staged": "^17.0.0",
+    "prettier": "^3.0.0",
+    "prettier-plugin-astro": "^0.14.0",
+    "tsx": "^4.0.0",
+    "typescript": "^5.0.0",
+    "typescript-eslint": "^8.0.0",
+    "vitest": "^5.0.0",
+    "@types/node": "^24.0.0"
+  }
+}

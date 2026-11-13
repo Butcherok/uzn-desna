@@ -1,0 +1,288 @@
+/* ============================================================
+   КП УЗН Деснянського району — дизайн-система, слой компонентов
+   Мобильная вёрстка первой, правила только через min-width (ТЗ 11.1 п.1).
+   Зависит от tokens.css. Встроенных стилей на страницах нет (ТЗ 11.5 п.5).
+   ============================================================ */
+
+/* ---------- Основа ---------- */
+*, *::before, *::after { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  background: var(--c-bg);
+  color: var(--c-ink);
+  font-family: var(--f-text);
+  font-size: var(--fs-body);
+  line-height: var(--lh-body);
+  font-variant-numeric: tabular-nums;
+}
+
+h1, h2, h3, h4 {
+  font-family: var(--f-head);
+  font-weight: 700;
+  line-height: var(--lh-head);
+  margin: 0 0 var(--s-3);
+  text-wrap: balance;
+}
+h1 { font-size: var(--fs-h1); line-height: var(--lh-tight); }
+h2 { font-size: var(--fs-h2); }
+h3 { font-size: var(--fs-h3); }
+h4 { font-size: var(--fs-h4); font-weight: 600; }
+
+p { margin: 0 0 var(--s-4); max-width: var(--measure); }
+ul, ol { margin: 0 0 var(--s-4); padding-left: var(--s-5); }
+
+a { color: var(--c-mid); text-underline-offset: 3px; }
+a:hover { color: var(--c-ink); }
+
+img, svg { max-width: 100%; }
+
+/* Фокус — один на весь сайт (ТЗ 11.3 п.2) */
+:where(a, button, summary, input, [tabindex]):focus-visible {
+  outline: var(--focus-w) solid var(--c-focus);
+  outline-offset: var(--focus-offset);
+  border-radius: var(--r-sm);
+}
+
+/* Ссылка «Перейти до вмісту» (ТЗ 11.3 п.3) */
+.skip {
+  position: absolute; left: var(--s-2); top: var(--s-2);
+  transform: translateY(-200%);
+  background: var(--c-surface); color: var(--c-ink);
+  padding: var(--s-3) var(--s-4); border-radius: var(--r-sm);
+  font-weight: 600; text-decoration: none; z-index: 20;
+}
+.skip:focus { transform: translateY(0); }
+
+/* ---------- Сетка ---------- */
+.container {
+  width: 100%;
+  max-width: var(--max-w);
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+.section { padding-block: var(--section); }
+.stack > * + * { margin-top: var(--s-4); }
+
+.grid { display: grid; gap: var(--gap); grid-template-columns: 1fr; }
+@media (min-width: 600px) {
+  .grid--2 { grid-template-columns: repeat(2, 1fr); }
+  .grid--3 { grid-template-columns: repeat(2, 1fr); }
+  .grid--4 { grid-template-columns: repeat(2, 1fr); }
+}
+@media (min-width: 1024px) {
+  .grid--3 { grid-template-columns: repeat(3, 1fr); }
+  .grid--4 { grid-template-columns: repeat(4, 1fr); }
+}
+
+/* ---------- Кнопка ---------- */
+.btn {
+  display: inline-flex; align-items: center; justify-content: space-between;
+  gap: var(--s-3);
+  width: 100%;
+  min-height: var(--tap-lg);
+  padding: var(--s-3) var(--s-5);
+  border: var(--bw) solid transparent;
+  border-radius: var(--r-md);
+  background: var(--c-deep);
+  color: var(--c-surface);
+  font: inherit; font-weight: 600; font-size: var(--fs-lead);
+  text-decoration: none; cursor: pointer;
+}
+.btn:hover { background: var(--c-ink); color: var(--c-surface); }
+.btn:active { background: var(--c-ink); transform: translateY(1px); }
+.btn .ico { flex: none; }
+
+.btn--ghost {
+  background: var(--c-surface);
+  color: var(--c-ink);
+  border-color: var(--c-border);
+}
+.btn--ghost:hover { background: var(--c-pale); color: var(--c-ink); }
+
+.btn--quiet {
+  background: transparent; color: var(--c-ink);
+  border-color: transparent; justify-content: flex-start;
+  padding-inline: var(--s-2); min-height: var(--tap);
+  font-size: var(--fs-body);
+}
+.btn--quiet:hover { background: var(--c-pale); color: var(--c-ink); }
+
+.btn[aria-disabled="true"] { opacity: .55; pointer-events: none; }
+
+@media (min-width: 600px) {
+  .btn { width: auto; justify-content: center; }
+  .btn--block { width: 100%; justify-content: space-between; }
+}
+
+/* ---------- Ссылка-телефон (главный элемент сайта, ТЗ 2.1) ---------- */
+.tel {
+  display: flex; align-items: center; gap: var(--s-3);
+  width: 100%;
+  min-height: var(--tap-lg);
+  padding: var(--s-3) var(--s-4);
+  border: var(--bw) solid var(--c-border);
+  border-radius: var(--r-md);
+  background: var(--c-surface);
+  color: var(--c-ink);
+  font-weight: 600;
+  text-decoration: none;
+}
+.tel:hover { background: var(--c-pale); color: var(--c-ink); }
+.tel .ico { flex: none; color: var(--c-deep); }
+.tel__num { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.tel__hint { display: block; font-weight: 400; font-size: var(--fs-caption); color: var(--c-deep); }
+.tel + .tel { margin-top: var(--tap-gap); }
+
+/* ---------- Карточка (общая основа) ---------- */
+.card {
+  background: var(--c-surface);
+  border: var(--bw) solid var(--c-line);
+  border-radius: var(--r-md);
+  padding: var(--s-4);
+  display: flex; flex-direction: column; gap: var(--s-3);
+}
+.card > :last-child { margin-bottom: 0; }
+.card__title { margin: 0; font-size: var(--fs-h3); }
+.card__text { margin: 0; color: var(--c-deep); }
+
+/* Метка-признак: смысл передаётся словом, не цветом (ТЗ 11.3 п.10) */
+.tag {
+  display: inline-block;
+  padding: 2px var(--s-2);
+  border-radius: var(--r-pill);
+  background: var(--c-pale);
+  color: var(--c-ink);
+  font-size: var(--fs-caption);
+  line-height: 1.6;
+  white-space: nowrap;
+}
+.tag--line { background: transparent; border: var(--bw) solid var(--c-border); }
+.tag-row { display: flex; flex-wrap: wrap; gap: var(--s-2); }
+
+/* ---------- Карточка руководителя (ТЗ 4.2) ---------- */
+.leader { align-items: flex-start; }
+.leader__head { display: flex; gap: var(--s-4); align-items: flex-start; width: 100%; }
+.leader__photo {
+  flex: none; width: 88px; height: 88px;
+  border-radius: var(--r-md); object-fit: cover;
+  background: var(--c-pale);
+}
+.leader__name { margin: 0; font-size: var(--fs-h4); font-family: var(--f-head); font-weight: 700; }
+.leader__post { margin: var(--s-1) 0 0; font-size: var(--fs-caption); color: var(--c-deep); }
+.leader__bio { border-top: var(--bw) solid var(--c-line); padding-top: var(--s-3); }
+.leader__bio > summary {
+  min-height: var(--tap); display: flex; align-items: center; gap: var(--s-2);
+  cursor: pointer; font-weight: 600; color: var(--c-mid); list-style: none;
+}
+.leader__bio > summary::-webkit-details-marker { display: none; }
+.leader__bio > summary::after { content: "▾"; font-size: 0.8em; }
+.leader__bio[open] > summary::after { content: "▴"; }
+.leader__bio p { margin: var(--s-3) 0 0; }
+
+/* ---------- Карточка услуги (ТЗ 4.4) ---------- */
+.service__foot { margin-top: auto; }
+
+/* ---------- Карточка сценария (ТЗ 4.5) ---------- */
+.scenario { gap: var(--s-4); }
+.scenario__q { margin: 0; font-family: var(--f-head); font-size: var(--fs-h3); font-weight: 700; }
+.scenario__hours { margin: 0; font-size: var(--fs-caption); color: var(--c-deep); }
+.scenario--alert { border-color: var(--c-alert); border-width: 2px; }
+.scenario--alert .scenario__badge {
+  display: inline-block; padding: 2px var(--s-2); border-radius: var(--r-pill);
+  background: var(--c-alert); color: var(--c-surface);
+  font-size: var(--fs-caption); font-weight: 600;
+}
+
+/* ---------- Блок цифр (ТЗ 4.1) ---------- */
+.nums { display: grid; gap: var(--s-2); grid-template-columns: repeat(3, 1fr); }
+.num { background: var(--c-pale); border-radius: var(--r-sm); padding: var(--s-3) var(--s-2); text-align: center; }
+.num__v { display: block; font-family: var(--f-head); font-weight: 700; font-size: var(--fs-num); line-height: 1.1; }
+.num__l { display: block; margin-top: var(--s-1); font-size: var(--fs-caption); line-height: 1.3; color: var(--c-deep); }
+
+/* ---------- Шапка (ТЗ 3.1) ---------- */
+.site-header { background: var(--c-bg); border-bottom: var(--bw) solid var(--c-line); }
+.site-header__bar {
+  display: flex; align-items: center; justify-content: space-between; gap: var(--s-3);
+  min-height: 56px;
+}
+.brand { display: flex; align-items: center; gap: var(--s-2); color: var(--c-ink); text-decoration: none; }
+.brand__mark { flex: none; }
+.brand__name { font-family: var(--f-head); font-weight: 700; font-size: 0.9375rem; line-height: 1.15; }
+.brand__name span { display: block; font-family: var(--f-text); font-weight: 400; font-size: var(--fs-caption); color: var(--c-deep); }
+
+/* Меню без JavaScript: details/summary (ТЗ 11.7 п.4) */
+.nav { position: relative; }
+.nav > summary {
+  width: var(--tap); height: var(--tap);
+  display: flex; align-items: center; justify-content: center;
+  list-style: none; cursor: pointer; border-radius: var(--r-sm);
+}
+.nav > summary::-webkit-details-marker { display: none; }
+.nav__list { list-style: none; margin: 0; padding: var(--s-2) 0 var(--s-4); }
+.nav__list a, .nav__list span[aria-current] {
+  display: flex; align-items: center; min-height: var(--tap);
+  padding: var(--s-2) 0; font-weight: 600; color: var(--c-ink); text-decoration: none;
+  border-bottom: var(--bw) solid var(--c-line);
+}
+.nav__list a:hover { color: var(--c-mid); }
+.nav__list [aria-current="page"] { color: var(--c-deep); border-left: 3px solid var(--c-mid); padding-left: var(--s-3); }
+.nav__sub { list-style: none; margin: 0; padding-left: var(--s-4); }
+.nav__sub a { font-weight: 400; }
+
+@media (min-width: 1024px) {
+  .nav > summary { display: none; }
+  .nav[open] .nav__list, .nav .nav__list { display: flex; gap: var(--s-5); padding: 0; }
+  .nav__list > li > a, .nav__list > li > span { border-bottom: 0; }
+  .nav__sub { display: none; }
+  .site-header__bar { min-height: 72px; }
+}
+
+/* ---------- Подвал (ТЗ 3.1) ---------- */
+.site-footer {
+  background: var(--c-deep); color: var(--c-bg);
+  padding-block: var(--s-8);
+  font-size: var(--fs-caption);
+}
+.site-footer a { color: var(--c-bg); }
+.site-footer a:hover { color: var(--c-mint); }
+.site-footer h2 { font-size: var(--fs-h4); color: var(--c-bg); }
+.site-footer .tel {
+  background: transparent; border-color: var(--c-mint); color: var(--c-bg);
+}
+.site-footer .tel:hover { background: rgba(255,255,255,.08); color: var(--c-bg); }
+.site-footer .tel .ico { color: var(--c-mint); }
+.site-footer__grid { display: grid; gap: var(--s-6); grid-template-columns: 1fr; }
+.site-footer__note { margin: var(--s-6) 0 0; color: var(--c-sand); }
+.ext::after { content: "↗"; margin-left: 0.25em; font-size: 0.9em; }
+@media (min-width: 600px) { .site-footer__grid { grid-template-columns: repeat(2, 1fr); } }
+@media (min-width: 1024px) { .site-footer__grid { grid-template-columns: repeat(4, 1fr); } }
+
+/* ---------- Таблица реквизитов: на телефоне парами (ТЗ 11.1 п.6) ---------- */
+.specs { width: 100%; border-collapse: collapse; }
+.specs th, .specs td { text-align: left; padding: var(--s-2) 0; border-bottom: var(--bw) solid var(--c-line); }
+.specs th { font-weight: 600; width: 40%; }
+@media (max-width: 599px) {
+  .specs, .specs tbody, .specs tr, .specs th, .specs td { display: block; width: auto; }
+  .specs tr { padding: var(--s-2) 0; border-bottom: var(--bw) solid var(--c-line); }
+  .specs th { border: 0; padding-bottom: 0; font-size: var(--fs-caption); color: var(--c-deep); }
+  .specs td { border: 0; padding-top: 0; }
+}
+
+/* ---------- Печать (ТЗ 11.7 п.7) ---------- */
+@media print {
+  .site-header, .nav, .btn, .skip { display: none !important; }
+  body { background: #fff; color: #000; font-size: 12pt; }
+  .tel { border: 1px solid #000; }
+  a[href^="tel:"]::after { content: ""; }
+}
+
+/* ---------- Утилиты (вместо встроенных стилей, ТЗ 11.5 п.5) ---------- */
+.mt-2 { margin-top: var(--s-2); }
+.mt-6 { margin-top: var(--s-6); }
+.list-bare { list-style: none; margin: 0; padding: 0; }
+.list-bare li + li { margin-top: var(--s-2); }
+
+.lead { font-size: var(--fs-lead); line-height: 1.5; }

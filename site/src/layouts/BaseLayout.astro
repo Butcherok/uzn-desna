@@ -1,0 +1,71 @@
+---
+/**
+ * Общая оболочка публичных страниц версии 1.
+ * Метаданные — ТЗ 11.4; закрытие от поисковиков — ТЗ 3.3; политика
+ * содержимого — ТЗ 11.5, п. 5; доступность — ТЗ 11.3.
+ */
+import SiteHeader from '../components/SiteHeader.astro';
+import SiteFooter from '../components/SiteFooter.astro';
+import { ENTERPRISE, withBase } from '../config/site';
+import literataUrl from '../fonts/literata-cyrlat-var.woff2?url';
+import '../styles/tokens.css';
+import '../styles/components.css';
+
+interface Props {
+  /** Название раздела: совпадает с пунктом меню и с единственным h1 */
+  section: string;
+  /** Путь страницы с завершающей косой чертой */
+  path: string;
+  /** До появления заглушки 50 — название раздела */
+  description?: string;
+}
+
+const { section, path, description } = Astro.props;
+
+const title = `${section} — ${ENTERPRISE.nameShort}`;
+const canonical = new URL(withBase(path), Astro.site).href;
+const metaDescription = description ?? `${section} — ${ENTERPRISE.nameShort}`;
+
+const csp = [
+  "default-src 'self'",
+  "img-src 'self' data:",
+  "script-src 'self'",
+  "style-src 'self'",
+  "font-src 'self'",
+  "connect-src 'self'",
+  "frame-src 'none'",
+  "base-uri 'none'",
+  "form-action 'none'",
+].join('; ');
+---
+
+<!doctype html>
+<html lang="uk">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta http-equiv="Content-Security-Policy" content={csp} />
+    <meta name="robots" content="noindex, nofollow" />
+
+    <title>{title}</title>
+    <meta name="description" content={metaDescription} />
+    <link rel="canonical" href={canonical} />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="uk_UA" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={metaDescription} />
+    <meta property="og:url" content={canonical} />
+
+    <link rel="preload" href={literataUrl} as="font" type="font/woff2" crossorigin="anonymous" />
+  </head>
+
+  <body>
+    <a class="skip" href="#main">Перейти до вмісту</a>
+    <SiteHeader currentPath={path} />
+    <main id="main" class="container section">
+      <slot />
+    </main>
+    <SiteFooter />
+  </body>
+</html>

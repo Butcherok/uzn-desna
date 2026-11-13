@@ -1,0 +1,77 @@
+---
+/**
+ * Подвал на всех страницах (ТЗ 3.1). Телефон оперативного дежурного не
+ * выводится: он в паспорте с пометкой [ПЕРЕВІРИТИ] (заглушка 17), а
+ * непроверенный телефон на сайт не идёт (ТЗ 4.6). Блока почты нет —
+ * заглушка 18.
+ */
+import { formatPhone } from '@uzn/shared';
+import { CONTENT_UPDATED_AT, ENTERPRISE, NETWORK_LINKS, withBase } from '../config/site';
+
+const phone = formatPhone(ENTERPRISE.phoneStored);
+const updated = new Date(CONTENT_UPDATED_AT).toLocaleDateString('uk-UA');
+---
+
+<footer class="site-footer">
+  <div class="container site-footer__grid">
+    <section>
+      <h2>{ENTERPRISE.nameShort}</h2>
+      <ul class="list-bare">
+        <li>ЄДРПОУ {ENTERPRISE.edrpou}</li>
+        <li>{ENTERPRISE.address}</li>
+        <li>{ENTERPRISE.hours}</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>Приймальня</h2>
+      <a class="tel" href={`tel:${ENTERPRISE.phoneStored}`}>
+        <svg
+          class="ico"
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          aria-hidden="true"
+          focusable="false"
+        >
+          <path
+            d="M4 4h4l2 5-2.5 1.5a11 11 0 0 0 6 6L15 14l5 2v4a16 16 0 0 1-16-16Z"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linejoin="round"></path>
+        </svg>
+        <span class="tel__num">{phone}</span>
+      </a>
+      <p class="mt-2">
+        <a href={withBase('/where-to-ask/')}>Куди звертатися</a>
+      </p>
+    </section>
+
+    <section>
+      <h2>Підприємства мережі</h2>
+      <ul class="list-bare">
+        {
+          NETWORK_LINKS.map((link) => (
+            <li>
+              <a class="ext" href={link.href} target="_blank" rel="noopener noreferrer">
+                {link.label}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </section>
+
+    <section>
+      <h2>Facebook</h2>
+      <p>
+        <a class="ext" href={ENTERPRISE.facebook} target="_blank" rel="noopener noreferrer">
+          Сторінка підприємства
+        </a>
+      </p>
+    </section>
+  </div>
+
+  <p class="container site-footer__note">Інформація оновлена: {updated}</p>
+</footer>
