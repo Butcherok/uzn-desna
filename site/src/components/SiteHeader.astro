@@ -31,35 +31,34 @@ const isCurrent = (path: string): boolean => path === currentPath;
             fill="none"
             stroke="currentColor"
             stroke-width="2"
-            stroke-linecap="round"></path>
+            stroke-linecap="round"
+          ></path>
         </svg>
       </summary>
 
       <ul class="nav__list">
-        {
-          NAV.map((item) => (
-            <li>
-              {isCurrent(item.path) ? (
-                <span aria-current="page">{item.label}</span>
-              ) : (
-                <a href={withBase(item.path)}>{item.label}</a>
-              )}
-              {item.children && (
-                <ul class="nav__sub">
-                  {item.children.map((child) => (
-                    <li>
-                      {isCurrent(child.path) ? (
-                        <span aria-current="page">{child.label}</span>
-                      ) : (
-                        <a href={withBase(child.path)}>{child.label}</a>
-                      )}
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </li>
-          ))
-        }
+        {NAV.map((item) => (
+          <li>
+            {isCurrent(item.path) ? (
+              <span aria-current="page">{item.label}</span>
+            ) : (
+              <a href={withBase(item.path)}>{item.label}</a>
+            )}
+            {item.children && (
+              <ul class="nav__sub">
+                {item.children.map((child) => (
+                  <li>
+                    {isCurrent(child.path) ? (
+                      <span aria-current="page">{child.label}</span>
+                    ) : (
+                      <a href={withBase(child.path)}>{child.label}</a>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </li>
+        ))}
       </ul>
     </details>
   </div>
