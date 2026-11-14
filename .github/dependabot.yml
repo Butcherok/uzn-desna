@@ -8,7 +8,17 @@ updates:
     groups:
       dev-dependencies:
         dependency-type: development
+    ignore:
+      # TypeScript 7 выпущен, но typescript-eslint 8 объявляет совместимость
+      # typescript >=4.8.4 <6.1.0, и установка с TypeScript 7 обрывается
+      # ошибкой ERESOLVE. Правило снимается, когда typescript-eslint выпустит
+      # версию с поддержкой TypeScript 7 (docs/decisions/005).
+      - dependency-name: typescript
+        update-types: [version-update:semver-major]
   - package-ecosystem: github-actions
     directory: /
     schedule:
       interval: weekly
+    groups:
+      github-actions:
+        patterns: ['*']
