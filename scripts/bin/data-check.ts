@@ -5,9 +5,20 @@
  */
 import { readdir, readFile } from 'node:fs/promises';
 import { join } from 'node:path';
-import { envelopeSchema, SCHEMA_VERSION } from '@uzn/shared';
+import type { ZodType } from 'zod';
+import { envelopeSchema, publicDocSchema, staticBlockSchema, SCHEMA_VERSION } from '@uzn/shared';
 
 const DATA_DIR = 'data';
+
+/**
+ * Схема записи по имени файла. Файл без схемы в этой таблице проверяется
+ * только конвертом: так добавление файла не роняет шаг раньше времени,
+ * но файл с известным именем обязан пройти проверку полей (ТЗ 6.6, п. 3).
+ */
+const ITEM_SCHEMAS: Record<string, ZodType> = {
+  'public-docs.json': publicDocSchema,
+  'static-blocks.json': staticBlockSchema,
+};
 
 async function main(): Promise<void> {
   const entries = await readdir(DATA_DIR).catch(() => [] as string[]);
@@ -48,6 +59,22 @@ async function main(): Promise<void> {
     if (result.data.source === 'sync' && result.data.state === undefined) {
       problems.push(`${name}: файл синхронизации без поля state (ТЗ 6.5)`);
       continue;
+    }
+
+    const itemSchema = ITEM_SCHEMAS[name];
+    if (itemSchema !== undefined) {
+      let failed = false;
+      result.data.items.forEach((item, index) => {
+        const itemResult = itemSchema.safeParse(item);
+        if (!itemResult.success) {
+          failed = true;
+          const issue = itemResult.error.issues[0];
+          problems.push(
+            `${name}: запись ${index + 1} — ${issue?.path.join('.') || 'поле'}: ${issue?.message}`,
+          );
+        }
+      });
+      if (failed) continue;
     }
 
     console.log(`data:check — ${name}: ок, записей ${result.data.items.length}`);

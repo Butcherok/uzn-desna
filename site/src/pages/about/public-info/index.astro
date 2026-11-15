@@ -1,7 +1,92 @@
 ---
+/**
+ * Страница-указатель «Публічна інформація» (ТЗ 4.3).
+ * Данные — `data/public-docs.json` и `data/static-blocks.json`; в коде
+ * страницы ни одной ссылки и ни одного текста нет (ТЗ 4.3, «Риск»).
+ */
 import BaseLayout from '../../../layouts/BaseLayout.astro';
+import { publicDocs, staticBlockText } from '../../../gateway/data';
+import { featuredDocs, normList, procurementDocs, PLACE_LABELS } from '../../../domain/public-docs';
+import { withBase } from '../../../config/site';
+
+const note = staticBlockText('public-info.note');
+const featured = featuredDocs(publicDocs);
+const procurement = procurementDocs(publicDocs);
+const norms = normList(publicDocs);
+
+const description =
+  'Де оприлюднено документи КП УЗН Деснянського району: фінансова звітність, оплата праці, стратегічний план, закупівлі у Prozorro та договори на Є-data.';
 ---
 
-<BaseLayout section="Публічна інформація" path="/about/public-info/">
+<BaseLayout section="Публічна інформація" path="/about/public-info/" description={description}>
   <h1>Публічна інформація</h1>
+
+  {note && <p>{note.uk}</p>}
+
+  {featured.length > 0 && (
+    <section class="section">
+      <h2>Документи підприємства</h2>
+      <ul class="grid grid--2 list-bare">
+        {featured.map((doc) => (
+          <li class="card">
+            <h3 class="card__title">
+              <a class="ext" href={doc.externalUrl} target="_blank" rel="noopener noreferrer">
+                {doc.title.uk}
+              </a>
+            </h3>
+            <p class="card__text">
+              <span class="tag">{PLACE_LABELS[doc.publishedWhere]}</span>
+            </p>
+          </li>
+        ))}
+      </ul>
+    </section>
+  )}
+
+  {procurement.length > 0 && (
+    <section class="section">
+      <h2>Закупівлі та договори</h2>
+      <ul class="grid grid--2 list-bare">
+        {procurement.map((doc) => (
+          <li class="card">
+            <h3 class="card__title">
+              <a class="ext" href={doc.externalUrl} target="_blank" rel="noopener noreferrer">
+                {doc.title.uk}
+              </a>
+            </h3>
+            <p class="card__text">
+              <span class="tag">{PLACE_LABELS[doc.publishedWhere]}</span>
+            </p>
+          </li>
+        ))}
+      </ul>
+    </section>
+  )}
+
+  {norms.length > 0 && (
+    <section class="section">
+      <h2>Перелік відомостей за частиною 8 статті 60-2</h2>
+      <table class="specs">
+        <tbody>
+          {norms.map((doc) => (
+            <tr>
+              <th scope="row">{doc.normRef?.uk}</th>
+              <td>
+                {doc.externalUrl ? (
+                  <a class="ext" href={doc.externalUrl} target="_blank" rel="noopener noreferrer">
+                    {PLACE_LABELS[doc.publishedWhere]}
+                  </a>
+                ) : (
+                  <>
+                    {PLACE_LABELS[doc.publishedWhere]}:{' '}
+                    <a href={withBase('/contacts/')}>як надіслати запит</a>
+                  </>
+                )}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </section>
+  )}
 </BaseLayout>
