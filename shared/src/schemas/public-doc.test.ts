@@ -46,6 +46,20 @@ describe('publicDocSchema', () => {
     ).toBe(false);
   });
 
+  it('принимает формулировку пункта на пределе 200 знаков', () => {
+    expect(
+      publicDocSchema.safeParse({ ...base, externalUrl: url, normRef: { uk: 'я'.repeat(200) } })
+        .success,
+    ).toBe(true);
+  });
+
+  it('отвергает формулировку пункта длиннее 200 знаков', () => {
+    expect(
+      publicDocSchema.safeParse({ ...base, externalUrl: url, normRef: { uk: 'я'.repeat(201) } })
+        .success,
+    ).toBe(false);
+  });
+
   it('отвергает слаг кириллицей', () => {
     expect(
       publicDocSchema.safeParse({ ...base, slug: 'оплата-праці', externalUrl: url }).success,
