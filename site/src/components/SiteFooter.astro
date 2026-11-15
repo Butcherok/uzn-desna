@@ -39,7 +39,8 @@ const updated = new Date(CONTENT_UPDATED_AT).toLocaleDateString('uk-UA');
             fill="none"
             stroke="currentColor"
             stroke-width="2"
-            stroke-linejoin="round"></path>
+            stroke-linejoin="round"
+          ></path>
         </svg>
         <span class="tel__num">{phone}</span>
       </a>
@@ -51,15 +52,13 @@ const updated = new Date(CONTENT_UPDATED_AT).toLocaleDateString('uk-UA');
     <section>
       <h2>Підприємства мережі</h2>
       <ul class="list-bare">
-        {
-          NETWORK_LINKS.map((link) => (
-            <li>
-              <a class="ext" href={link.href} target="_blank" rel="noopener noreferrer">
-                {link.label}
-              </a>
-            </li>
-          ))
-        }
+        {NETWORK_LINKS.map((link) => (
+          <li>
+            <a class="ext" href={link.href} target="_blank" rel="noopener noreferrer">
+              {link.label}
+            </a>
+          </li>
+        ))}
       </ul>
     </section>
 

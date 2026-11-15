@@ -12,10 +12,18 @@ const phone = formatPhone(ENTERPRISE.phoneStored);
   <p>Можливо, адреса набрана з помилкою або сторінку перенесено.</p>
 
   <ul class="list-bare mt-6">
-    <li><a href={withBase('/')}>Головна</a></li>
-    <li><a href={withBase('/where-to-ask/')}>Куди звертатися</a></li>
-    <li><a href={withBase('/contacts/')}>Контакти</a></li>
+    <li>
+      <a href={withBase('/')}>Головна</a>
+    </li>
+    <li>
+      <a href={withBase('/where-to-ask/')}>Куди звертатися</a>
+    </li>
+    <li>
+      <a href={withBase('/contacts/')}>Контакти</a>
+    </li>
   </ul>
 
-  <p class="mt-6">Приймальня: <a href={`tel:${ENTERPRISE.phoneStored}`}>{phone}</a></p>
+  <p class="mt-6">
+    Приймальня: <a href={`tel:${ENTERPRISE.phoneStored}`}>{phone}</a>
+  </p>
 </BaseLayout>
