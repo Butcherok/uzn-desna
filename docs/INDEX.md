@@ -5,6 +5,7 @@
 | Состояние и следующий шаг         | `docs/project-context.md`                                  |
 | Очередь задач                     | `docs/roadmap.md`                                          |
 | Почему так сделано                | `docs/decisions/`                                          |
+| Документы базы знаний (копии)     | `docs/knowledge-base/`                                     |
 | Симптом и что делать              | `docs/lessons-learned.md`                                  |
 | Добавить страницу                 | `site/src/pages/`, `site/src/config/site.ts` (меню)        |
 | Правка шапки или подвала          | `site/src/components/SiteHeader.astro`, `SiteFooter.astro` |
