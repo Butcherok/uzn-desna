@@ -2,9 +2,11 @@
 /** Страница 404 по правилу ТЗ 3.3. Код ответа задаёт GitHub Pages. */
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { formatPhone } from '@uzn/shared';
-import { ENTERPRISE, withBase } from '../config/site';
+import { contacts } from '../gateway/data';
+import { contactBySlug } from '../domain/contacts';
+import { withBase } from '../config/site';
 
-const phone = formatPhone(ENTERPRISE.phoneStored);
+const office = contactBySlug(contacts, 'pryimalnia');
 ---
 
 <BaseLayout section="Сторінку не знайдено" path="/404.html">
@@ -23,7 +25,9 @@ const phone = formatPhone(ENTERPRISE.phoneStored);
     </li>
   </ul>
 
-  <p class="mt-6">
-    Приймальня: <a href={`tel:${ENTERPRISE.phoneStored}`}>{phone}</a>
-  </p>
+  {office && (
+    <p class="mt-6">
+      {office.purpose.uk}: <a href={`tel:${office.phone}`}>{formatPhone(office.phone)}</a>
+    </p>
+  )}
 </BaseLayout>

@@ -1,14 +1,26 @@
 ---
 /**
- * Подвал на всех страницах (ТЗ 3.1). Телефон оперативного дежурного не
- * выводится: он в паспорте с пометкой [ПЕРЕВІРИТИ] (заглушка 17), а
- * непроверенный телефон на сайт не идёт (ТЗ 4.6). Блока почты нет —
- * заглушка 18.
+ * Подвал на всех страницах (ТЗ 3.1, подвал): реквизиты и телефон приймальні,
+ * ссылка «Куди звертатися» с телефоном оперативного дежурного, «Підприємства
+ * мережі», Facebook, дата обновления.
+ *
+ * Телефоны приходят параметром: слой components выводит переданные данные и
+ * сам к файлам не обращается (ТЗ 10.2). Блока почты в подвале нет — ТЗ 3.1
+ * его не предусматривает.
  */
-import { formatPhone } from '@uzn/shared';
+import type { Contact } from '@uzn/shared';
+import PhoneLink from './PhoneLink.astro';
 import { CONTENT_UPDATED_AT, ENTERPRISE, NETWORK_LINKS, withBase } from '../config/site';
 
-const phone = formatPhone(ENTERPRISE.phoneStored);
+interface Props {
+  /** Точки с признаком `showInFooter`, уже отобранные и отсортированные */
+  contacts: readonly Contact[];
+}
+
+const { contacts } = Astro.props;
+
+const office = contacts.find((contact) => !contact.roundClock);
+const duty = contacts.find((contact) => contact.roundClock);
 const updated = new Date(CONTENT_UPDATED_AT).toLocaleDateString('uk-UA');
 ---
 
@@ -19,34 +31,18 @@ const updated = new Date(CONTENT_UPDATED_AT).toLocaleDateString('uk-UA');
       <ul class="list-bare">
         <li>ЄДРПОУ {ENTERPRISE.edrpou}</li>
         <li>{ENTERPRISE.address}</li>
-        <li>{ENTERPRISE.hours}</li>
+        {office?.hours && <li>{office.hours.uk}</li>}
       </ul>
+      {office && <p class="mt-2">{office.purpose.uk}</p>}
+      {office && <PhoneLink phone={office.phone} />}
     </section>
 
     <section>
-      <h2>Приймальня</h2>
-      <a class="tel" href={`tel:${ENTERPRISE.phoneStored}`}>
-        <svg
-          class="ico"
-          width="20"
-          height="20"
-          viewBox="0 0 24 24"
-          aria-hidden="true"
-          focusable="false"
-        >
-          <path
-            d="M4 4h4l2 5-2.5 1.5a11 11 0 0 0 6 6L15 14l5 2v4a16 16 0 0 1-16-16Z"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linejoin="round"
-          ></path>
-        </svg>
-        <span class="tel__num">{phone}</span>
-      </a>
-      <p class="mt-2">
+      <h2>
         <a href={withBase('/where-to-ask/')}>Куди звертатися</a>
-      </p>
+      </h2>
+      {duty && <p>{duty.purpose.uk}</p>}
+      {duty && <PhoneLink phone={duty.phone} hint={duty.hours?.uk} />}
     </section>
 
     <section>

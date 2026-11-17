@@ -6,7 +6,15 @@
 import { readdir, readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import type { ZodType } from 'zod';
-import { envelopeSchema, publicDocSchema, staticBlockSchema, SCHEMA_VERSION } from '@uzn/shared';
+import {
+  contactSchema,
+  enterpriseSchema,
+  envelopeSchema,
+  publicDocSchema,
+  scenarioSchema,
+  staticBlockSchema,
+  SCHEMA_VERSION,
+} from '@uzn/shared';
 
 const DATA_DIR = 'data';
 
@@ -16,9 +24,15 @@ const DATA_DIR = 'data';
  * но файл с известным именем обязан пройти проверку полей (ТЗ 6.6, п. 3).
  */
 const ITEM_SCHEMAS: Record<string, ZodType> = {
+  'contacts.json': contactSchema,
+  'enterprise.json': enterpriseSchema,
   'public-docs.json': publicDocSchema,
+  'scenarios.json': scenarioSchema,
   'static-blocks.json': staticBlockSchema,
 };
+
+/** Сущности-синглтоны (ТЗ 6.2, кардинальность): ровно одна запись в файле. */
+const SINGLETON_FILES = new Set(['enterprise.json']);
 
 async function main(): Promise<void> {
   const entries = await readdir(DATA_DIR).catch(() => [] as string[]);
@@ -58,6 +72,13 @@ async function main(): Promise<void> {
 
     if (result.data.source === 'sync' && result.data.state === undefined) {
       problems.push(`${name}: файл синхронизации без поля state (ТЗ 6.5)`);
+      continue;
+    }
+
+    if (SINGLETON_FILES.has(name) && result.data.items.length !== 1) {
+      problems.push(
+        `${name}: синглтон — ожидается ровно одна запись, в файле ${result.data.items.length}`,
+      );
       continue;
     }
 

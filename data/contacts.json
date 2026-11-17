@@ -1,0 +1,56 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-11-16T18:00:00.000Z",
+  "source": "admin-export",
+  "items": [
+    {
+      "slug": "pryimalnia",
+      "purpose": { "uk": "Приймальня", "en": "Front office" },
+      "phone": "+380443373501",
+      "hours": {
+        "uk": "Пн–Пт 08:00–17:00, обідня перерва 12:00–13:00",
+        "en": "Mon–Fri 08:00–17:00, lunch break 12:00–13:00"
+      },
+      "roundClock": false,
+      "confirmed": true,
+      "showInFooter": true,
+      "order": 1
+    },
+    {
+      "slug": "bukhhalteriia",
+      "purpose": { "uk": "Бухгалтерія", "en": "Accounts department" },
+      "phone": "+380443373502",
+      "hours": {
+        "uk": "Пн–Пт 08:00–17:00, обідня перерва 12:00–13:00",
+        "en": "Mon–Fri 08:00–17:00, lunch break 12:00–13:00"
+      },
+      "roundClock": false,
+      "confirmed": true,
+      "showInFooter": false,
+      "order": 2
+    },
+    {
+      "slug": "viddil-kadriv",
+      "purpose": { "uk": "Відділ кадрів", "en": "Human resources" },
+      "phone": "+380443373503",
+      "hours": {
+        "uk": "Пн–Пт 08:00–17:00, обідня перерва 12:00–13:00",
+        "en": "Mon–Fri 08:00–17:00, lunch break 12:00–13:00"
+      },
+      "roundClock": false,
+      "confirmed": true,
+      "showInFooter": false,
+      "order": 3
+    },
+    {
+      "slug": "operatyvnyi-cherhovyi",
+      "purpose": { "uk": "Оперативний черговий", "en": "Duty officer" },
+      "phone": "+380674480511",
+      "hours": { "uk": "Цілодобово, щодня", "en": "Around the clock, every day" },
+      "roundClock": true,
+      "confirmed": true,
+      "showInFooter": true,
+      "order": 4
+    }
+  ]
+}
