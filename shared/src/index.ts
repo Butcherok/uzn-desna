@@ -18,6 +18,8 @@ export { contactSchema, contactsFileSchema } from './schemas/contact.js';
 export type { Contact } from './schemas/contact.js';
 export { scenarioSchema, scenariosFileSchema } from './schemas/scenario.js';
 export type { Scenario } from './schemas/scenario.js';
+export { serviceSchema, servicesFileSchema } from './schemas/service.js';
+export type { Service } from './schemas/service.js';
 export { enterpriseSchema, enterpriseFileSchema } from './schemas/enterprise.js';
 export type { Enterprise } from './schemas/enterprise.js';
 export { leaderSchema, leadersFileSchema } from './schemas/leader.js';

@@ -13,6 +13,7 @@ import {
   leaderSchema,
   publicDocSchema,
   scenarioSchema,
+  serviceSchema,
   staticBlockSchema,
   SCHEMA_VERSION,
 } from '@uzn/shared';
@@ -30,6 +31,7 @@ const ITEM_SCHEMAS: Record<string, ZodType> = {
   'leaders.json': leaderSchema,
   'public-docs.json': publicDocSchema,
   'scenarios.json': scenarioSchema,
+  'services.json': serviceSchema,
   'static-blocks.json': staticBlockSchema,
 };
 
