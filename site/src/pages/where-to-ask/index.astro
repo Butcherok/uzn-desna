@@ -1,7 +1,75 @@
 ---
+/**
+ * «Куди звертатися» (ТЗ 4.5). Главный сценарий жителя: по ситуации найти
+ * телефон. Состав блоков — утверждённый контент
+ * `claude/12_kontent-4-5-4-6.md`, версия 0.3, раздел 2.
+ *
+ * Номер один раз крупным блоком сверху, под ним перечень ситуаций без
+ * телефонов (решение Заказчика 16.11.2026, вариант A). Отдельного блока
+ * «Якщо ситуація аварійна» нет: при одном номере на все ситуации он
+ * повторял бы первый блок, указание сведено к строке внутри него
+ * (решение разработчика, подтверждается при приёмке).
+ *
+ * Перечень ситуаций — данные `data/scenarios.json`. Текст блоков — в коде
+ * страницы: перечень ключей `StaticBlock` закрыт (ТЗ 6.2) и ключей этой
+ * страницы в нём нет.
+ */
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import PhoneLink from '../../components/PhoneLink.astro';
+import { formatPhone } from '@uzn/shared';
+import { contacts, scenarios } from '../../gateway/data';
+import { contactBySlug } from '../../domain/contacts';
+import { orderedScenarios } from '../../domain/scenarios';
+import { withBase } from '../../config/site';
+
+const duty = contactBySlug(contacts, 'operatyvnyi-cherhovyi');
+const office = contactBySlug(contacts, 'pryimalnia');
+const situations = orderedScenarios(scenarios);
+
+const description =
+  'Один номер оперативного чергового КП УЗН Деснянського району для всіх ситуацій: впало дерево, сухе дерево, обрізання гілок, полив, газон, листя, зламані лавки й огорожі.';
 ---
 
-<BaseLayout section="Куди звертатися" path="/where-to-ask/">
+<BaseLayout section="Куди звертатися" path="/where-to-ask/" description={description}>
   <h1>Куди звертатися</h1>
+
+  <h2>Що сталося?</h2>
+
+  {duty ? (
+    <>
+      <p class="lead">
+        Один номер для всіх ситуацій — оперативний черговий КП УЗН Деснянського району.
+      </p>
+      <PhoneLink phone={duty.phone} hint={duty.hours?.uk} />
+      <p class="mt-4">
+        Якщо є загроза людям або майну — телефонуйте одразу. Назвіть адресу і що сталося.
+      </p>
+    </>
+  ) : (
+    office && (
+      <>
+        <p class="lead">Телефонуйте до приймальні КП УЗН Деснянського району.</p>
+        <PhoneLink phone={office.phone} hint={office.hours?.uk} />
+      </>
+    )
+  )}
+
+  {situations.length > 0 && (
+    <section class="section">
+      <h2>Телефонуйте, якщо:</h2>
+      <ul>
+        {situations.map((scenario) => (
+          <li>{scenario.situation.uk}</li>
+        ))}
+      </ul>
+    </section>
+  )}
+
+  {office && (
+    <p>
+      Питання про роботу підприємства, документи чи звернення — приймальня:{' '}
+      <a href={`tel:${office.phone}`}>{formatPhone(office.phone)}</a>, Пн–Пт 08:00–17:00. Решта
+      контактів — на сторінці <a href={withBase('/contacts/')}>Контакти</a>.
+    </p>
+  )}
 </BaseLayout>

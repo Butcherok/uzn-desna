@@ -254,6 +254,8 @@ img, svg { max-width: 100%; }
 }
 .site-footer .tel:hover { background: rgba(255,255,255,.08); color: var(--c-bg); }
 .site-footer .tel .ico { color: var(--c-mint); }
+/* Подпись-часы: на тёмном фоне подвала --c-deep не читается (ТЗ 11.3 п.1) */
+.site-footer .tel__hint { color: var(--c-sand); }
 .site-footer__grid { display: grid; gap: var(--s-6); grid-template-columns: 1fr; }
 .site-footer__note { margin: var(--s-6) 0 0; color: var(--c-sand); }
 .ext::after { content: "↗"; margin-left: 0.25em; font-size: 0.9em; }
@@ -277,10 +279,18 @@ img, svg { max-width: 100%; }
   body { background: #fff; color: #000; font-size: 12pt; }
   .tel { border: 1px solid #000; }
   a[href^="tel:"]::after { content: ""; }
+  /* Телефоны и адрес в подвале печатаются по тексту, а не по тёмной заливке */
+  .site-footer { background: #fff; color: #000; }
+  .site-footer a, .site-footer h2, .site-footer__note { color: #000; }
+  .site-footer .tel { border-color: #000; color: #000; }
+  .site-footer .tel .ico { color: #000; }
+  .card, .specs th, .specs td { break-inside: avoid; }
+  .ext::after { content: ""; }
 }
 
 /* ---------- Утилиты (вместо встроенных стилей, ТЗ 11.5 п.5) ---------- */
 .mt-2 { margin-top: var(--s-2); }
+.mt-4 { margin-top: var(--s-4); }
 .mt-6 { margin-top: var(--s-6); }
 .list-bare { list-style: none; margin: 0; padding: 0; }
 .list-bare li + li { margin-top: var(--s-2); }
