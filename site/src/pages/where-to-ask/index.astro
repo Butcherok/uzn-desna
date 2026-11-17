@@ -16,7 +16,7 @@
  */
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import PhoneLink from '../../components/PhoneLink.astro';
-import { formatPhone } from '@uzn/shared';
+import PhoneInline from '../../components/PhoneInline.astro';
 import { contacts, scenarios } from '../../gateway/data';
 import { contactBySlug } from '../../domain/contacts';
 import { orderedScenarios } from '../../domain/scenarios';
@@ -68,8 +68,8 @@ const description =
   {office && (
     <p>
       Питання про роботу підприємства, документи чи звернення — приймальня:{' '}
-      <a href={`tel:${office.phone}`}>{formatPhone(office.phone)}</a>, Пн–Пт 08:00–17:00. Решта
-      контактів — на сторінці <a href={withBase('/contacts/')}>Контакти</a>.
+      <PhoneInline phone={office.phone} />, Пн–Пт 08:00–17:00. Решта контактів — на сторінці{' '}
+      <a href={withBase('/contacts/')}>Контакти</a>.
     </p>
   )}
 </BaseLayout>

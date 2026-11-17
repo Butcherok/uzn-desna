@@ -6,7 +6,7 @@
  */
 import SiteHeader from '../components/SiteHeader.astro';
 import SiteFooter from '../components/SiteFooter.astro';
-import { contacts } from '../gateway/data';
+import { contacts, enterprise } from '../gateway/data';
 import { footerContacts } from '../domain/contacts';
 import { ENTERPRISE, withBase } from '../config/site';
 import literataUrl from '../fonts/literata-cyrlat-var.woff2?url';
@@ -78,6 +78,6 @@ const csp = [
     <main id="main" class="container section">
       <slot />
     </main>
-    <SiteFooter contacts={footer} />
+    <SiteFooter contacts={footer} email={enterprise.email} />
   </body>
 </html>

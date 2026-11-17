@@ -4,20 +4,24 @@
  * ссылка «Куди звертатися» с телефоном оперативного дежурного, «Підприємства
  * мережі», Facebook, дата обновления.
  *
- * Телефоны приходят параметром: слой components выводит переданные данные и
- * сам к файлам не обращается (ТЗ 10.2). Блока почты в подвале нет — ТЗ 3.1
- * его не предусматривает.
+ * Телефоны и почта приходят параметрами: слой components выводит переданные
+ * данные и сам к файлам не обращается (ТЗ 10.2). Почта собрана числовыми
+ * HTML-сущностями: простого текстового `mailto:` в исходном коде страницы
+ * нет (ТЗ 3.1, подвал, п. 1; ТЗ 5.4, п. 7; решение 008).
  */
 import type { Contact } from '@uzn/shared';
+import { mailtoLinkHtml } from '@uzn/shared';
 import PhoneLink from './PhoneLink.astro';
 import { CONTENT_UPDATED_AT, ENTERPRISE, NETWORK_LINKS, withBase } from '../config/site';
 
 interface Props {
   /** Точки с признаком `showInFooter`, уже отобранные и отсортированные */
   contacts: readonly Contact[];
+  /** Почта предприятия из данных; нет почты — строка скрывается */
+  email?: string | undefined;
 }
 
-const { contacts } = Astro.props;
+const { contacts, email } = Astro.props;
 
 const office = contacts.find((contact) => !contact.roundClock);
 const duty = contacts.find((contact) => contact.roundClock);
@@ -35,6 +39,11 @@ const updated = new Date(CONTENT_UPDATED_AT).toLocaleDateString('uk-UA');
       </ul>
       {office && <p class="mt-2">{office.purpose.uk}</p>}
       {office && <PhoneLink phone={office.phone} />}
+      {email && (
+        <p class="mt-2">
+          <Fragment set:html={mailtoLinkHtml(email)} />
+        </p>
+      )}
     </section>
 
     <section>
