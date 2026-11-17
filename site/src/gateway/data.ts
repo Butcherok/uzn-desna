@@ -11,6 +11,7 @@ import {
   leadersFileSchema,
   publicDocsFileSchema,
   scenariosFileSchema,
+  servicesFileSchema,
   staticBlocksFileSchema,
   SCHEMA_VERSION,
 } from '@uzn/shared';
@@ -22,12 +23,14 @@ import type {
   LangText,
   Leader,
   Scenario,
+  Service,
 } from '@uzn/shared';
 import contactsRaw from '../../../data/contacts.json';
 import enterpriseRaw from '../../../data/enterprise.json';
 import leadersRaw from '../../../data/leaders.json';
 import publicDocsRaw from '../../../data/public-docs.json';
 import scenariosRaw from '../../../data/scenarios.json';
+import servicesRaw from '../../../data/services.json';
 import staticBlocksRaw from '../../../data/static-blocks.json';
 
 function parseFile<T>(name: string, schema: { parse: (input: unknown) => T }, raw: unknown): T {
@@ -46,6 +49,7 @@ const enterpriseFile = parseFile('enterprise.json', enterpriseFileSchema, enterp
 const leadersFile = parseFile('leaders.json', leadersFileSchema, leadersRaw);
 const publicDocsFile = parseFile('public-docs.json', publicDocsFileSchema, publicDocsRaw);
 const scenariosFile = parseFile('scenarios.json', scenariosFileSchema, scenariosRaw);
+const servicesFile = parseFile('services.json', servicesFileSchema, servicesRaw);
 const staticBlocksFile = parseFile('static-blocks.json', staticBlocksFileSchema, staticBlocksRaw);
 
 for (const [name, file] of [
@@ -54,6 +58,7 @@ for (const [name, file] of [
   ['leaders.json', leadersFile],
   ['public-docs.json', publicDocsFile],
   ['scenarios.json', scenariosFile],
+  ['services.json', servicesFile],
   ['static-blocks.json', staticBlocksFile],
 ] as const) {
   if (file.schemaVersion !== SCHEMA_VERSION) {
@@ -67,6 +72,7 @@ export const publicDocs: readonly PublicDoc[] = publicDocsFile.items;
 export const contacts: readonly Contact[] = contactsFile.items;
 export const scenarios: readonly Scenario[] = scenariosFile.items;
 export const leaders: readonly Leader[] = leadersFile.items;
+export const services: readonly Service[] = servicesFile.items;
 
 /** `Enterprise` — синглтон (ТЗ 6.2): количество записей проверено схемой файла. */
 const [enterpriseRecord] = enterpriseFile.items;

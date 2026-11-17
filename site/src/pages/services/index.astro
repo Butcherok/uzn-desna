@@ -1,7 +1,61 @@
 ---
+/**
+ * «Послуги» (ТЗ 4.4). Перечень работ предприятия группами, карточка — название
+ * и одно-два предложения описания.
+ *
+ * Телефона и контактного лица на карточке нет, получатель и платность не
+ * выводятся (решение Заказчика 17.11.2026, `docs/decisions/012-services-page-data.md`):
+ * номер приймальні выведен один раз в первом блоке по образцу страницы 4.5,
+ * остальные номера — на «Контактах» и в подвале. Цены не публикуются.
+ *
+ * Перечень снят с чинної сторінки `desna.kyivzelenbud.com/poslugy/` и главной
+ * той же страницы 17.11.2026 — в объёме, уже оприлюдненому органом управління
+ * (прецедент решения 011). Придуманных услуг в перечне нет.
+ */
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import PhoneLink from '../../components/PhoneLink.astro';
+import { contacts, services } from '../../gateway/data';
+import { contactBySlug } from '../../domain/contacts';
+import { groupedServices } from '../../domain/services';
+import { withBase } from '../../config/site';
+
+const office = contactBySlug(contacts, 'pryimalnia');
+const groups = groupedServices(services);
+
+const description =
+  'Роботи КП УЗН Деснянського району: озеленення, газони, квітники, догляд за насадженнями, обрізка та знесення дерев, корчування пнів, автовишка і спеціальна техніка, ландшафтний дизайн.';
 ---
 
-<BaseLayout section="Послуги" path="/services/">
+<BaseLayout section="Послуги" path="/services/" description={description}>
   <h1>Послуги</h1>
+
+  <p class="lead">Роботи, які виконує підприємство.</p>
+
+  {office && (
+    <>
+      <p>Замовлення і уточнення — приймальня підприємства.</p>
+      <PhoneLink phone={office.phone} hint={office.hours?.uk} />
+    </>
+  )}
+
+  {groups.map((group) => (
+    <section class="section">
+      <h2>{group.name}</h2>
+      <div class="grid grid--2">
+        {group.services.map((service) => (
+          <article class="card">
+            <h3 class="card__title">{service.title.uk}</h3>
+            <p class="card__text mt-2">{service.summary.uk}</p>
+          </article>
+        ))}
+      </div>
+    </section>
+  ))}
+
+  <p class="mt-6">
+    Якщо дерево впало або може впасти, зламані лавки чи огорожа — це не замовлення послуги, а
+    звернення: телефонуйте оперативному черговому, сторінка{' '}
+    <a href={withBase('/where-to-ask/')}>Куди звертатися</a>. Решта контактів — на сторінці{' '}
+    <a href={withBase('/contacts/')}>Контакти</a>.
+  </p>
 </BaseLayout>
