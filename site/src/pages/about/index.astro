@@ -1,7 +1,174 @@
 ---
+/**
+ * «Про підприємство» (ТЗ 4.2). Состав блоков — решение Заказчика 17.11.2026:
+ * описание деятельности, история, реквизиты, руководство, ссылки на
+ * подразделы. Блока структуры предприятия нет (решение 011).
+ *
+ * Все сведения — данные `data/enterprise.json` и `data/leaders.json`;
+ * придуманных сведений о предприятии в коде страницы нет (инструкции
+ * проекта, п. 5). Нет текста — блок скрывается, пустых заголовков нет
+ * (ТЗ 3.3, 4.2).
+ *
+ * Биография раскрывается элементом `details` — без JavaScript
+ * (ТЗ 11.7, п. 4; дизайн-система, раздел 7).
+ */
+import { Image } from 'astro:assets';
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import { formatDate } from '@uzn/shared';
+import { enterprise, leaders, staticBlockText } from '../../gateway/data';
+import { leaderPhoto } from '../../gateway/media';
+import { publishedLeaders } from '../../domain/leaders';
+import { paragraphs } from '../../domain/text';
+import { withBase } from '../../config/site';
+
+const summary = enterprise.infoReference ? paragraphs(enterprise.infoReference.uk) : [];
+const historyBlock = staticBlockText('about.history');
+const history = historyBlock ? paragraphs(historyBlock.uk) : [];
+const cards = publishedLeaders(leaders);
+
+const description =
+  'КП УЗН Деснянського району: чим займається підприємство, реквізити, правова основа та керівництво підприємства.';
 ---
 
-<BaseLayout section="Про підприємство" path="/about/">
+<BaseLayout section="Про підприємство" path="/about/" description={description}>
   <h1>Про підприємство</h1>
+
+  {summary.length > 0 && (
+    <section class="section">
+      <h2>Чим займається підприємство</h2>
+      {summary.map((paragraph, index) => (
+        <p class={index === 0 ? 'lead' : undefined}>{paragraph}</p>
+      ))}
+    </section>
+  )}
+
+  {history.length > 0 && (
+    <section class="section">
+      <h2>Історія підприємства</h2>
+      {history.map((paragraph) => (
+        <p>{paragraph}</p>
+      ))}
+    </section>
+  )}
+
+  <section class="section">
+    <h2>Реквізити</h2>
+    <table class="specs">
+      <tbody>
+        <tr>
+          <th scope="row">Повна назва</th>
+          <td>{enterprise.nameFull.uk}</td>
+        </tr>
+        <tr>
+          <th scope="row">Код ЄДРПОУ</th>
+          <td>{enterprise.edrpou}</td>
+        </tr>
+        <tr>
+          <th scope="row">Організаційно-правова форма</th>
+          <td>{enterprise.legalForm.uk}</td>
+        </tr>
+        {enterprise.registeredAt && (
+          <tr>
+            <th scope="row">Дата реєстрації</th>
+            <td>{formatDate(enterprise.registeredAt)}</td>
+          </tr>
+        )}
+        <tr>
+          <th scope="row">Власник</th>
+          <td>{enterprise.ownerBody.uk}</td>
+        </tr>
+        <tr>
+          <th scope="row">Підпорядкування</th>
+          <td>{enterprise.governedBy.uk}</td>
+        </tr>
+        {enterprise.coordinatedBy && (
+          <tr>
+            <th scope="row">Координуючий орган</th>
+            <td>{enterprise.coordinatedBy.uk}</td>
+          </tr>
+        )}
+        {enterprise.kved && enterprise.kved.length > 0 && (
+          <tr>
+            <th scope="row">Види діяльності (КВЕД)</th>
+            <td>
+              <ul class="list-bare">
+                {enterprise.kved.map((kved) => (
+                  <li>
+                    {kved.code} — {kved.title.uk}
+                  </li>
+                ))}
+              </ul>
+            </td>
+          </tr>
+        )}
+      </tbody>
+    </table>
+
+    {enterprise.legalBasis && enterprise.legalBasis.length > 0 && (
+      <>
+        <h3>Правова основа</h3>
+        <ul class="list-bare">
+          {enterprise.legalBasis.map((item) => (
+            <li>{item.uk}</li>
+          ))}
+        </ul>
+      </>
+    )}
+  </section>
+
+  {cards.length > 0 && (
+    <section class="section">
+      <h2>Керівництво</h2>
+      <div class="grid grid--2">
+        {cards.map((leader) => (
+          <article class="card leader">
+            <div class="leader__head">
+              {leader.photoPath && leader.photoAlt && (
+                <Image
+                  class="leader__photo"
+                  src={leaderPhoto(leader.photoPath)}
+                  alt={leader.photoAlt.uk}
+                  width={88}
+                  height={88}
+                  densities={[1, 2]}
+                  format="webp"
+                  loading="lazy"
+                />
+              )}
+              <div>
+                <h3 class="leader__name">{leader.fullName.uk}</h3>
+                <p class="leader__post">
+                  {leader.position.uk}
+                  {leader.since && <> · на посаді з {formatDate(leader.since)}</>}
+                </p>
+              </div>
+            </div>
+
+            {leader.bio && (
+              <details class="leader__bio">
+                <summary>Біографія</summary>
+                {paragraphs(leader.bio.uk).map((paragraph) => (
+                  <p>{paragraph}</p>
+                ))}
+              </details>
+            )}
+          </article>
+        ))}
+      </div>
+    </section>
+  )}
+
+  <section class="section">
+    <h2>Докладніше</h2>
+    <ul class="list-bare">
+      <li>
+        <a href={withBase('/about/public-info/')}>Публічна інформація</a> — документи підприємства
+        та перелік відомостей, які оприлюднюються за законом.
+      </li>
+      <li>
+        <a href={withBase('/tenders/')}>Наші закупівлі</a> — закупівлі підприємства в системі
+        Prozorro.
+      </li>
+    </ul>
+  </section>
 </BaseLayout>

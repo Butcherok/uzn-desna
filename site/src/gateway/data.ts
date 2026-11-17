@@ -8,14 +8,24 @@
 import {
   contactsFileSchema,
   enterpriseFileSchema,
+  leadersFileSchema,
   publicDocsFileSchema,
   scenariosFileSchema,
   staticBlocksFileSchema,
   SCHEMA_VERSION,
 } from '@uzn/shared';
-import type { PublicDoc, BlockKey, Contact, Enterprise, LangText, Scenario } from '@uzn/shared';
+import type {
+  PublicDoc,
+  BlockKey,
+  Contact,
+  Enterprise,
+  LangText,
+  Leader,
+  Scenario,
+} from '@uzn/shared';
 import contactsRaw from '../../../data/contacts.json';
 import enterpriseRaw from '../../../data/enterprise.json';
+import leadersRaw from '../../../data/leaders.json';
 import publicDocsRaw from '../../../data/public-docs.json';
 import scenariosRaw from '../../../data/scenarios.json';
 import staticBlocksRaw from '../../../data/static-blocks.json';
@@ -33,6 +43,7 @@ function parseFile<T>(name: string, schema: { parse: (input: unknown) => T }, ra
 
 const contactsFile = parseFile('contacts.json', contactsFileSchema, contactsRaw);
 const enterpriseFile = parseFile('enterprise.json', enterpriseFileSchema, enterpriseRaw);
+const leadersFile = parseFile('leaders.json', leadersFileSchema, leadersRaw);
 const publicDocsFile = parseFile('public-docs.json', publicDocsFileSchema, publicDocsRaw);
 const scenariosFile = parseFile('scenarios.json', scenariosFileSchema, scenariosRaw);
 const staticBlocksFile = parseFile('static-blocks.json', staticBlocksFileSchema, staticBlocksRaw);
@@ -40,6 +51,7 @@ const staticBlocksFile = parseFile('static-blocks.json', staticBlocksFileSchema,
 for (const [name, file] of [
   ['contacts.json', contactsFile],
   ['enterprise.json', enterpriseFile],
+  ['leaders.json', leadersFile],
   ['public-docs.json', publicDocsFile],
   ['scenarios.json', scenariosFile],
   ['static-blocks.json', staticBlocksFile],
@@ -54,6 +66,7 @@ for (const [name, file] of [
 export const publicDocs: readonly PublicDoc[] = publicDocsFile.items;
 export const contacts: readonly Contact[] = contactsFile.items;
 export const scenarios: readonly Scenario[] = scenariosFile.items;
+export const leaders: readonly Leader[] = leadersFile.items;
 
 /** `Enterprise` — синглтон (ТЗ 6.2): количество записей проверено схемой файла. */
 const [enterpriseRecord] = enterpriseFile.items;
