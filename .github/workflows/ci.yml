@@ -26,5 +26,10 @@ jobs:
       - name: Run all checks
         run: npm run ci
 
+      # Временно не блокирует задачу: исправленной версии picomatch в npm
+      # пока нет (последняя 4.0.7 сама попадает в совет GHSA-fc5q-39xc-vjpf),
+      # поэтому шаг падал бы на каждом PR, ничего не позволяя исправить.
+      # Отчёт остаётся в логах. Вернуть блокировку по решению 013.
       - name: Audit dependencies
+        continue-on-error: true
         run: npm audit --audit-level=high
