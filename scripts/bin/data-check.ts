@@ -10,6 +10,7 @@ import {
   contactSchema,
   enterpriseSchema,
   envelopeSchema,
+  leaderSchema,
   publicDocSchema,
   scenarioSchema,
   staticBlockSchema,
@@ -26,6 +27,7 @@ const DATA_DIR = 'data';
 const ITEM_SCHEMAS: Record<string, ZodType> = {
   'contacts.json': contactSchema,
   'enterprise.json': enterpriseSchema,
+  'leaders.json': leaderSchema,
   'public-docs.json': publicDocSchema,
   'scenarios.json': scenarioSchema,
   'static-blocks.json': staticBlockSchema,

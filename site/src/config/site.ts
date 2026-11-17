@@ -15,8 +15,12 @@ export function withBase(path: string): string {
 }
 
 export const ENTERPRISE = {
+  /**
+   * Короткое название — в шапке, подвале и метаданных всех страниц.
+   * Полного названия здесь нет: оно живёт в `data/enterprise.json`
+   * (сущность `Enterprise`, ТЗ 13.1) и выводится на «Про підприємство».
+   */
   nameShort: 'КП УЗН Деснянського району',
-  nameFull: 'Комунальне підприємство «Управління зеленого насадження Деснянського району» м. Києва',
   edrpou: '04589645',
   address: '02232, м. Київ, вул. Героїв Енергетиків, 26',
   facebook: 'https://www.facebook.com/kpuzndesn',
@@ -39,7 +43,7 @@ export const NETWORK_LINKS = [
  * Дата последней правки контента для строки подвала (ТЗ 3.1, подвал, п. 5).
  * До появления `data/` правится вручную в этом файле.
  */
-export const CONTENT_UPDATED_AT = '2026-11-16';
+export const CONTENT_UPDATED_AT = '2026-11-17';
 
 export type NavItem = {
   readonly label: string;

@@ -9,6 +9,7 @@ import { langText } from './lang-text.js';
 export const blockKeySchema = z.enum([
   'home.intro',
   'home.numbers',
+  'about.history',
   'public-info.note',
   'news.fb.note',
   'news.feed.note',
