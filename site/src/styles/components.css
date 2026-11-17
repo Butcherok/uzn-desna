@@ -135,6 +135,8 @@ img, svg { max-width: 100%; }
 .tel__num { font-variant-numeric: tabular-nums; white-space: nowrap; }
 .tel__hint { display: block; font-weight: 400; font-size: var(--fs-caption); color: var(--c-deep); }
 .tel + .tel { margin-top: var(--tap-gap); }
+/* Телефон внутри строки текста: номер не разрывается переносом */
+.tel-text { white-space: nowrap; font-variant-numeric: tabular-nums; }
 
 /* ---------- Карточка (общая основа) ---------- */
 .card {
@@ -206,22 +208,38 @@ img, svg { max-width: 100%; }
 .site-header { background: var(--c-bg); border-bottom: var(--bw) solid var(--c-line); }
 .site-header__bar {
   display: flex; align-items: center; justify-content: space-between; gap: var(--s-3);
-  min-height: 56px;
+  min-height: var(--h-header);
 }
 .brand { display: flex; align-items: center; gap: var(--s-2); color: var(--c-ink); text-decoration: none; }
+/* Знак «Вариант А»: наш рисунок, цвета — только токенами */
 .brand__mark { flex: none; }
+.brand__disc { fill: var(--c-deep); }
+.brand__leaf { fill: var(--c-mint); }
+.brand__vein { stroke: var(--c-deep); }
+.brand__ground { stroke: var(--c-pale); }
 .brand__name { font-family: var(--f-head); font-weight: 700; font-size: 0.9375rem; line-height: 1.15; }
 .brand__name span { display: block; font-family: var(--f-text); font-weight: 400; font-size: var(--fs-caption); color: var(--c-deep); }
 
-/* Меню без JavaScript: details/summary (ТЗ 11.7 п.4) */
-.nav { position: relative; }
-.nav > summary {
+/* Меню без JavaScript: кнопка + popover (ТЗ 11.7 п.4, решение 010).
+   Открытое меню живёт в верхнем слое браузера: шапку не раздвигает,
+   закрывается Esc, кнопкой и щелчком вне — всё это делает сам браузер. */
+.nav__toggle {
   width: var(--tap); height: var(--tap);
   display: flex; align-items: center; justify-content: center;
-  list-style: none; cursor: pointer; border-radius: var(--r-sm);
+  padding: 0; background: none; border: 0; border-radius: var(--r-sm);
+  color: var(--c-ink); cursor: pointer;
 }
-.nav > summary::-webkit-details-marker { display: none; }
 .nav__list { list-style: none; margin: 0; padding: var(--s-2) 0 var(--s-4); }
+.nav__list[popover] {
+  position: fixed; inset: auto 0 auto 0; top: var(--h-header);
+  width: auto; max-width: none;
+  max-height: calc(100vh - var(--h-header));
+  max-height: calc(100dvh - var(--h-header));
+  overflow-y: auto;
+  padding: var(--s-2) var(--gutter) var(--s-4);
+  background: var(--c-bg); color: var(--c-ink);
+  border: 0; border-bottom: var(--bw) solid var(--c-line);
+}
 .nav__list a, .nav__list span[aria-current] {
   display: flex; align-items: center; min-height: var(--tap);
   padding: var(--s-2) 0; font-weight: 600; color: var(--c-ink); text-decoration: none;
@@ -232,12 +250,19 @@ img, svg { max-width: 100%; }
 .nav__sub { list-style: none; margin: 0; padding-left: var(--s-4); }
 .nav__sub a { font-weight: 400; }
 
+/* От 1024 px меню — обычный ряд. Браузер держит закрытый popover скрытым
+   (`display: none` в своей таблице стилей), поэтому стиль автора задаёт
+   показ и снимает позиционирование верхнего слоя. */
 @media (min-width: 1024px) {
-  .nav > summary { display: none; }
-  .nav[open] .nav__list, .nav .nav__list { display: flex; gap: var(--s-5); padding: 0; }
-  .nav__list > li > a, .nav__list > li > span { border-bottom: 0; }
+  .nav__toggle { display: none; }
+  .nav__list[popover] {
+    display: flex; gap: var(--s-5);
+    position: static; inset: auto; width: auto;
+    max-height: none; overflow: visible;
+    padding: 0; background: none; border: 0;
+  }
+  .nav__list > li > a, .nav__list > li > span[aria-current] { border-bottom: 0; }
   .nav__sub { display: none; }
-  .site-header__bar { min-height: 72px; }
 }
 
 /* ---------- Подвал (ТЗ 3.1) ---------- */

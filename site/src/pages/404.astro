@@ -1,7 +1,7 @@
 ---
 /** Страница 404 по правилу ТЗ 3.3. Код ответа задаёт GitHub Pages. */
 import BaseLayout from '../layouts/BaseLayout.astro';
-import { formatPhone } from '@uzn/shared';
+import PhoneInline from '../components/PhoneInline.astro';
 import { contacts } from '../gateway/data';
 import { contactBySlug } from '../domain/contacts';
 import { withBase } from '../config/site';
@@ -27,7 +27,7 @@ const office = contactBySlug(contacts, 'pryimalnia');
 
   {office && (
     <p class="mt-6">
-      {office.purpose.uk}: <a href={`tel:${office.phone}`}>{formatPhone(office.phone)}</a>
+      {office.purpose.uk}: <PhoneInline phone={office.phone} />
     </p>
   )}
 </BaseLayout>

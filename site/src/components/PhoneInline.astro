@@ -1,0 +1,21 @@
+---
+/**
+ * Телефон ссылкой внутри строки текста: номер не разрывается переносом
+ * (дизайн-система 1.1, раздел 7, `.tel-text`). Крупная цель полной ширины —
+ * отдельный компонент `PhoneLink.astro` (ТЗ 11.1, п. 4).
+ *
+ * Слой components: выводит переданные данные, ввода-вывода не делает (ТЗ 10.2).
+ */
+import { formatPhone } from '@uzn/shared';
+
+interface Props {
+  /** Телефон в виде хранения +380XXXXXXXXX */
+  phone: string;
+}
+
+const { phone } = Astro.props;
+---
+
+<a class="tel-text" href={`tel:${phone}`}>
+  {formatPhone(phone)}
+</a>
