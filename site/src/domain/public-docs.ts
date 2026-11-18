@@ -50,6 +50,16 @@ export function procurementDocs(docs: readonly PublicDoc[]): PublicDoc[] {
     .sort(byOrder);
 }
 
+/**
+ * Ссылки для страницы «Наші закупівлі» (ТЗ 4.9): те же записи, что и в блоке
+ * «Закупівлі та договори» страницы 4.3, но Prozorro первым — на этой странице
+ * он главный, а в реестре 4.3 порядок задан нумерацией перечня.
+ */
+export function tenderLinks(docs: readonly PublicDoc[]): PublicDoc[] {
+  const place = (doc: PublicDoc): number => (doc.publishedWhere === 'prozorro' ? 0 : 1);
+  return procurementDocs(docs).sort((a, b) => place(a) - place(b) || byOrder(a, b));
+}
+
 /** Перечень по ч. 8 ст. 60-2: только записи с формулировкой пункта. */
 export function normList(docs: readonly PublicDoc[]): PublicDoc[] {
   return docs.filter((doc) => doc.normRef !== undefined).sort(byOrder);

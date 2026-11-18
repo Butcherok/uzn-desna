@@ -1,7 +1,59 @@
 ---
+/**
+ * «Наші закупівлі» (ТЗ 4.9), версия 1 — страница-абзац: пояснение и прямые
+ * ссылки на Prozorro и Є-data. Карточки закупок из API — версия 2.
+ *
+ * Ссылок и текста в коде страницы нет (правило страницы 4.3): текст лежит
+ * в `data/static-blocks.json` под ключом `tenders.note`, адреса — в
+ * `data/public-docs.json`, те же записи, что и на «Публічній інформації».
+ * Второй копии адресов не заводится: сменится адрес портала — правится
+ * одна запись выгрузки, а не две страницы.
+ *
+ * Ссылка на Prozorro остаётся на странице и в версии 2: она не зависит
+ * от синхронизации (ТЗ 4.9, «При отсутствии данных»).
+ */
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import { publicDocs, staticBlockText } from '../../gateway/data';
+import { tenderLinks, PLACE_TAGS } from '../../domain/public-docs';
+import { withBase } from '../../config/site';
+
+const note = staticBlockText('tenders.note');
+const links = tenderLinks(publicDocs);
+
+const description =
+  'Закупівлі КП УЗН Деснянського району: прямі посилання на пошук у Prozorro за ЄДРПОУ 04589645 та на реєстри договорів і трансакцій підприємства на порталі Є-data.';
 ---
 
-<BaseLayout section="Наші закупівлі" path="/tenders/">
+<BaseLayout section="Наші закупівлі" path="/tenders/" description={description}>
   <h1>Наші закупівлі</h1>
+
+  {note && <p class="lead">{note.uk}</p>}
+
+  {links.length > 0 && (
+    <section class="section">
+      <h2>Де дивитися закупівлі підприємства</h2>
+      <ul class="grid grid--2 list-bare">
+        {links.map((doc) => (
+          <li class="card">
+            <h3 class="card__title">
+              <a class="ext" href={doc.externalUrl} target="_blank" rel="noopener noreferrer">
+                {doc.title.uk}
+              </a>
+            </h3>
+            <p class="card__text">
+              <span class="tag">{PLACE_TAGS[doc.publishedWhere]}</span>
+            </p>
+          </li>
+        ))}
+      </ul>
+    </section>
+  )}
+
+  <section class="section">
+    <h2>Інші документи підприємства</h2>
+    <p>
+      Фінансова звітність, оплата праці, статут і стратегічний план — на сторінці{' '}
+      <a href={withBase('/about/public-info/')}>«Публічна інформація»</a>.
+    </p>
+  </section>
 </BaseLayout>

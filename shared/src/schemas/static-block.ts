@@ -11,6 +11,7 @@ export const blockKeySchema = z.enum([
   'home.numbers',
   'about.history',
   'public-info.note',
+  'tenders.note',
   'news.fb.note',
   'news.feed.note',
 ]);
