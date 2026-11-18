@@ -60,6 +60,9 @@ const csp = [
     <title>{title}</title>
     <meta name="description" content={metaDescription} />
     <link rel="canonical" href={canonical} />
+    {/* Значок вкладки. Адрес через withBase: корневой /favicon.ico браузера
+        до страниц проекта не доходит — сайт живёт в подпапке (ТЗ 5.3, п. 10) */}
+    <link rel="icon" href={withBase('/favicon.svg')} type="image/svg+xml" sizes="any" />
 
     <meta property="og:type" content="website" />
     <meta property="og:locale" content="uk_UA" />

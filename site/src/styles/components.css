@@ -34,10 +34,29 @@ h4 { font-size: var(--fs-h4); font-weight: 600; }
 p { margin: 0 0 var(--s-4); max-width: var(--measure); }
 ul, ol { margin: 0 0 var(--s-4); padding-left: var(--s-5); }
 
-a { color: var(--c-mid); text-underline-offset: 3px; }
-a:hover { color: var(--c-ink); }
+a { color: var(--c-mid); text-underline-offset: var(--bw-mark); }
+/* На наведении ссылка не гасится до цвета текста: темнеет и утолщает
+   подчёркивание — признак ссылки остаётся вторым, не только цвет. */
+a:hover { color: var(--c-ink); text-decoration-thickness: 2px; }
 
 img, svg { max-width: 100%; }
+
+/* Переход цвета на смене состояния (дизайн-система, раздел 10).
+   Только цвет: ни один из этих переходов не двигает разметку и не запускает
+   пересчёт страницы. Контур фокуса намеренно не перечислен — он должен
+   появляться мгновенно. prefers-reduced-motion в tokens.css снимает всё. */
+a,
+.btn,
+.tel,
+.nav__toggle,
+.nav__list a,
+.leader__bio > summary {
+  transition:
+    color var(--motion-fast) var(--motion-ease),
+    background-color var(--motion-fast) var(--motion-ease),
+    border-color var(--motion-fast) var(--motion-ease),
+    text-decoration-thickness var(--motion-fast) var(--motion-ease);
+}
 
 /* Фокус — один на весь сайт (ТЗ 11.3 п.2) */
 :where(a, button, summary, input, [tabindex]):focus-visible {
@@ -92,7 +111,9 @@ img, svg { max-width: 100%; }
   text-decoration: none; cursor: pointer;
 }
 .btn:hover { background: var(--c-ink); color: var(--c-surface); }
-.btn:active { background: var(--c-ink); transform: translateY(1px); }
+/* Цвет текста задаётся вместе с фоном: без него `.btn--ghost` и `.btn--quiet`
+   на нажатии получали тёмный фон при тёмном тексте и становились нечитаемыми. */
+.btn:active { background: var(--c-ink); color: var(--c-surface); transform: translateY(1px); }
 .btn .ico { flex: none; }
 
 .btn--ghost {
@@ -217,7 +238,7 @@ img, svg { max-width: 100%; }
 .brand__leaf { fill: var(--c-mint); }
 .brand__vein { stroke: var(--c-deep); }
 .brand__ground { stroke: var(--c-pale); }
-.brand__name { font-family: var(--f-head); font-weight: 700; font-size: 0.9375rem; line-height: 1.15; }
+.brand__name { font-family: var(--f-head); font-weight: 700; font-size: var(--fs-body); line-height: var(--lh-tight); }
 .brand__name span { display: block; font-family: var(--f-text); font-weight: 400; font-size: var(--fs-caption); color: var(--c-deep); }
 
 /* Меню без JavaScript: кнопка + popover (ТЗ 11.7 п.4, решение 010).
@@ -229,6 +250,7 @@ img, svg { max-width: 100%; }
   padding: 0; background: none; border: 0; border-radius: var(--r-sm);
   color: var(--c-ink); cursor: pointer;
 }
+.nav__toggle:hover { background: var(--c-pale); }
 .nav__list { list-style: none; margin: 0; padding: var(--s-2) 0 var(--s-4); }
 .nav__list[popover] {
   position: fixed; inset: auto 0 auto 0; top: var(--h-header);
@@ -246,7 +268,18 @@ img, svg { max-width: 100%; }
   border-bottom: var(--bw) solid var(--c-line);
 }
 .nav__list a:hover { color: var(--c-mid); }
-.nav__list [aria-current="page"] { color: var(--c-deep); border-left: 3px solid var(--c-mid); padding-left: var(--s-3); }
+/* Текущая страница в выпадающем меню. Селектор поднят до
+   `span[aria-current="page"]`: прежний `.nav__list [aria-current="page"]`
+   уступал по силе правилу `.nav__list span[aria-current]` выше, и цвет не
+   применялся вовсе — метку держала одна полоска слева. Признаков теперь три:
+   полоска, заливка и насыщенность, то есть не только цвет (ТЗ 11.3, п. 10). */
+.nav__list span[aria-current="page"] {
+  color: var(--c-ink);
+  font-weight: 700;
+  background: var(--c-pale);
+  border-left: var(--bw-mark) solid var(--c-mid);
+  padding-left: var(--s-3);
+}
 .nav__sub { list-style: none; margin: 0; padding-left: var(--s-4); }
 .nav__sub a { font-weight: 400; }
 
@@ -261,7 +294,21 @@ img, svg { max-width: 100%; }
     max-height: none; overflow: visible;
     padding: 0; background: none; border: 0;
   }
-  .nav__list > li > a, .nav__list > li > span[aria-current] { border-bottom: 0; }
+  /* Полоса в 3 px отводится каждому пункту заранее: у текущего она цветная,
+     у остальных прозрачная — ряд не дёргается при переходе между страницами. */
+  .nav__list > li > a, .nav__list > li > span[aria-current] {
+    border-bottom: var(--bw-mark) solid transparent;
+    padding-bottom: var(--s-1);
+  }
+  /* В ряду метка идёт снизу, а не слева: вертикальная полоска у горизонтального
+     пункта читается как разделитель колонок, а не как «вы здесь». Заливка в ряду
+     не нужна — полоса и насыщенность различают пункт сами. */
+  .nav__list > li > span[aria-current="page"] {
+    background: none;
+    border-left: 0;
+    padding-left: 0;
+    border-bottom-color: var(--c-mid);
+  }
   .nav__sub { display: none; }
 }
 
@@ -270,6 +317,11 @@ img, svg { max-width: 100%; }
   background: var(--c-deep); color: var(--c-bg);
   padding-block: var(--s-8);
   font-size: var(--fs-caption);
+  /* Общий контур фокуса — --c-ink; на заливке подвала он даёт 1,36:1 и не
+     виден, а ТЗ 11.3, п. 2 требует ≥3:1. На тёмной поверхности контур берёт
+     цвет фона страницы: 7,18:1. Значение переопределяется областью, а не
+     отдельным правилом, — тёмная тема версии 3 сделает то же самое. */
+  --c-focus: var(--c-bg);
 }
 .site-footer a { color: var(--c-bg); }
 .site-footer a:hover { color: var(--c-mint); }
@@ -277,7 +329,7 @@ img, svg { max-width: 100%; }
 .site-footer .tel {
   background: transparent; border-color: var(--c-mint); color: var(--c-bg);
 }
-.site-footer .tel:hover { background: rgba(255,255,255,.08); color: var(--c-bg); }
+.site-footer .tel:hover { background: var(--c-hover-deep); color: var(--c-bg); }
 .site-footer .tel .ico { color: var(--c-mint); }
 /* Подпись-часы: на тёмном фоне подвала --c-deep не читается (ТЗ 11.3 п.1) */
 .site-footer .tel__hint { color: var(--c-sand); }
@@ -300,15 +352,18 @@ img, svg { max-width: 100%; }
 
 /* ---------- Печать (ТЗ 11.7 п.7) ---------- */
 @media print {
+  /* Переходы снимаются целиком: смена носителя меняет цвета, и браузер успевает
+     поймать их на полпути — граница телефона уходила на бумагу выцветшей. */
+  *, *::before, *::after { transition: none !important; }
   .site-header, .nav, .btn, .skip { display: none !important; }
-  body { background: #fff; color: #000; font-size: 12pt; }
-  .tel { border: 1px solid #000; }
+  body { background: var(--c-print-bg); color: var(--c-print-ink); font-size: var(--fs-print); }
+  .tel { border: var(--bw) solid var(--c-print-ink); }
   a[href^="tel:"]::after { content: ""; }
   /* Телефоны и адрес в подвале печатаются по тексту, а не по тёмной заливке */
-  .site-footer { background: #fff; color: #000; }
-  .site-footer a, .site-footer h2, .site-footer__note { color: #000; }
-  .site-footer .tel { border-color: #000; color: #000; }
-  .site-footer .tel .ico { color: #000; }
+  .site-footer { background: var(--c-print-bg); color: var(--c-print-ink); --c-focus: var(--c-print-ink); }
+  .site-footer a, .site-footer h2, .site-footer__note { color: var(--c-print-ink); }
+  .site-footer .tel { border-color: var(--c-print-ink); color: var(--c-print-ink); }
+  .site-footer .tel .ico { color: var(--c-print-ink); }
   .card, .specs th, .specs td { break-inside: avoid; }
   .ext::after { content: ""; }
 }
