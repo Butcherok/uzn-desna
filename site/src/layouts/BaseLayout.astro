@@ -61,8 +61,10 @@ const csp = [
     <meta name="description" content={metaDescription} />
     <link rel="canonical" href={canonical} />
     {/* Значок вкладки. Адрес через withBase: корневой /favicon.ico браузера
-        до страниц проекта не доходит — сайт живёт в подпапке (ТЗ 5.3, п. 10) */}
-    <link rel="icon" href={withBase('/favicon.svg')} type="image/svg+xml" sizes="any" />
+        до страниц проекта не доходит — сайт живёт в подпапке (ТЗ 5.3, п. 10).
+        Метка версии `?v=2`: кэш значков Chrome держит значок дольше страницы,
+        и без смены адреса браузер остаётся на прежнем файле (решение 015) */}
+    <link rel="icon" href={withBase('/favicon.svg?v=2')} type="image/svg+xml" sizes="any" />
 
     <meta property="og:type" content="website" />
     <meta property="og:locale" content="uk_UA" />
