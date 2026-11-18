@@ -4,7 +4,12 @@
  */
 import type { PublicDoc, PublishedWhere } from '@uzn/shared';
 
-/** Где опубликован пункт — словом, не цветом и не значком (ТЗ 11.3, п. 10). */
+/**
+ * Где опубликован пункт — словом, не цветом и не значком (ТЗ 11.3, п. 10).
+ * Полная формулировка: перечень по ч. 8 ст. 60-2, где для неё есть строка
+ * таблицы. Для `request` формулировка закреплена решением Заказчика
+ * 15.11.2026 и чек-листом 12.2 — не менять.
+ */
 export const PLACE_LABELS: Record<PublishedWhere, string> = {
   own: 'На цьому сайті',
   parent: 'На чинній сторінці підприємства',
@@ -13,6 +18,23 @@ export const PLACE_LABELS: Record<PublishedWhere, string> = {
   edata: 'На порталі Є-data',
   request: 'Надається за запитом на інформацію',
 };
+
+/**
+ * То же место коротким словом-признаком — для метки `.tag` на карточке
+ * (дизайн-система, раздел 7; решение 017). Предел длины — `PLACE_TAG_MAX`:
+ * метка длиннее колонки расширяла карточку и давала горизонтальную прокрутку.
+ */
+export const PLACE_TAGS: Record<PublishedWhere, string> = {
+  own: 'Цей сайт',
+  parent: 'Чинна сторінка',
+  balans: 'Система «Баланс»',
+  prozorro: 'Prozorro',
+  edata: 'Є-data',
+  request: 'За запитом',
+};
+
+/** Предел длины метки-признака в знаках (дизайн-система, раздел 7). */
+export const PLACE_TAG_MAX = 24;
 
 const byOrder = (a: PublicDoc, b: PublicDoc): number => a.order - b.order;
 

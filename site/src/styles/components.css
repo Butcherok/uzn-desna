@@ -171,7 +171,11 @@ a,
 .card__title { margin: 0; font-size: var(--fs-h3); }
 .card__text { margin: 0; color: var(--c-deep); }
 
-/* Метка-признак: смысл передаётся словом, не цветом (ТЗ 11.3 п.10) */
+/* Метка-признак: смысл передаётся словом, не цветом (ТЗ 11.3 п.10).
+   Переноса-запрета здесь нет намеренно: с `white-space: nowrap` метка длиннее
+   колонки растягивала карточку и давала горизонтальную прокрутку страницы
+   (решение 017). `overflow-wrap: anywhere` уменьшает и min-content колонки,
+   поэтому сетка не распирается даже одним длинным словом. */
 .tag {
   display: inline-block;
   padding: 2px var(--s-2);
@@ -180,7 +184,8 @@ a,
   color: var(--c-ink);
   font-size: var(--fs-caption);
   line-height: 1.6;
-  white-space: nowrap;
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 .tag--line { background: transparent; border: var(--bw) solid var(--c-border); }
 .tag-row { display: flex; flex-wrap: wrap; gap: var(--s-2); }
