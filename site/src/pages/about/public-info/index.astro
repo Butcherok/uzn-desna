@@ -6,7 +6,13 @@
  */
 import BaseLayout from '../../../layouts/BaseLayout.astro';
 import { publicDocs, staticBlockText } from '../../../gateway/data';
-import { featuredDocs, normList, procurementDocs, PLACE_LABELS } from '../../../domain/public-docs';
+import {
+  featuredDocs,
+  normList,
+  procurementDocs,
+  PLACE_LABELS,
+  PLACE_TAGS,
+} from '../../../domain/public-docs';
 import { withBase } from '../../../config/site';
 
 const note = staticBlockText('public-info.note');
@@ -35,7 +41,7 @@ const description =
               </a>
             </h3>
             <p class="card__text">
-              <span class="tag">{PLACE_LABELS[doc.publishedWhere]}</span>
+              <span class="tag">{PLACE_TAGS[doc.publishedWhere]}</span>
             </p>
           </li>
         ))}
@@ -55,7 +61,7 @@ const description =
               </a>
             </h3>
             <p class="card__text">
-              <span class="tag">{PLACE_LABELS[doc.publishedWhere]}</span>
+              <span class="tag">{PLACE_TAGS[doc.publishedWhere]}</span>
             </p>
           </li>
         ))}
