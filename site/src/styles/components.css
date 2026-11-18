@@ -232,12 +232,14 @@ a,
   min-height: var(--h-header);
 }
 .brand { display: flex; align-items: center; gap: var(--s-2); color: var(--c-ink); text-decoration: none; }
-/* Знак «Вариант А»: наш рисунок, цвета — только токенами */
+/* Знак «дерево в колі», форма Д4 (решение 015): два цвета, цвета — только
+   токенами. `.brand__cut` — прорезь ствола в кроне: заливка цвета круга */
 .brand__mark { flex: none; }
 .brand__disc { fill: var(--c-deep); }
-.brand__leaf { fill: var(--c-mint); }
-.brand__vein { stroke: var(--c-deep); }
-.brand__ground { stroke: var(--c-pale); }
+.brand__crown { fill: var(--c-mint); }
+.brand__trunk { fill: var(--c-mint); }
+.brand__cut { fill: var(--c-deep); }
+.brand__ground { fill: var(--c-mint); }
 .brand__name { font-family: var(--f-head); font-weight: 700; font-size: var(--fs-body); line-height: var(--lh-tight); }
 .brand__name span { display: block; font-family: var(--f-text); font-weight: 400; font-size: var(--fs-caption); color: var(--c-deep); }
 
