@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "generatedAt": "2026-11-19T17:19:11.053Z",
   "source": "sync",
-  "state": "data",
+  "state": "unknown",
   "items": [
     {
       "tenderID": "UA-2026-11-19-010207-a",
@@ -227,5 +227,10 @@
   ],
   "fetchedAt": "2026-11-19T17:19:11.053Z",
   "lastSuccessAt": "2026-11-19T17:19:11.053Z",
-  "sourceErrors": []
+  "sourceErrors": [
+    {
+      "source": "prozorro",
+      "code": "SRC_HTTP_4XX"
+    }
+  ]
 }
