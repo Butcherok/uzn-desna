@@ -39,8 +39,6 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v7
-        with:
-          ref: main
 
       - uses: actions/setup-node@v7
         with:
@@ -91,7 +89,7 @@ jobs:
           PROZORRO_SEARCH_URL: ''
         run: |
           set +e
-          npm run --silent sync -- $STEPS
+          npm run sync -- $STEPS
           echo "exit=$?" >> "$GITHUB_OUTPUT"
 
       - name: Commit to sync-data
