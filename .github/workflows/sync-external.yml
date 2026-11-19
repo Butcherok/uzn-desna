@@ -14,16 +14,16 @@ on:
     - cron: '10 5 * * *'
     - cron: '10 11 * * *'
     - cron: '10 17 * * *'
-  # TEMP: push trigger for testing on the feature branch; removed before review.
-  push:
-    branches: [feat/sync-prozorro]
-    paths: [.github/workflows/sync-external.yml]
   workflow_dispatch:
     inputs:
       steps:
         description: 'Шаги через пробел'
         required: true
         default: 'prozorro'
+      prozorro_url:
+        description: 'Только для проверки 12.3: другой адрес поиска Prozorro (пусто — рабочий)'
+        required: false
+        default: ''
 
 permissions:
   contents: write
@@ -55,9 +55,7 @@ jobs:
           SCHEDULE: ${{ github.event.schedule }}
           INPUT_STEPS: ${{ inputs.steps }}
         run: |
-          if [ "$EVENT" = "push" ]; then
-            steps="prozorro"
-          elif [ "$EVENT" = "workflow_dispatch" ]; then
+          if [ "$EVENT" = "workflow_dispatch" ]; then
             steps="$INPUT_STEPS"
           elif [ "$SCHEDULE" = "10 5 * * *" ]; then
             steps="prozorro"
@@ -85,8 +83,9 @@ jobs:
         if: steps.steps.outputs.list != ''
         env:
           STEPS: ${{ steps.steps.outputs.list }}
-          # TEMP: checklist 12.3 broken-address run; removed before review.
-          PROZORRO_SEARCH_URL: ''
+          # Пусто — рабочий адрес. Для строки чек-листа 12.3 «испорченный адрес»
+          # владелец задаёт адрес того же портала при ручном запуске.
+          PROZORRO_SEARCH_URL: ${{ inputs.prozorro_url }}
         run: |
           set +e
           npm run sync -- $STEPS

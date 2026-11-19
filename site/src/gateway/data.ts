@@ -13,6 +13,7 @@ import {
   scenariosFileSchema,
   servicesFileSchema,
   staticBlocksFileSchema,
+  tendersFileSchema,
   SCHEMA_VERSION,
 } from '@uzn/shared';
 import type {
@@ -24,6 +25,7 @@ import type {
   Leader,
   Scenario,
   Service,
+  TendersFile,
 } from '@uzn/shared';
 import contactsRaw from '../../../data/contacts.json';
 import enterpriseRaw from '../../../data/enterprise.json';
@@ -32,6 +34,9 @@ import publicDocsRaw from '../../../data/public-docs.json';
 import scenariosRaw from '../../../data/scenarios.json';
 import servicesRaw from '../../../data/services.json';
 import staticBlocksRaw from '../../../data/static-blocks.json';
+// Файл синхронизации (ТЗ 6.3). В `main` — заготовка; при деплое его
+// подменяет версия из ветки `sync-data` (решение 023).
+import tendersRaw from '../../../data/sync/tenders.json';
 
 function parseFile<T>(name: string, schema: { parse: (input: unknown) => T }, raw: unknown): T {
   try {
@@ -51,6 +56,7 @@ const publicDocsFile = parseFile('public-docs.json', publicDocsFileSchema, publi
 const scenariosFile = parseFile('scenarios.json', scenariosFileSchema, scenariosRaw);
 const servicesFile = parseFile('services.json', servicesFileSchema, servicesRaw);
 const staticBlocksFile = parseFile('static-blocks.json', staticBlocksFileSchema, staticBlocksRaw);
+const tendersFile = parseFile('sync/tenders.json', tendersFileSchema, tendersRaw);
 
 for (const [name, file] of [
   ['contacts.json', contactsFile],
@@ -60,6 +66,7 @@ for (const [name, file] of [
   ['scenarios.json', scenariosFile],
   ['services.json', servicesFile],
   ['static-blocks.json', staticBlocksFile],
+  ['sync/tenders.json', tendersFile],
 ] as const) {
   if (file.schemaVersion !== SCHEMA_VERSION) {
     throw new Error(
@@ -73,6 +80,7 @@ export const contacts: readonly Contact[] = contactsFile.items;
 export const scenarios: readonly Scenario[] = scenariosFile.items;
 export const leaders: readonly Leader[] = leadersFile.items;
 export const services: readonly Service[] = servicesFile.items;
+export const tenders: TendersFile = tendersFile;
 
 /** `Enterprise` — синглтон (ТЗ 6.2): количество записей проверено схемой файла. */
 const [enterpriseRecord] = enterpriseFile.items;
