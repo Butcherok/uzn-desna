@@ -15,6 +15,8 @@ import {
   scenarioSchema,
   serviceSchema,
   staticBlockSchema,
+  syncStateFileSchema,
+  tendersFileSchema,
   SCHEMA_VERSION,
 } from '@uzn/shared';
 
@@ -34,6 +36,42 @@ const ITEM_SCHEMAS: Record<string, ZodType> = {
   'services.json': serviceSchema,
   'static-blocks.json': staticBlockSchema,
 };
+
+/**
+ * Файлы синхронизации (ТЗ 6.3, 7.1) лежат в `data/sync/` и проверяются
+ * схемой файла целиком: у `sync-state.json` нет поля `state`, у
+ * `tenders.json` оно обязательно вместе с `fetchedAt` и `sourceErrors` (ТЗ 6.5).
+ */
+const SYNC_DIR = join(DATA_DIR, 'sync');
+const SYNC_FILE_SCHEMAS: Record<string, ZodType> = {
+  'tenders.json': tendersFileSchema,
+  'sync-state.json': syncStateFileSchema,
+};
+
+async function checkSyncFiles(problems: string[]): Promise<void> {
+  const entries = await readdir(SYNC_DIR).catch(() => [] as string[]);
+  for (const name of entries.filter((entry) => entry.endsWith('.json')).sort()) {
+    const schema = SYNC_FILE_SCHEMAS[name];
+    if (schema === undefined) {
+      problems.push(`sync/${name}: файл синхронизации без схемы`);
+      continue;
+    }
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(await readFile(join(SYNC_DIR, name), 'utf8'));
+    } catch (error) {
+      problems.push(`sync/${name}: не разбирается как JSON (${(error as Error).message})`);
+      continue;
+    }
+    const result = schema.safeParse(parsed);
+    if (!result.success) {
+      const issue = result.error.issues[0];
+      problems.push(`sync/${name}: ${issue?.path.join('.') || 'файл'} — ${issue?.message}`);
+      continue;
+    }
+    console.log(`data:check — sync/${name}: ок`);
+  }
+}
 
 /** Сущности-синглтоны (ТЗ 6.2, кардинальность): ровно одна запись в файле. */
 const SINGLETON_FILES = new Set(['enterprise.json']);
@@ -104,6 +142,8 @@ async function main(): Promise<void> {
 
     console.log(`data:check — ${name}: ок, записей ${result.data.items.length}`);
   }
+
+  await checkSyncFiles(problems);
 
   if (problems.length > 0) {
     console.error('data:check — не пройдено:');

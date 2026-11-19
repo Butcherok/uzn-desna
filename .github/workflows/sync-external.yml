@@ -1,0 +1,119 @@
+# Синхронизация внешних источников (ТЗ 7.1, 7.6; решение 023).
+#
+# Пишет не в `main`, а в ветку `sync-data`: прямой push в `main` запрещён
+# правилом защиты (решение 006), а коммит от GITHUB_TOKEN не запускает
+# рабочие процессы по `push`. Поэтому после изменения данных сайта этот
+# процесс сам запускает `deploy` вручную (`workflow_dispatch` — исключение
+# из этого правила), а `deploy` при сборке берёт `data/sync/` из `sync-data`.
+name: Sync external
+
+on:
+  schedule:
+    # Время в UTC. По Киеву зимой 07:10, 13:10, 19:10; летом на час позже.
+    # Prozorro — только в утреннем прогоне (ТЗ 7.3, п. 3).
+    - cron: '10 5 * * *'
+    - cron: '10 11 * * *'
+    - cron: '10 17 * * *'
+  # TEMP: push trigger for testing on the feature branch; removed before review.
+  push:
+    branches: [feat/sync-prozorro]
+    paths: [.github/workflows/sync-external.yml]
+  workflow_dispatch:
+    inputs:
+      steps:
+        description: 'Шаги через пробел'
+        required: true
+        default: 'prozorro'
+
+permissions:
+  contents: write
+  actions: write
+
+concurrency:
+  group: sync-external
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: main
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Choose steps
+        id: steps
+        env:
+          EVENT: ${{ github.event_name }}
+          SCHEDULE: ${{ github.event.schedule }}
+          INPUT_STEPS: ${{ inputs.steps }}
+        run: |
+          if [ "$EVENT" = "push" ]; then
+            steps="prozorro"
+          elif [ "$EVENT" = "workflow_dispatch" ]; then
+            steps="$INPUT_STEPS"
+          elif [ "$SCHEDULE" = "10 5 * * *" ]; then
+            steps="prozorro"
+          else
+            steps=""
+          fi
+          echo "list=$steps" >> "$GITHUB_OUTPUT"
+          echo "Шаги прогона: ${steps:-нет}"
+
+      - name: Restore previous sync data
+        if: steps.steps.outputs.list != ''
+        run: |
+          if git ls-remote --exit-code --heads origin sync-data > /dev/null; then
+            git fetch --depth=1 origin sync-data
+            git worktree add ../sync-data FETCH_HEAD
+            git -C ../sync-data switch -c sync-data
+            mkdir -p data/sync
+            cp ../sync-data/data/sync/*.json data/sync/ 2> /dev/null || true
+          else
+            git worktree add --orphan -b sync-data ../sync-data
+          fi
+
+      - name: Run sync
+        id: sync
+        if: steps.steps.outputs.list != ''
+        env:
+          STEPS: ${{ steps.steps.outputs.list }}
+          # TEMP: checklist 12.3 broken-address run; removed before review.
+          PROZORRO_SEARCH_URL: ''
+        run: |
+          set +e
+          npm run --silent sync -- $STEPS
+          echo "exit=$?" >> "$GITHUB_OUTPUT"
+
+      - name: Commit to sync-data
+        if: steps.sync.outputs.any_changed == 'true'
+        run: |
+          mkdir -p ../sync-data/data/sync
+          cp data/sync/*.json ../sync-data/data/sync/
+          cd ../sync-data
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/sync
+          git commit -m "chore(sync): update external data"
+          git push origin sync-data
+
+      - name: Start deploy
+        if: steps.sync.outputs.site_changed == 'true' && github.ref == 'refs/heads/main'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run deploy.yml --ref main
+
+      # Падение — после записи: счётчик сбоев уже в `sync-data`, а владелец
+      # получает письмо GitHub о неудачном прогоне (ТЗ 7.5, п. 3).
+      - name: Fail on third failure in a row
+        if: steps.sync.outputs.exit != '' && steps.sync.outputs.exit != '0'
+        run: exit 1
