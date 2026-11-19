@@ -1,0 +1,41 @@
+# Temporary probe (TZ 7.3, item 5; placeholder 36): does the Prozorro portal
+# search answer a GitHub-hosted runner? Logs status, length and field
+# presence only, never the response body. Removed before the PR is merged.
+name: Probe Prozorro
+
+on:
+  push:
+    branches: [feat/sync-prozorro]
+    paths: [.github/workflows/probe-prozorro.yml]
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Query portal search from runner
+        run: |
+          node --input-type=module -e '
+          const url = "https://prozorro.gov.ua/api/search/tenders?buyer%5B0%5D=04589645";
+          for (const [label, headers] of [["bare", {}], ["json", { accept: "application/json" }]]) {
+            const t0 = Date.now();
+            try {
+              const res = await fetch(url, { method: "POST", headers, signal: AbortSignal.timeout(15000) });
+              const text = await res.text();
+              const out = { label, status: res.status, ms: Date.now() - t0, bytes: text.length,
+                ratelimitLimit: res.headers.get("x-ratelimit-limit"),
+                ratelimitRemaining: res.headers.get("x-ratelimit-remaining"),
+                contentType: res.headers.get("content-type") };
+              try {
+                const d = JSON.parse(text);
+                const first = d.data?.[0] ?? {};
+                Object.assign(out, { total: d.total, perPage: d.per_page, items: d.data?.length,
+                  hasTenderID: "tenderID" in first, hasTitle: "title" in first, hasStatus: "status" in first,
+                  hasValue: "value" in first, hasEndDate: Boolean(first.tenderPeriod?.endDate),
+                  firstKeys: Object.keys(first).sort().join(","), statuses: [...new Set(d.data?.map((x) => x.status))].join(",") });
+              } catch { out.json = false; }
+              console.log(JSON.stringify(out));
+            } catch (e) { console.log(JSON.stringify({ label, error: e.name, ms: Date.now() - t0 })); }
+          }'
