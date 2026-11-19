@@ -1,18 +1,18 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-11-19T17:20:54.174Z",
+  "generatedAt": "2026-11-19T17:22:24.979Z",
   "source": "sync",
   "items": [
     {
       "source": "prozorro",
-      "lastRunAt": "2026-11-19T17:20:54.174Z",
-      "lastSuccessAt": "2026-11-19T17:19:11.053Z",
-      "result": "error",
-      "errorCode": "SRC_HTTP_4XX",
-      "errorMessage": "HTTP 404",
-      "itemsFetched": 0,
+      "lastRunAt": "2026-11-19T17:22:24.979Z",
+      "lastSuccessAt": "2026-11-19T17:22:24.979Z",
+      "result": "ok",
+      "errorCode": null,
+      "errorMessage": null,
+      "itemsFetched": 20,
       "itemsNew": 0,
-      "consecutiveFailures": 1
+      "consecutiveFailures": 0
     }
   ]
 }

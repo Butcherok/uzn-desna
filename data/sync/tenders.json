@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-11-19T17:19:11.053Z",
+  "generatedAt": "2026-11-19T17:22:24.979Z",
   "source": "sync",
-  "state": "unknown",
+  "state": "data",
   "items": [
     {
       "tenderID": "UA-2026-11-19-010207-a",
@@ -225,12 +225,7 @@
       "url": "https://prozorro.gov.ua/tender/UA-2026-10-19-008246-a"
     }
   ],
-  "fetchedAt": "2026-11-19T17:19:11.053Z",
-  "lastSuccessAt": "2026-11-19T17:19:11.053Z",
-  "sourceErrors": [
-    {
-      "source": "prozorro",
-      "code": "SRC_HTTP_4XX"
-    }
-  ]
+  "fetchedAt": "2026-11-19T17:22:24.979Z",
+  "lastSuccessAt": "2026-11-19T17:22:24.979Z",
+  "sourceErrors": []
 }
