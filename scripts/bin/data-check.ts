@@ -17,6 +17,7 @@ import {
   staticBlockSchema,
   syncStateFileSchema,
   tendersFileSchema,
+  vacancySchema,
   SCHEMA_VERSION,
 } from '@uzn/shared';
 
@@ -35,6 +36,7 @@ const ITEM_SCHEMAS: Record<string, ZodType> = {
   'scenarios.json': scenarioSchema,
   'services.json': serviceSchema,
   'static-blocks.json': staticBlockSchema,
+  'vacancies.json': vacancySchema,
 };
 
 /**

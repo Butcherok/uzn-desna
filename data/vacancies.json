@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-11-19T21:00:00.000Z",
+  "source": "admin-export",
+  "items": [
+    {
+      "slug": "ozeleniuvach",
+      "position": { "uk": "Озеленювач" },
+      "requirements": {
+        "uk": "Догляд за парками, скверами та вуличними зеленими насадженнями. Офіційне працевлаштування, графік Пн–Пт 08:00–17:00."
+      },
+      "contactId": "viddil-kadriv",
+      "publishedAt": "2026-07-17T12:23:00.000Z",
+      "order": 1
+    }
+  ]
+}

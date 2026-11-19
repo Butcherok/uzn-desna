@@ -59,6 +59,7 @@ export const NAV: readonly NavItem[] = [
     children: [
       { label: 'Публічна інформація', path: '/about/public-info/' },
       { label: 'Наші закупівлі', path: '/tenders/' },
+      { label: 'Вакансії', path: '/jobs/' },
     ],
   },
   { label: 'Послуги', path: '/services/' },
