@@ -8,6 +8,9 @@
  * ожидаемое состояние страницы, а не ошибка: сообщение и телефон остаются.
  * Пункт меню выводится и при пустом списке.
  *
+ * Показываются карточки с включённым переключателем, у которых не наступило
+ * «Актуально до»; дата публикации не выводится (решение 026).
+ *
  * Номер отдела кадров — одна запись `data/contacts.json`: блок сверху и
  * карточки берут его оттуда, второй копии номера нет.
  */
@@ -16,10 +19,12 @@ import PhoneLink from '../../components/PhoneLink.astro';
 import PhoneInline from '../../components/PhoneInline.astro';
 import { contacts, vacancies } from '../../gateway/data';
 import { contactBySlug } from '../../domain/contacts';
-import { HR_CONTACT_SLUG, vacancyCards } from '../../domain/vacancies';
+import { HR_CONTACT_SLUG, kyivDate, vacancyCards } from '../../domain/vacancies';
 
 const hr = contactBySlug(contacts, HR_CONTACT_SLUG);
-const cards = vacancyCards(vacancies, contacts);
+// День сборки: «Актуально до» срабатывает при ближайшей пересборке,
+// `deploy` пересобирает сайт хотя бы раз в сутки (решение 026).
+const cards = vacancyCards(vacancies, contacts, kyivDate(new Date()));
 
 const description =
   'Відкриті вакансії КП УЗН Деснянського району м. Києва і телефон відділу кадрів.';
@@ -54,8 +59,6 @@ const description =
             <p class="card__text">{card.requirements}</p>
             <p class="card__text">
               Телефон: <PhoneInline phone={card.phone} />
-              <br />
-              Опубліковано: {card.published}
             </p>
           </li>
         ))}

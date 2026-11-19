@@ -7,7 +7,13 @@ import { langText } from './lang-text.js';
  *
  * `contactId` — слаг контактной точки из `data/contacts.json` (отдел кадров):
  * номер хранится один раз, смена номера — одна правка (ТЗ 6.2, решение 2).
- * `publishedAt` — дата публикации вакансии, строка ISO 8601 в UTC (ТЗ 6.1, п. 3).
+ *
+ * Видимость (решение 026): `status` — переключатель «Показувати на сайті»
+ * (ТЗ 6.1, п. 5), `validThrough` — «Актуально до»: с этого дня включительно
+ * карточка на сайт не выходит. Дата публикации на странице не выводится
+ * (решение Заказчика 19.11.2026): «Відкриті вакансії» уже говорят, что
+ * перечень актуален на момент чтения. `publishedAt` проставит админка
+ * при публикации — для журнала, не для вывода.
  */
 export const vacancySchema = z.object({
   slug: z
@@ -20,7 +26,10 @@ export const vacancySchema = z.object({
   /** Две-три строки */
   requirements: langText(400),
   contactId: z.string().min(1).max(80),
-  publishedAt: z.iso.datetime(),
+  status: z.enum(['draft', 'published']),
+  /** «Актуально до», `ГГГГ-ММ-ДД`: с этого дня карточка скрыта */
+  validThrough: z.iso.date().optional(),
+  publishedAt: z.iso.datetime().optional(),
   order: z.number().int().nonnegative(),
 });
 
