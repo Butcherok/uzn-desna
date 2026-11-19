@@ -252,7 +252,11 @@ a,
   display: flex; align-items: center; justify-content: space-between; gap: var(--s-3);
   min-height: var(--h-header);
 }
-.brand { display: flex; align-items: center; gap: var(--s-2); color: var(--c-ink); text-decoration: none; }
+/* `min-height` у ссылки-логотипа: это управляющий элемент, и тач-цель должна
+   быть не меньше 44×44 px (ТЗ 11.1, п. 4). Без него высота ссылки равнялась
+   высоте двух строк названия — 36 px. В полосу шапки (`--h-header` 56 px)
+   44 px укладываются, высоту шапки это не меняет. */
+.brand { display: flex; align-items: center; gap: var(--s-2); min-height: var(--tap); color: var(--c-ink); text-decoration: none; }
 /* Знак «дерево в колі», форма Д4 (решения 015 и 016): два цвета, цвета —
    только токенами. `.brand__cut` — прорезь ствола в кроне: заливка цвета
    круга. `.brand__crown` — четыре фигуры: три доли и прямоугольник между
@@ -351,6 +355,10 @@ a,
 .site-footer a { color: var(--c-bg); }
 .site-footer a:hover { color: var(--c-mint); }
 .site-footer h2 { font-size: var(--fs-h4); color: var(--c-bg); }
+/* Заголовок-ссылка «Куди звертатися» в подвале стоит отдельно, а не внутри
+   предложения, поэтому подпадает под 44×44 px (ТЗ 11.1, п. 4): без этого
+   её высота равнялась высоте строки — 27 px. */
+.site-footer h2 a { display: inline-flex; align-items: center; min-height: var(--tap); }
 .site-footer .tel {
   background: transparent; border-color: var(--c-mint); color: var(--c-bg);
 }
