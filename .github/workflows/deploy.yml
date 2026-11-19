@@ -23,6 +23,18 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
+      # Данные синхронизации живут в ветке `sync-data` (решение 023). Нет
+      # ветки — сборка идёт на заготовке из `main` (`state: unknown`).
+      - name: Overlay synced data
+        run: |
+          if git ls-remote --exit-code --heads origin sync-data > /dev/null; then
+            git fetch --depth=1 origin sync-data
+            git checkout FETCH_HEAD -- data/sync
+            echo "data/sync взят из sync-data $(git rev-parse --short FETCH_HEAD)"
+          else
+            echo "Ветки sync-data нет — сборка на заготовке"
+          fi
+
       - uses: actions/setup-node@v7
         with:
           node-version-file: .nvmrc

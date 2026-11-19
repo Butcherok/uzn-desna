@@ -1,7 +1,11 @@
 ---
 /**
- * «Наші закупівлі» (ТЗ 4.9), версия 1 — страница-абзац: пояснение и прямые
- * ссылки на Prozorro и Є-data. Карточки закупок из API — версия 2.
+ * «Наші закупівлі» (ТЗ 4.9): пояснение, карточки последних закупок из
+ * синхронизации (версия 2) и прямые ссылки на Prozorro и Є-data.
+ *
+ * Карточки выводятся по правилу трёх состояний (ТЗ 3.3, 6.5): при ошибке
+ * источника — прежние карточки с датой получения, без них — «Дані тимчасово
+ * недоступні»; «пусто» при ошибке не показывается.
  *
  * Ссылок и текста в коде страницы нет (правило страницы 4.3): текст лежит
  * в `data/static-blocks.json` под ключом `tenders.note`, адреса — в
@@ -13,12 +17,14 @@
  * от синхронизации (ТЗ 4.9, «При отсутствии данных»).
  */
 import BaseLayout from '../../layouts/BaseLayout.astro';
-import { publicDocs, staticBlockText } from '../../gateway/data';
+import { publicDocs, staticBlockText, tenders } from '../../gateway/data';
 import { tenderLinks, PLACE_TAGS } from '../../domain/public-docs';
+import { tendersView } from '../../domain/tenders';
 import { withBase } from '../../config/site';
 
 const note = staticBlockText('tenders.note');
 const links = tenderLinks(publicDocs);
+const view = tendersView(tenders);
 
 const description =
   'Закупівлі КП УЗН Деснянського району: прямі посилання на пошук у Prozorro за ЄДРПОУ 04589645 та на реєстри договорів і трансакцій підприємства на порталі Є-data.';
@@ -28,6 +34,53 @@ const description =
   <h1>Наші закупівлі</h1>
 
   {note && <p class="lead">{note.uk}</p>}
+
+  <section class="section" aria-labelledby="tenders-latest">
+    <h2 id="tenders-latest">Останні закупівлі</h2>
+    {view.kind === 'unavailable' && <p>Дані тимчасово недоступні.</p>}
+    {view.kind === 'empty' && <p>Закупівель поки немає.</p>}
+    {view.kind === 'cards' && (
+      <>
+        {view.stale && (
+          <p class="card__text">
+            Дані отримано {view.stale}. Оновити їх зараз не вдалося — актуальний стан дивіться в
+            Prozorro.
+          </p>
+        )}
+        <ul class="grid grid--2 list-bare">
+          {view.cards.map((card) => (
+            <li class="card">
+              <h3 class="card__title">
+                <a class="ext" href={card.url} target="_blank" rel="noopener noreferrer">
+                  {card.title}
+                </a>
+              </h3>
+              <p class="card__text">
+                <span class="tag">{card.status}</span>
+              </p>
+              <p class="card__text">
+                Номер: {card.tenderID}
+                <br />
+                Оголошено: {card.published}
+                {card.amount && (
+                  <>
+                    <br />
+                    Очікувана вартість: {card.amount}
+                  </>
+                )}
+                {card.deadline && (
+                  <>
+                    <br />
+                    Подання пропозицій до: {card.deadline}
+                  </>
+                )}
+              </p>
+            </li>
+          ))}
+        </ul>
+      </>
+    )}
+  </section>
 
   {links.length > 0 && (
     <section class="section">

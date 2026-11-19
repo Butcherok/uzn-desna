@@ -28,3 +28,21 @@ export { truncateAtWord, TRUNCATE_EXCERPT, TRUNCATE_TITLE } from './format/trunc
 export { parseStoredPhone, formatPhone, storedPhoneSchema } from './format/phone.js';
 export { encodeHtmlEntities, mailtoLinkHtml } from './format/email.js';
 export { formatDate } from './format/date.js';
+export {
+  tenderSchema,
+  tendersFileSchema,
+  syncStateSchema,
+  syncStateFileSchema,
+  syncErrorCodeSchema,
+  syncSourceSchema,
+  sourceErrorSchema,
+  TENDER_ID,
+} from './schemas/tender.js';
+export type {
+  Tender,
+  TendersFile,
+  SyncState,
+  SyncStateFile,
+  SyncErrorCode,
+  SyncSource,
+} from './schemas/tender.js';

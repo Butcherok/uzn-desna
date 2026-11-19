@@ -8,6 +8,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@uzn/shared": "*"
+    "@uzn/shared": "*",
+    "zod": "^4.0.0"
   }
 }
