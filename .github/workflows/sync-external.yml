@@ -86,7 +86,7 @@ jobs:
         env:
           STEPS: ${{ steps.steps.outputs.list }}
           # TEMP: checklist 12.3 broken-address run; removed before review.
-          PROZORRO_SEARCH_URL: ''
+          PROZORRO_SEARCH_URL: 'https://prozorro.gov.ua/api/search/tenders-broken?buyer%5B0%5D=04589645'
         run: |
           set +e
           npm run sync -- $STEPS
