@@ -1,0 +1,231 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-11-19T17:19:11.053Z",
+  "source": "sync",
+  "state": "data",
+  "items": [
+    {
+      "tenderID": "UA-2026-11-19-010207-a",
+      "title": "Засіб для очищення скла зимовий та аерозоль універсальний",
+      "status": "complete",
+      "amount": 30800.35,
+      "currency": "UAH",
+      "vatIncluded": true,
+      "datePublished": "2026-11-19",
+      "tenderEndDate": null,
+      "url": "https://prozorro.gov.ua/tender/UA-2026-11-19-010207-a"
+    },
+    {
+      "tenderID": "UA-2026-11-18-011315-a",
+      "title": "Картриджі",
+      "status": "complete",
+      "amount": 46320,
+      "currency": "UAH",
+      "vatIncluded": false,
+      "datePublished": "2026-11-18",
+      "tenderEndDate": null,
+      "url": "https://prozorro.gov.ua/tender/UA-2026-11-18-011315-a"
+    },
+    {
+      "tenderID": "UA-2026-11-17-009630-a",
+      "title": "Обов’язкові профілактичні медичні огляди працівників",
+      "status": "complete",
+      "amount": 96550,
+      "currency": "UAH",
+      "vatIncluded": false,
+      "datePublished": "2026-11-17",
+      "tenderEndDate": null,
+      "url": "https://prozorro.gov.ua/tender/UA-2026-11-17-009630-a"
+    },
+    {
+      "tenderID": "UA-2026-11-17-001186-a",
+      "title": "Корд тримерний",
+      "status": "complete",
+      "amount": 51705,
+      "currency": "UAH",
+      "vatIncluded": false,
+      "datePublished": "2026-11-17",
+      "tenderEndDate": null,
+      "url": "https://prozorro.gov.ua/tender/UA-2026-11-17-001186-a"
+    },
+    {
+      "tenderID": "UA-2026-11-12-006460-a",
+      "title": "Дизельне пальне та бензин А95 (у формі облікових карток–талонів)",
+      "status": "active.awarded",
+      "amount": 829833.33,
+      "currency": "UAH",
+      "vatIncluded": false,
+      "datePublished": "2026-11-12",
+      "tenderEndDate": "2026-11-17T11:00:00+02:00",
+      "url": "https://prozorro.gov.ua/tender/UA-2026-11-12-006460-a"
+    },
+    {
+      "tenderID": "UA-2026-11-06-013509-a",
+      "title": "Ручний інструмент різний",
+      "status": "complete",
+      "amount": 19715.08,
+      "currency": "UAH",
+      "vatIncluded": true,
+      "datePublished": "2026-11-06",
+      "tenderEndDate": null,
+      "url": "https://prozorro.gov.ua/tender/UA-2026-11-06-013509-a"
+    },
+    {
+      "tenderID": "UA-2026-11-06-013407-a",
+      "title": "Вапно гашене",
+      "status": "complete",
+      "amount": 8400,
+      "currency": "UAH",
+      "vatIncluded": true,
+      "datePublished": "2026-11-06",
+      "tenderEndDate": null,
+      "url": "https://prozorro.gov.ua/tender/UA-2026-11-06-013407-a"
+    },
+    {
+      "tenderID": "UA-2026-11-06-003076-a",
+      "title": "Складові частини зрошувального обладнання",
+      "status": "active.tendering",
+      "amount": 295940.02,
+      "currency": "UAH",
+      "vatIncluded": false,
+      "datePublished": "2026-11-06",
+      "tenderEndDate": "2026-11-23T10:00:00+02:00",
+      "url": "https://prozorro.gov.ua/tender/UA-2026-11-06-003076-a"
+    },
+    {
+      "tenderID": "UA-2026-11-03-011526-a",
+      "title": "Стрічка шліфувальна",
+      "status": "complete",
+      "amount": 1317.6,
+      "currency": "UAH",
+      "vatIncluded": true,
+      "datePublished": "2026-11-03",
+      "tenderEndDate": null,
+      "url": "https://prozorro.gov.ua/tender/UA-2026-11-03-011526-a"
+    },
+    {
+      "tenderID": "UA-2026-11-03-011374-a",
+      "title": "Обладнання для паяння",
+      "status": "complete",
+      "amount": 10398.37,
+      "currency": "UAH",
+      "vatIncluded": true,
+      "datePublished": "2026-11-03",
+      "tenderEndDate": null,
+      "url": "https://prozorro.gov.ua/tender/UA-2026-11-03-011374-a"
+    },
+    {
+      "tenderID": "UA-2026-11-03-011169-a",
+      "title": "Електроінструменти",
+      "status": "complete",
+      "amount": 32124,
+      "currency": "UAH",
+      "vatIncluded": true,
+      "datePublished": "2026-11-03",
+      "tenderEndDate": null,
+      "url": "https://prozorro.gov.ua/tender/UA-2026-11-03-011169-a"
+    },
+    {
+      "tenderID": "UA-2026-11-03-010922-a",
+      "title": "Садовий інвентар",
+      "status": "complete",
+      "amount": 94600.08,
+      "currency": "UAH",
+      "vatIncluded": true,
+      "datePublished": "2026-11-03",
+      "tenderEndDate": null,
+      "url": "https://prozorro.gov.ua/tender/UA-2026-11-03-010922-a"
+    },
+    {
+      "tenderID": "UA-2026-10-30-006467-a",
+      "title": "Дизельне пальне (у формі облікових карток–талонів)",
+      "status": "complete",
+      "amount": 833130.33,
+      "currency": "UAH",
+      "vatIncluded": false,
+      "datePublished": "2026-10-30",
+      "tenderEndDate": "2026-11-04T00:00:00+02:00",
+      "url": "https://prozorro.gov.ua/tender/UA-2026-10-30-006467-a"
+    },
+    {
+      "tenderID": "UA-2026-10-30-005684-a",
+      "title": "Гідроакумулятор та бак для системи опалення",
+      "status": "complete",
+      "amount": 34300,
+      "currency": "UAH",
+      "vatIncluded": false,
+      "datePublished": "2026-10-30",
+      "tenderEndDate": null,
+      "url": "https://prozorro.gov.ua/tender/UA-2026-10-30-005684-a"
+    },
+    {
+      "tenderID": "UA-2026-10-30-001571-a",
+      "title": "Стрічка сигнальна",
+      "status": "complete",
+      "amount": 25280.62,
+      "currency": "UAH",
+      "vatIncluded": true,
+      "datePublished": "2026-10-30",
+      "tenderEndDate": null,
+      "url": "https://prozorro.gov.ua/tender/UA-2026-10-30-001571-a"
+    },
+    {
+      "tenderID": "UA-2026-10-27-009858-a",
+      "title": "Ліхтарі світлодіодні",
+      "status": "complete",
+      "amount": 8136,
+      "currency": "UAH",
+      "vatIncluded": true,
+      "datePublished": "2026-10-27",
+      "tenderEndDate": null,
+      "url": "https://prozorro.gov.ua/tender/UA-2026-10-27-009858-a"
+    },
+    {
+      "tenderID": "UA-2026-10-26-008101-a",
+      "title": "Гідродинамічна прочистка каналізаційної мережі підприємства та організація проведення гідрохімічного аналізу стічних вод після прочистки каналізаційної системи",
+      "status": "complete",
+      "amount": 20970,
+      "currency": "UAH",
+      "vatIncluded": true,
+      "datePublished": "2026-10-26",
+      "tenderEndDate": null,
+      "url": "https://prozorro.gov.ua/tender/UA-2026-10-26-008101-a"
+    },
+    {
+      "tenderID": "UA-2026-10-21-003468-a",
+      "title": "Канат",
+      "status": "complete",
+      "amount": 7740,
+      "currency": "UAH",
+      "vatIncluded": true,
+      "datePublished": "2026-10-21",
+      "tenderEndDate": null,
+      "url": "https://prozorro.gov.ua/tender/UA-2026-10-21-003468-a"
+    },
+    {
+      "tenderID": "UA-2026-10-21-003225-a",
+      "title": "Ланцюг",
+      "status": "complete",
+      "amount": 14778,
+      "currency": "UAH",
+      "vatIncluded": true,
+      "datePublished": "2026-10-21",
+      "tenderEndDate": null,
+      "url": "https://prozorro.gov.ua/tender/UA-2026-10-21-003225-a"
+    },
+    {
+      "tenderID": "UA-2026-10-19-008246-a",
+      "title": "Розчинник",
+      "status": "complete",
+      "amount": 23868,
+      "currency": "UAH",
+      "vatIncluded": true,
+      "datePublished": "2026-10-19",
+      "tenderEndDate": null,
+      "url": "https://prozorro.gov.ua/tender/UA-2026-10-19-008246-a"
+    }
+  ],
+  "fetchedAt": "2026-11-19T17:19:11.053Z",
+  "lastSuccessAt": "2026-11-19T17:19:11.053Z",
+  "sourceErrors": []
+}

@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-11-19T17:19:11.053Z",
+  "source": "sync",
+  "items": [
+    {
+      "source": "prozorro",
+      "lastRunAt": "2026-11-19T17:19:11.053Z",
+      "lastSuccessAt": "2026-11-19T17:19:11.053Z",
+      "result": "ok",
+      "errorCode": null,
+      "errorMessage": null,
+      "itemsFetched": 20,
+      "itemsNew": 20,
+      "consecutiveFailures": 0
+    }
+  ]
+}
