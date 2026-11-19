@@ -15,6 +15,27 @@
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+2000-206F,
                  U+20B4, U+2116, U+2190-2193, U+0400-045F, U+0490-0491;
 }
+/* Запасной шрифт основного текста, подогнанный по метрикам (решение 021).
+   Нужен против сдвига вёрстки (CLS): пока Inter едет, текст рисуется
+   системным шрифтом, а он на тексте наших страниц на 5,26 % уже — абзацы
+   перевёрстываются, и при подстановке Inter секции уезжают вниз
+   (ТЗ 11.2: CLS ≤ 0,10). Ничего не загружает: `local()` берёт шрифт,
+   уже стоящий в системе, а `size-adjust` ровняет его ширину под Inter.
+   Список `local()` нужен, чтобы подставлялся шрифт известной ширины,
+   а не что придётся: Arial — Windows и macOS, Helvetica Neue — macOS,
+   Roboto — Android, Liberation Sans — Linux. Разница между ними 0,7 %.
+   Значения считаны по 969 знакам текста «Куди звертатися»:
+   size-adjust — отношение ширины Inter к ширине Arial; вертикальные
+   метрики пересчитаны из Inter (ascender 1984, descender −494 при
+   upm 2048) с делением на этот же коэффициент. */
+@font-face {
+  font-family: "UZN Text FB";
+  src: local("Arial"), local("Helvetica Neue"), local("Roboto"), local("Liberation Sans");
+  size-adjust: 105.26%;
+  ascent-override: 92.04%;
+  descent-override: 22.92%;
+  line-gap-override: 0%;
+}
 @font-face {
   font-family: "UZN Head";
   src: url("../fonts/literata-cyrlat-var.woff2") format("woff2-variations");
@@ -53,7 +74,7 @@
 
   /* ---------- Шрифт ---------- */
   --f-head: "UZN Head", Georgia, "Times New Roman", serif;
-  --f-text: "UZN Text", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  --f-text: "UZN Text", "UZN Text FB", system-ui, sans-serif;
 
   /* Типографическая шкала, базовая точка 360 px */
   --fs-caption: 0.875rem;  /* 14 */
