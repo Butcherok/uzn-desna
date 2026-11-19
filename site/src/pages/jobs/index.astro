@@ -1,0 +1,65 @@
+---
+/**
+ * «Вакансії» (ТЗ 4.10): карточки открытых вакансий и телефон отдела кадров.
+ * Формы отклика нет.
+ *
+ * До админки данные лежат в `data/vacancies.json` и правятся через PR;
+ * админка потом пишет тот же формат (ТЗ 6.2, решение 025). Пустой список —
+ * ожидаемое состояние страницы, а не ошибка: сообщение и телефон остаются.
+ * Пункт меню выводится и при пустом списке.
+ *
+ * Номер отдела кадров — одна запись `data/contacts.json`: блок сверху и
+ * карточки берут его оттуда, второй копии номера нет.
+ */
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PhoneLink from '../../components/PhoneLink.astro';
+import PhoneInline from '../../components/PhoneInline.astro';
+import { contacts, vacancies } from '../../gateway/data';
+import { contactBySlug } from '../../domain/contacts';
+import { HR_CONTACT_SLUG, vacancyCards } from '../../domain/vacancies';
+
+const hr = contactBySlug(contacts, HR_CONTACT_SLUG);
+const cards = vacancyCards(vacancies, contacts);
+
+const description =
+  'Відкриті вакансії КП УЗН Деснянського району м. Києва і телефон відділу кадрів.';
+---
+
+<BaseLayout section="Вакансії" path="/jobs/" description={description}>
+  <h1>Вакансії</h1>
+
+  {cards.length === 0 && <p class="lead">Відкритих вакансій зараз немає.</p>}
+
+  {hr && (
+    <>
+      <p class={cards.length === 0 ? undefined : 'lead'}>
+        Про роботу на підприємстві — відділ кадрів.
+      </p>
+      <PhoneLink phone={hr.phone} hint={hr.hours?.uk} />
+    </>
+  )}
+
+  {cards.length > 0 && (
+    <section class="section" aria-labelledby="jobs-open">
+      <h2 id="jobs-open">Відкриті вакансії</h2>
+      <ul class="grid grid--2 list-bare">
+        {cards.map((card) => (
+          <li class="card">
+            <h3 class="card__title">{card.position}</h3>
+            {card.unit && (
+              <p class="card__text">
+                <span class="tag">{card.unit}</span>
+              </p>
+            )}
+            <p class="card__text">{card.requirements}</p>
+            <p class="card__text">
+              Телефон: <PhoneInline phone={card.phone} />
+              <br />
+              Опубліковано: {card.published}
+            </p>
+          </li>
+        ))}
+      </ul>
+    </section>
+  )}
+</BaseLayout>

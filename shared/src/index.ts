@@ -46,3 +46,5 @@ export type {
   SyncErrorCode,
   SyncSource,
 } from './schemas/tender.js';
+export { vacancySchema, vacanciesFileSchema } from './schemas/vacancy.js';
+export type { Vacancy } from './schemas/vacancy.js';
