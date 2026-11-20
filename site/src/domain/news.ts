@@ -8,8 +8,19 @@ import { kyivDate } from './vacancies';
 
 export { FEED_ITEMS_ON_HOME, FEED_ITEMS_SHOWN };
 
-/** Язык оригинала словом: перевода нет (отчёт 08, раздел 2). */
+/** Язык оригинала словом: своего перевода нет (отчёт 08, раздел 2; решение 031). */
 export const LANG_LABELS = { uk: 'Українською', en: 'Англійською' } as const;
+
+/**
+ * Ссылка «Машинний переклад (Google)» для публикации не на украинском
+ * (решение 031). Переводит сам посетитель в Google Перекладачі: свой перевод
+ * мы не публикуем — у The Conversation перевод требует согласия автора
+ * (CC BY-ND). Язык источника Google определяет сам (`sl=auto`).
+ */
+export function translateUrl(url: string): string {
+  const params = new URLSearchParams({ sl: 'auto', tl: 'uk', u: url });
+  return `https://translate.google.com/translate?${params.toString()}`;
+}
 
 export interface FeedCard {
   url: string;
@@ -21,6 +32,8 @@ export interface FeedCard {
   lang: 'uk' | 'en';
   langLabel: string;
   excerpt: string | null;
+  /** Ссылка на машинный перевод; у украинских публикаций — `null`. */
+  translateUrl: string | null;
 }
 
 /**
@@ -45,6 +58,7 @@ export function feedCards(file: FeedFile, limit: number): FeedCard[] {
         lang: item.lang,
         langLabel: LANG_LABELS[item.lang],
         excerpt: item.excerpt,
+        translateUrl: item.lang === 'uk' ? null : translateUrl(item.url),
       };
     });
 }

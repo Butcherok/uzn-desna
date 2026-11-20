@@ -49,6 +49,15 @@ describe('Новини галузі (ТЗ 4.8)', () => {
     expect(card?.excerpt).toBe('Short excerpt');
   });
 
+  it('машинный перевод — только у неукраинских публикаций (решение 031)', () => {
+    const [en] = feedCards(file([item(1, '2026-10-18T00:00:00.000Z', 'en')]), 8);
+    const [uk] = feedCards(file([item(2, '2026-10-18T00:00:00.000Z', 'uk')]), 8);
+    expect(en?.translateUrl).toBe(
+      'https://translate.google.com/translate?sl=auto&tl=uk&u=https%3A%2F%2Fexample.com%2F1%2F',
+    );
+    expect(uk?.translateUrl).toBeNull();
+  });
+
   it('дата по Киеву, а не по UTC', () => {
     const [card] = feedCards(file([item(1, '2026-11-08T22:30:00.000Z')]), 8);
     expect(card?.date).toBe('09.11.2026');

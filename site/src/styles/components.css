@@ -187,6 +187,43 @@ a,
 .card__title { margin: 0; font-size: var(--fs-h3); }
 .card__text { margin: 0; color: var(--c-deep); }
 
+/* Сетка с карточками одной высоты: все ряды равны самому высокому (решение 031) */
+.grid--even { grid-auto-rows: 1fr; }
+
+/* ---------- Карточка ленты «Новини галузі» (решение 031) ----------
+   Одна геометрия на все карточки: иллюстрация 16:9, заголовок и отрывок —
+   ровно по три строки места (длинное обрезается многоточием, короткое и пустое
+   держат место), низ прижат к краю. */
+.card--feed { padding: 0; overflow: hidden; gap: 0; }
+.card--feed > :not(.card__media) { margin-inline: var(--s-4); }
+.card__media { aspect-ratio: 16 / 9; background: var(--c-pale); }
+.card__media svg { display: block; width: 100%; height: 100%; }
+.ill-sky { fill: var(--c-pale); }
+.ill-hill { fill: var(--c-mint); }
+.ill-ground { fill: var(--c-olive); }
+.ill-trunk { fill: var(--c-deep); }
+.ill-crown { fill: var(--c-mid); }
+.ill-crown--light { fill: var(--c-mint); }
+.card--feed .card__title { font-size: var(--fs-h4); line-height: var(--lh-head); margin-top: var(--s-4); }
+.card__clamp {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+}
+.card--feed .card__title.card__clamp { min-height: calc(3em * var(--lh-head)); }
+.card__excerpt { margin-top: var(--s-3); min-height: calc(3em * var(--lh-body)); }
+.card__meta { margin: auto 0 0; padding-top: var(--s-3); color: var(--c-deep); font-size: var(--fs-caption); }
+.card__actions {
+  margin-block: var(--s-2) var(--s-4);
+  display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center;
+  gap: var(--s-2) var(--s-4);
+  font-size: var(--fs-caption);
+}
+.card__more { margin-left: auto; font-weight: 600; }
+
 /* Метка-признак: смысл передаётся словом, не цветом (ТЗ 11.3 п.10).
    Переноса-запрета здесь нет намеренно: с `white-space: nowrap` метка длиннее
    колонки растягивала карточку и давала горизонтальную прокрутку страницы
