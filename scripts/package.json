@@ -9,6 +9,7 @@
   },
   "dependencies": {
     "@uzn/shared": "*",
+    "fast-xml-parser": "^5.12.1",
     "zod": "^4.0.0"
   }
 }

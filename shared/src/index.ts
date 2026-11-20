@@ -48,3 +48,14 @@ export type {
 } from './schemas/tender.js';
 export { vacancySchema, vacanciesFileSchema } from './schemas/vacancy.js';
 export type { Vacancy } from './schemas/vacancy.js';
+export {
+  feedItemSchema,
+  feedFileSchema,
+  feedRulesSchema,
+  feedRulesFileSchema,
+  feedSourceIdSchema,
+  FEED_ITEMS_KEPT,
+  FEED_ITEMS_SHOWN,
+  FEED_ITEMS_ON_HOME,
+} from './schemas/feed.js';
+export type { FeedItem, FeedFile, FeedRules, FeedRuleSource, FeedSourceId } from './schemas/feed.js';

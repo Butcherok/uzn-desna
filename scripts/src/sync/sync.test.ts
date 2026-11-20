@@ -162,6 +162,12 @@ function memoryIo(
       files[name] = structuredClone(value);
     },
     fetchTenders,
+    readFeedRules: async () => {
+      throw new Error('feed rules are not used in this test');
+    },
+    fetchFeedSource: async () => {
+      throw new Error('feed is not used in this test');
+    },
     now: () => now,
     log: () => {},
     secrets: [],

@@ -10,6 +10,8 @@ import {
   contactSchema,
   enterpriseSchema,
   envelopeSchema,
+  feedFileSchema,
+  feedRulesSchema,
   leaderSchema,
   publicDocSchema,
   scenarioSchema,
@@ -31,6 +33,7 @@ const DATA_DIR = 'data';
 const ITEM_SCHEMAS: Record<string, ZodType> = {
   'contacts.json': contactSchema,
   'enterprise.json': enterpriseSchema,
+  'feed-rules.json': feedRulesSchema,
   'leaders.json': leaderSchema,
   'public-docs.json': publicDocSchema,
   'scenarios.json': scenarioSchema,
@@ -47,6 +50,7 @@ const ITEM_SCHEMAS: Record<string, ZodType> = {
 const SYNC_DIR = join(DATA_DIR, 'sync');
 const SYNC_FILE_SCHEMAS: Record<string, ZodType> = {
   'tenders.json': tendersFileSchema,
+  'feed.json': feedFileSchema,
   'sync-state.json': syncStateFileSchema,
 };
 
@@ -76,7 +80,7 @@ async function checkSyncFiles(problems: string[]): Promise<void> {
 }
 
 /** Сущности-синглтоны (ТЗ 6.2, кардинальность): ровно одна запись в файле. */
-const SINGLETON_FILES = new Set(['enterprise.json']);
+const SINGLETON_FILES = new Set(['enterprise.json', 'feed-rules.json']);
 
 async function main(): Promise<void> {
   const entries = await readdir(DATA_DIR).catch(() => [] as string[]);

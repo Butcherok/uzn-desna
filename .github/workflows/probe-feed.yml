@@ -1,10 +1,11 @@
 # Temporary probe for the news feed sources (ТЗ 7.4). Removed before the PR.
+# Runs the real feed step on a runner without committing anything.
 name: Probe feed
 
 on:
   push:
     branches: [feat/news-feed]
-    paths: [.github/workflows/probe-feed.yml]
+    paths: [.github/workflows/probe-feed.yml, scripts/src/sync/feed/**]
 
 permissions:
   contents: read
@@ -12,35 +13,19 @@ permissions:
 jobs:
   probe:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     steps:
-      - name: KMDA 403 diagnosis
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - name: Feed step, first run
+        run: npm run sync -- feed
+      - name: Feed step, second run (expect no change)
+        run: npm run sync -- feed
+      - name: Summary
         run: |
-          d2=$(date -u +%d.%m.%Y); d1=$(date -u -d '-120 days' +%d.%m.%Y)
-          for ua in 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0 Safari/537.36' 'curl/8.5.0'; do
-            for u in "https://kyivcity.gov.ua/news/?tag=19&dt1=$d1&dt2=$d2" "https://kyivcity.gov.ua/rss/" "https://kyivcity.gov.ua/"; do
-              echo "== UA=${ua:0:20} $u"
-              curl -sS -A "$ua" -H 'Accept-Language: uk' --max-time 20 -D - -o body.html "$u" | grep -iE '^(HTTP|server|cf-|x-|set-cookie)' | cut -c1-120 || true
-              grep -oiE '<title>[^<]*</title>|cloudflare|captcha|access denied|forbidden|ray id' body.html | sort | uniq -c | head || true
-            done
-          done
-          echo "== runner IP country"; curl -sS --max-time 10 https://ipinfo.io/country || true
-      - name: Structure of open sources
-        run: |
-          after=$(date -u -d '-120 days' +%Y-%m-%dT00:00:00)
-          echo "== kzb REST"
-          curl -sS --max-time 20 "https://kyivzelenbud.com/wp-json/wp/v2/posts?after=$after&per_page=20&_fields=id,date,date_gmt,link,title" -D hdr.txt -o kzb.json
-          grep -iE '^x-wp-total' hdr.txt || true
-          jq -c '.[] | {id, date, date_gmt, link, t: (.title.rendered|.[0:70])}' kzb.json
-          echo "== kzb feed: first item skeleton"
-          curl -sS --max-time 20 https://kyivzelenbud.com/feed/ -o kzb.xml
-          grep -c '<item>' kzb.xml || true
-          awk '/<item>/{f=1} f{print} /<\/item>/{exit}' kzb.xml | sed -E 's/>[^<]{60,}</>…</g' | cut -c1-160 | head -40
-          echo "== TC atom"
-          for t in urban-greening-31678 urban-trees-58019; do
-            curl -sS --max-time 20 "https://theconversation.com/topics/$t/articles.atom" -o tc.xml
-            echo "-- $t entries: $(grep -c '<entry>' tc.xml)"
-          done
-          head -c 1500 tc.xml | sed -E 's/>[^<]{80,}</>…</g'; echo
-          awk '/<entry>/{f=1} f{print} /<\/entry>/{exit}' tc.xml | sed -E 's/>[^<]{60,}</>…</g' | grep -v '^\s*$' | cut -c1-180 | head -40
-          grep -oE '<(published|updated)>[^<]*' tc.xml | head -6
+          jq -r '.state, (.items|length), (.items[] | "\(.publishedAt[0:10]) \(.sourceId) \(.via) excerpt=\(.excerpt != null) \(.title[0:60])")' data/sync/feed.json | head -50
+          jq -c '.items[]' data/sync/sync-state.json

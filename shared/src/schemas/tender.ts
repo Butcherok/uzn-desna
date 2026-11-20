@@ -20,8 +20,19 @@ export const syncErrorCodeSchema = z.enum([
 
 export type SyncErrorCode = z.infer<typeof syncErrorCodeSchema>;
 
-/** Источник синхронизации. Facebook и лента добавятся своими задачами. */
-export const syncSourceSchema = z.enum(['prozorro']);
+/**
+ * Источник синхронизации: Prozorro и каждый источник ленты отдельно —
+ * счётчик сбоев подряд ведётся по источнику (ТЗ 7.5, п. 3). Facebook
+ * добавится своей задачей.
+ */
+export const syncSourceSchema = z.enum([
+  'prozorro',
+  'kmda',
+  'kyivzelenbud',
+  'theconversation',
+  'hmarochos',
+  'gdelt',
+]);
 
 export type SyncSource = z.infer<typeof syncSourceSchema>;
 
