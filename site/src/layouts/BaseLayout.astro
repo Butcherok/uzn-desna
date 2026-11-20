@@ -9,7 +9,7 @@ import SiteFooter from '../components/SiteFooter.astro';
 import { contacts, enterprise } from '../gateway/data';
 import { footerContacts } from '../domain/contacts';
 import { ENTERPRISE, withBase } from '../config/site';
-import literataUrl from '../fonts/literata-cyrlat-var.woff2?url';
+import headFontUrl from '../fonts/fixel-display-cyrlat-var.woff2?url';
 import '../styles/tokens.css';
 import '../styles/components.css';
 
@@ -73,7 +73,7 @@ const csp = [
     <meta property="og:description" content={metaDescription} />
     <meta property="og:url" content={canonical} />
 
-    <link rel="preload" href={literataUrl} as="font" type="font/woff2" crossorigin="anonymous" />
+    <link rel="preload" href={headFontUrl} as="font" type="font/woff2" crossorigin="anonymous" />
   </head>
 
   <body>
