@@ -17,6 +17,8 @@ export const API_PREFIX = '/api/v1';
 export const BODY_LIMIT_BYTES = 1024 * 1024;
 /** ТЗ 8.1, п. 6: 60 запросов в минуту на сессию (без сессии — на адрес). */
 export const SESSION_RATE = { max: 60, timeWindow: 60 * 1000 } as const;
+/** `/health`: опрос Render (решение 037) плюс будильник админки. */
+export const HEALTH_RATE = { max: 120, timeWindow: 60 * 1000 } as const;
 /** ТЗ 8.2, п. 2: обязательный заголовок на всех изменяющих запросах. */
 export const CSRF_HEADER = 'x-requested-with';
 export const CSRF_VALUE = 'uzn-admin';
@@ -126,7 +128,11 @@ export async function buildApp(deps: AppDeps, opts: BuildOptions = {}): Promise<
 
   await app.register(
     async (api) => {
-      api.get('/health', async () => ({
+      // Render опрашивает `/health` каждые несколько секунд (healthCheckPath):
+      // предел выше общего, чтобы проверка Render вместе с будильником админки
+      // не получила 429, и без записи каждого запроса в журнал. Совсем без
+      // предела нельзя: каждый запрос пингует Atlas (100 операций в секунду).
+      api.get('/health', { logLevel: 'warn', config: { rateLimit: HEALTH_RATE } }, async () => ({
         status: 'ok',
         dbConnected: await deps.store.ping(),
         startedAt: deps.startedAt.toISOString(),

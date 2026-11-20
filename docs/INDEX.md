@@ -23,3 +23,4 @@
 | Хранилище БД и его тесты           | `server/src/gateway/`, `store-contract.ts`                      |
 | Переменные бэкенда                 | `server/src/config/env.ts`, `.env.example`                      |
 | Первый владелец, потерян пароль    | `docs/runbook-admin-access.md`                                  |
+| Запуск бэкенда: Atlas и Render     | `docs/runbook-backend-deploy.md`, `render.yaml`                 |

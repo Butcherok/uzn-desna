@@ -1,0 +1,53 @@
+# Бэкенд версии 2 на Render (ТЗ 10.5, решение 037).
+# Значения секретов здесь не пишутся: переменные с `sync: false` Render
+# спрашивает в кабинете один раз, при создании сервиса из этого файла.
+services:
+  - type: web
+    name: uzn-desna-api
+    runtime: node
+    plan: free
+    region: frankfurt
+    branch: main
+    # Корень репозитория, а не `server`: файлы вне rootDir Render при сборке не
+    # отдаёт, а серверу нужны `shared/` и общий package-lock.json. Ставятся
+    # только зависимости сервера и корня, сайт (Astro, sharp) не ставится.
+    # `--include=dev`: NODE_ENV=production задан и для сборки, а esbuild — devDependency.
+    buildCommand: npm ci --include=dev --workspace=server --include-workspace-root && npm run server:build
+    # Напрямую через node, без npm: сигнал остановки получает сам сервер.
+    startCommand: node --enable-source-maps server/dist/index.js
+    healthCheckPath: /api/v1/health
+    # Выкладка только после зелёного CI на коммите в main.
+    autoDeployTrigger: checksPass
+    buildFilter:
+      paths:
+        - server/**
+        - shared/**
+        - package.json
+        - package-lock.json
+        - .nvmrc
+        - render.yaml
+      ignoredPaths:
+        - '**/*.test.ts'
+    envVars:
+      - key: NODE_ENV
+        value: production
+      # Шаг `prepare` (husky) на сервере не нужен.
+      - key: HUSKY
+        value: '0'
+      - key: SITE_ORIGIN
+        value: https://butcherok.github.io
+      - key: MONGODB_DB
+        value: uzn
+      # Сколько прокси Render между клиентом и сервером. 1 — по наблюдению
+      # сообщества: Render дописывает в X-Forwarded-For один адрес. В документации
+      # Render не описано; проверяется живым прогоном (docs/runbook-backend-deploy.md).
+      - key: TRUST_PROXY
+        value: '1'
+      - key: MONGODB_URI
+        sync: false
+      - key: BOOTSTRAP_OWNER_LOGIN
+        sync: false
+      - key: BOOTSTRAP_OWNER_PASSWORD_HASH
+        sync: false
+      - key: BOOTSTRAP_OWNER_DISPLAY_NAME
+        sync: false

@@ -1,6 +1,6 @@
 import type { FastifyInstance } from 'fastify';
 import { afterEach, beforeAll, describe, expect, it } from 'vitest';
-import { buildApp, CSRF_VALUE } from './app.js';
+import { buildApp, CSRF_VALUE, HEALTH_RATE } from './app.js';
 import { loadConfig, type AppConfig } from './config/env.js';
 import { hashPassword } from './domain/password.js';
 import { SESSION_TOUCH_INTERVAL_MS, SESSION_TTL_MS } from './domain/sessions.js';
@@ -107,6 +107,14 @@ describe('service endpoints', () => {
     expect((await ctx.app.inject('/api/v1/health')).json().dbConnected).toBe(false);
   });
 
+  it('health has its own, higher limit: Render polls it every few seconds', async () => {
+    const ctx = await setup();
+    for (let i = 0; i < HEALTH_RATE.max; i++) {
+      expect((await ctx.app.inject('/api/v1/health')).statusCode).toBe(200);
+    }
+    expect((await ctx.app.inject('/api/v1/health')).statusCode).toBe(429);
+  });
+
   it('robots.txt forbids everything', async () => {
     const ctx = await setup();
     const res = await ctx.app.inject('/robots.txt');
@@ -197,6 +205,7 @@ describe('login', () => {
     expect(session!.tokenHash).toMatch(/^[0-9a-f]{64}$/);
     expect(session!.tokenHash).not.toContain(c.value);
     expect(ctx.store.log.at(-1)).toMatchObject({ action: 'auth.login', result: 'ok' });
+    expect(res.headers['server-timing']).toMatch(/^pw;dur=\d+$/);
   });
 
   it('in production the cookie is Secure and __Host- prefixed', async () => {
@@ -224,6 +233,8 @@ describe('login', () => {
         error: { code: 'UNAUTHENTICATED', message: 'Невірний логін або пароль' },
       });
       expect(r.cookies.filter((c) => c.value !== '')).toHaveLength(0);
+      // Заголовок замера есть и у отказа: его наличие не выдаёт, существует ли логин.
+      expect(r.headers['server-timing']).toMatch(/^pw;dur=\d+$/);
     }
     // Попытки на существующие логины в журнале, неизвестные — нет.
     const denied = ctx.store.log.filter((e) => e.result === 'denied');
