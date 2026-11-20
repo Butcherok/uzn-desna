@@ -617,3 +617,20 @@ describe('singletons', () => {
     expect(res.json().item.status).toBe('published');
   });
 });
+
+describe('GET /publish/status (TZ 8.5, decision 040)', () => {
+  it('reports the seed time as the last publication and counts pending changes', async () => {
+    const ctx = await setup();
+    const first = await ctx.as('editor')({ method: 'GET', url: '/api/v1/publish/status' });
+    expect(first.statusCode).toBe(200);
+    expect(first.json()).toEqual({
+      lastPublishedAt: new Date(T0).toISOString(),
+      pendingChanges: 0,
+      run: null,
+    });
+    tick(ctx);
+    await ctx.as('editor')({ method: 'POST', url: '/api/v1/contacts', payload: newContact });
+    const after = await ctx.as('editor')({ method: 'GET', url: '/api/v1/publish/status' });
+    expect(after.json().pendingChanges).toBe(1);
+  });
+});

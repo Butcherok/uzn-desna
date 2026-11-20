@@ -34,6 +34,11 @@ interface Props {
   errorPage?: boolean;
   /** Разметка Schema.org, выводится как `application/ld+json` */
   jsonLd?: Record<string, unknown>;
+  /**
+   * Чужие адреса, к которым страница обращается из скрипта. Нужен одной
+   * странице — будильнику `/admin` (решение 040): остальные не обращаются никуда.
+   */
+  connectSrc?: readonly string[];
 }
 
 const {
@@ -44,6 +49,7 @@ const {
   indexable = true,
   errorPage = false,
   jsonLd,
+  connectSrc = [],
 } = Astro.props;
 
 /**
@@ -74,7 +80,7 @@ const csp = [
   "script-src 'self'",
   "style-src 'self'",
   "font-src 'self'",
-  "connect-src 'self'",
+  ["connect-src 'self'", ...connectSrc].join(' '),
   "frame-src 'none'",
   "base-uri 'none'",
   "form-action 'none'",

@@ -5,6 +5,7 @@ import { ApiError } from '../domain/errors.js';
 import type { ResolvedSession } from '../domain/sessions.js';
 import { SESSION_TTL_MS, resolveSession } from '../domain/sessions.js';
 import type { Role, Store, User } from '../domain/model.js';
+import type { AdminAssets } from '../gateway/admin-assets.js';
 
 /** Зависимости приложения: всё внешнее передаётся сюда, а не импортируется. */
 export interface AppDeps {
@@ -12,6 +13,8 @@ export interface AppDeps {
   store: Store;
   now: () => Date;
   startedAt: Date;
+  /** Собранная админка (решение 040); `null` или нет — сборки нет. */
+  adminAssets?: AdminAssets | null;
 }
 
 declare module 'fastify' {
