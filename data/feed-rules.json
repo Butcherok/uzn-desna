@@ -10,7 +10,7 @@
           "name": "КМДА",
           "enabled": false,
           "excerptAllowed": true,
-          "note": "Вимкнено 20.11.2026: kyivcity.gov.ua відповідає серверам GitHub перевіркою Cloudflare (403), стрічку звідти не отримати (рішення 027)."
+          "note": "Виключено рішенням Замовника 20.11.2026 (рішення 030): kyivcity.gov.ua відповідає серверам GitHub перевіркою Cloudflare (403), стрічку звідти не отримати (рішення 027)."
         },
         { "id": "kyivzelenbud", "name": "Київзеленбуд", "enabled": true, "excerptAllowed": false },
         {

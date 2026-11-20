@@ -1,41 +1,73 @@
 ---
 /**
- * Карточки «Новини галузі» (ТЗ 4.8): заголовок-ссылка на публикацию,
- * источник, дата, язык оригинала, отрывок — только у разрешающих источников.
- * Фото источников не выводятся; иллюстраций категорий пока нет (заглушка 23).
+ * Карточки «Новини галузі» (ТЗ 4.8; решение 031). Геометрия одна на все
+ * карточки: иллюстрация 16:9, заголовок до трёх строк, отрывок до трёх строк
+ * (место держится и там, где отрывка нет), внизу источник и дата, ниже —
+ * «Машинний переклад» (только у неукраинских публикаций) и справа
+ * «Детальніше» — единственная ссылка на оригинал.
  *
- * Заголовок и отрывок английской публикации помечены `lang="en"`: экранный
- * диктор читает их английским произношением (ТЗ 11.3).
+ * Фото источников не выводятся (ТЗ 7.4, п. 8; инструкции проекта, п. 8):
+ * вместо них — наша иллюстрация, встроенный SVG в цветах темы, без запроса.
+ *
+ * Заголовок и отрывок неукраинской публикации помечены `lang`: экранный
+ * диктор читает их нужным произношением (ТЗ 11.3).
  */
 import type { FeedCard } from '../domain/news';
 
 interface Props {
   cards: readonly FeedCard[];
-  /** Колонок на широком экране: на «Новинах» — 2, на главной — 3. */
-  columns: 2 | 3;
 }
 
-const { cards, columns } = Astro.props;
+const { cards } = Astro.props;
 ---
 
-<ul class={`grid grid--${columns} list-bare`}>
+<ul class="grid grid--3 grid--even list-bare">
   {cards.map((card) => (
-    <li class="card">
-      <h3 class="card__title" lang={card.lang}>
-        <a class="ext" href={card.url} target="_blank" rel="noopener noreferrer">
-          {card.title}
-        </a>
+    <li class="card card--feed">
+      <div class="card__media" aria-hidden="true">
+        <svg viewBox="0 0 160 90" preserveAspectRatio="xMidYMid slice" focusable="false">
+          <rect width="160" height="90" class="ill-sky" />
+          <path d="M0 62 Q40 46 80 58 T160 52 V90 H0 Z" class="ill-hill" />
+          <path d="M0 74 Q50 62 100 72 T160 70 V90 H0 Z" class="ill-ground" />
+          <rect x="35" y="44" width="3" height="20" class="ill-trunk" />
+          <circle cx="36.5" cy="40" r="11" class="ill-crown" />
+          <rect x="112" y="38" width="3" height="24" class="ill-trunk" />
+          <circle cx="113.5" cy="33" r="13" class="ill-crown" />
+          <circle cx="128" cy="44" r="8" class="ill-crown ill-crown--light" />
+        </svg>
+      </div>
+      <h3 class="card__title card__clamp" lang={card.lang}>
+        {card.title}
       </h3>
-      {card.excerpt && (
-        <p class="card__text" lang={card.lang}>
-          {card.excerpt}
-        </p>
-      )}
-      <p class="card__text">
-        {card.source} · <time datetime={card.isoDate}>{card.date}</time>
+      <p class="card__text card__clamp card__excerpt" lang={card.lang}>
+        {card.excerpt ?? ''}
       </p>
-      <p class="card__text">
-        <span class="tag">{card.langLabel}</span>
+      <p class="card__meta">
+        {card.source} · <time datetime={card.isoDate}>{card.date}</time>
+        {card.lang !== 'uk' && (
+          <>
+            {' '}
+            · <span class="tag">{card.langLabel}</span>
+          </>
+        )}
+      </p>
+      <p class="card__actions">
+        {card.translateUrl ? (
+          <a class="ext" href={card.translateUrl} target="_blank" rel="noopener noreferrer">
+            Машинний переклад (Google)
+          </a>
+        ) : (
+          <span></span>
+        )}
+        <a
+          class="ext card__more"
+          href={card.url}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label={`Детальніше: ${card.title}`}
+        >
+          Детальніше
+        </a>
       </p>
     </li>
   ))}
