@@ -1,0 +1,82 @@
+# Замер Lighthouse опубликованного сайта (решение 032; ТЗ 11.2).
+#
+# После каждой удачной публикации `Deploy` и по кнопке. Три прогона на
+# страницу в режиме телефона, медиана — `scripts/bin/lighthouse-run.mjs`.
+# Итог пишется в ветку `metrics` (`lighthouse/latest.md`, `lighthouse/history.csv`)
+# и в отчёт запуска. Порог ТЗ 11.2 запуск не роняет: нарушение видно в таблице.
+name: Lighthouse
+
+on:
+  workflow_run:
+    workflows: [Deploy]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      pages:
+        description: 'Страницы через пробел, например "/ /about/" (пусто — все)'
+        required: false
+        default: ''
+
+permissions:
+  contents: write
+
+concurrency:
+  group: lighthouse
+  cancel-in-progress: false
+
+jobs:
+  measure:
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      SITE_URL: https://butcherok.github.io/uzn-desna
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+
+      - name: Find Chrome
+        id: chrome
+        run: |
+          path="$(command -v google-chrome || command -v google-chrome-stable || true)"
+          if [ -z "$path" ]; then echo "Chrome на раннере не найден"; exit 1; fi
+          echo "path=$path" >> "$GITHUB_OUTPUT"
+          "$path" --version
+
+      # GitHub Pages отдаёт новую версию не мгновенно после `deploy-pages`.
+      - name: Wait for Pages
+        if: github.event_name == 'workflow_run'
+        run: sleep 60
+
+      - name: Prepare metrics branch
+        run: |
+          if git ls-remote --exit-code --heads origin metrics > /dev/null; then
+            git fetch --depth=1 origin metrics
+            git worktree add ../metrics FETCH_HEAD
+          else
+            git worktree add --detach ../metrics
+            git -C ../metrics checkout --orphan metrics
+            git -C ../metrics rm -rfq .
+          fi
+
+      - name: Run Lighthouse
+        env:
+          LH_CHROME: ${{ steps.chrome.outputs.path }}
+          LH_COMMIT: ${{ github.event.workflow_run.head_sha || github.sha }}
+          LH_PAGES: ${{ inputs.pages }}
+        run: node scripts/bin/lighthouse-run.mjs "$SITE_URL" ../metrics/lighthouse 3
+
+      - name: Commit to metrics
+        run: |
+          cd ../metrics
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add lighthouse
+          git commit -m "chore(metrics): lighthouse ${LH_COMMIT::7}"
+          git push origin HEAD:metrics
+        env:
+          LH_COMMIT: ${{ github.event.workflow_run.head_sha || github.sha }}

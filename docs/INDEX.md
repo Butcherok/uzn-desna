@@ -18,3 +18,4 @@
 | Схемы полей и формат данных       | `shared/src/schemas/`, `shared/src/format/`                |
 | Проверки сборки                   | `scripts/bin/`, `package.json` (скрипт `ci`)               |
 | Сборка и публикация               | `.github/workflows/ci.yml`, `deploy.yml`                   |
+| Замер Lighthouse                  | `.github/workflows/lighthouse.yml`, ветка `metrics`        |
