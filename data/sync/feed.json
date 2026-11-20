@@ -1,9 +1,24 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-11-20T08:48:40.822Z",
+  "generatedAt": "2026-11-20T12:25:37.461Z",
   "source": "sync",
   "state": "data",
   "items": [
+    {
+      "urlKey": "kyivzelenbud.com/news/zymova-pidtrymka",
+      "url": "https://kyivzelenbud.com/news/zymova-pidtrymka/",
+      "title": "Зимова підтримка",
+      "sourceId": "kyivzelenbud",
+      "sourceName": "Київзеленбуд",
+      "sourceDomain": "kyivzelenbud.com",
+      "lang": "uk",
+      "publishedAt": "2026-11-20T09:49:09.000Z",
+      "excerpt": null,
+      "category": null,
+      "imagePath": "media/feed/87337ca662a8.webp",
+      "via": "tag",
+      "fetchedAt": "2026-11-20T12:25:37.461Z"
+    },
     {
       "urlKey": "theconversation.com/concrete-and-steel-or-mangroves-and-forests-when-it-comes-to-climate-adaptation-nature-is-much-cheaper-292462",
       "url": "https://theconversation.com/concrete-and-steel-or-mangroves-and-forests-when-it-comes-to-climate-adaptation-nature-is-much-cheaper-292462",
@@ -15,6 +30,7 @@
       "publishedAt": "2026-11-12T19:04:48.000Z",
       "excerpt": "Nature can protect coastlines, watersheds and waterways for a fraction of the cost of traditional infrastructure. Why isn’t it mainstream?",
       "category": null,
+      "imagePath": "media/feed/cbd3c794a72d.webp",
       "via": "tag",
       "fetchedAt": "2026-11-20T08:48:40.822Z"
     },
@@ -29,6 +45,7 @@
       "publishedAt": "2026-11-09T13:38:29.000Z",
       "excerpt": null,
       "category": null,
+      "imagePath": "media/feed/f3cac9c30047.webp",
       "via": "tag",
       "fetchedAt": "2026-11-20T08:48:40.822Z"
     },
@@ -43,6 +60,7 @@
       "publishedAt": "2026-10-21T08:42:59.000Z",
       "excerpt": null,
       "category": null,
+      "imagePath": "media/feed/316a4ddaf76d.webp",
       "via": "tag",
       "fetchedAt": "2026-11-20T08:48:40.822Z"
     },
@@ -57,6 +75,7 @@
       "publishedAt": "2026-10-18T19:12:40.000Z",
       "excerpt": "Lots of people love the crepe myrtle but others think of them as an inadequate and over-planted species. Some even refer to them as ‘crap myrtle’. But is that fair?",
       "category": null,
+      "imagePath": "media/feed/686de5b73a2c.webp",
       "via": "tag",
       "fetchedAt": "2026-11-20T08:48:40.822Z"
     },
@@ -71,6 +90,7 @@
       "publishedAt": "2026-10-07T09:32:15.000Z",
       "excerpt": null,
       "category": null,
+      "imagePath": "media/feed/460785663b2e.webp",
       "via": "tag",
       "fetchedAt": "2026-11-20T08:48:40.822Z"
     },
@@ -85,6 +105,7 @@
       "publishedAt": "2026-09-29T10:18:17.000Z",
       "excerpt": null,
       "category": null,
+      "imagePath": "media/feed/59000dd65ea5.webp",
       "via": "tag",
       "fetchedAt": "2026-11-20T08:48:40.822Z"
     },
@@ -99,6 +120,7 @@
       "publishedAt": "2026-09-21T14:12:03.000Z",
       "excerpt": "The tiny gardens beneath street trees can boost biodiversity and our connection to where we live.",
       "category": null,
+      "imagePath": "media/feed/c085bc247b26.webp",
       "via": "tag",
       "fetchedAt": "2026-11-20T08:48:40.822Z"
     },
@@ -113,6 +135,7 @@
       "publishedAt": "2026-09-03T10:31:54.000Z",
       "excerpt": null,
       "category": null,
+      "imagePath": "media/feed/3b132a488666.webp",
       "via": "tag",
       "fetchedAt": "2026-11-20T08:48:40.822Z"
     },
@@ -127,6 +150,7 @@
       "publishedAt": "2026-08-07T11:06:17.000Z",
       "excerpt": null,
       "category": null,
+      "imagePath": "media/feed/3ab6b84db5b9.webp",
       "via": "tag",
       "fetchedAt": "2026-11-20T08:48:40.822Z"
     },
@@ -141,6 +165,7 @@
       "publishedAt": "2026-08-05T12:33:21.000Z",
       "excerpt": "Greater Philadelphia earned failing air quality grades. A new study finds higher asthma rates near industry and major roads, especially where green space is scarce.",
       "category": null,
+      "imagePath": "media/feed/04fc3634f70a.webp",
       "via": "tag",
       "fetchedAt": "2026-11-20T08:48:40.822Z"
     },
@@ -155,6 +180,7 @@
       "publishedAt": "2026-07-31T12:07:36.000Z",
       "excerpt": "Sometimes the best escape isn’t a weekend away. It’s the park just down the road.",
       "category": null,
+      "imagePath": "media/feed/9c89d7e58771.webp",
       "via": "tag",
       "fetchedAt": "2026-11-20T08:48:40.822Z"
     },
@@ -169,6 +195,7 @@
       "publishedAt": "2026-07-21T08:37:48.000Z",
       "excerpt": null,
       "category": null,
+      "imagePath": null,
       "via": "tag",
       "fetchedAt": "2026-11-20T08:48:40.822Z"
     },
@@ -183,6 +210,7 @@
       "publishedAt": "2026-07-16T12:47:53.000Z",
       "excerpt": null,
       "category": null,
+      "imagePath": null,
       "via": "tag",
       "fetchedAt": "2026-11-20T08:48:40.822Z"
     },
@@ -197,6 +225,7 @@
       "publishedAt": "2026-07-09T12:05:37.000Z",
       "excerpt": null,
       "category": null,
+      "imagePath": null,
       "via": "tag",
       "fetchedAt": "2026-11-20T08:48:40.822Z"
     },
@@ -211,6 +240,7 @@
       "publishedAt": "2026-06-30T00:07:27.000Z",
       "excerpt": "Apartments built to today’s standards could be too hot for future comfort for about four weeks a year in Redfern and more than seven weeks in Penrith.",
       "category": null,
+      "imagePath": null,
       "via": "tag",
       "fetchedAt": "2026-11-20T08:48:40.822Z"
     },
@@ -225,6 +255,7 @@
       "publishedAt": "2026-06-23T13:44:58.000Z",
       "excerpt": null,
       "category": null,
+      "imagePath": null,
       "via": "tag",
       "fetchedAt": "2026-11-20T08:48:40.822Z"
     },
@@ -239,6 +270,7 @@
       "publishedAt": "2026-06-17T12:20:27.000Z",
       "excerpt": null,
       "category": null,
+      "imagePath": null,
       "via": "tag",
       "fetchedAt": "2026-11-20T08:48:40.822Z"
     },
@@ -253,6 +285,7 @@
       "publishedAt": "2026-06-10T14:02:59.000Z",
       "excerpt": null,
       "category": null,
+      "imagePath": null,
       "via": "tag",
       "fetchedAt": "2026-11-20T08:48:40.822Z"
     },
@@ -267,6 +300,7 @@
       "publishedAt": "2026-06-03T11:26:42.000Z",
       "excerpt": null,
       "category": null,
+      "imagePath": null,
       "via": "tag",
       "fetchedAt": "2026-11-20T08:48:40.822Z"
     },
@@ -281,6 +315,7 @@
       "publishedAt": "2026-05-31T23:46:15.000Z",
       "excerpt": "A new study has shown that more vegetation is not automatically better.",
       "category": null,
+      "imagePath": null,
       "via": "tag",
       "fetchedAt": "2026-11-20T08:48:40.822Z"
     },
@@ -295,6 +330,7 @@
       "publishedAt": "2026-05-31T16:09:46.000Z",
       "excerpt": "We are all familiar with the built infrastructure we rely on every day. However, we don’t think as much about the critical value of nature.",
       "category": null,
+      "imagePath": null,
       "via": "tag",
       "fetchedAt": "2026-11-20T08:48:40.822Z"
     },
@@ -309,6 +345,7 @@
       "publishedAt": "2026-05-22T09:07:16.000Z",
       "excerpt": "Some parts of the world are warming far faster than other, but even within the same city some neighbourhoods are exposed and suffer more than others.",
       "category": null,
+      "imagePath": null,
       "via": "tag",
       "fetchedAt": "2026-11-20T08:48:40.822Z"
     },
@@ -323,6 +360,7 @@
       "publishedAt": "2026-05-19T14:51:30.000Z",
       "excerpt": "Traffic can be a significant heat source in cities – yet is often overlooked in concerns about rising urban temperatures.",
       "category": null,
+      "imagePath": null,
       "via": "tag",
       "fetchedAt": "2026-11-20T08:48:40.822Z"
     },
@@ -337,6 +375,7 @@
       "publishedAt": "2026-05-06T20:19:58.000Z",
       "excerpt": "Cities around the world rely on trees to keep temperatures lower. New research shows trees are remarkably effective – but can’t do it all",
       "category": null,
+      "imagePath": null,
       "via": "tag",
       "fetchedAt": "2026-11-20T08:48:40.822Z"
     },
@@ -351,6 +390,7 @@
       "publishedAt": "2026-04-28T23:35:23.000Z",
       "excerpt": "Extreme heat already kills millions. New research shows how today’s emissions choices will determine how many more may face dangerous heatwaves this century.",
       "category": null,
+      "imagePath": null,
       "via": "tag",
       "fetchedAt": "2026-11-20T08:48:40.822Z"
     },
@@ -365,6 +405,7 @@
       "publishedAt": "2026-04-22T02:09:08.000Z",
       "excerpt": "Planting grass or succulents along tram tracks can cool streets, cut pollution and make cities feel more beautiful.",
       "category": null,
+      "imagePath": null,
       "via": "tag",
       "fetchedAt": "2026-11-20T08:48:40.822Z"
     },
@@ -379,6 +420,7 @@
       "publishedAt": "2026-04-02T12:45:35.000Z",
       "excerpt": "The Big Cypress fox squirrel is losing its habitat to urban and suburban development. But a few design changes could help to save this and other species.",
       "category": null,
+      "imagePath": null,
       "via": "tag",
       "fetchedAt": "2026-11-20T08:48:40.822Z"
     },
@@ -393,6 +435,7 @@
       "publishedAt": "2026-02-26T19:09:35.000Z",
       "excerpt": "In the first study of its kind, researchers matched more than 1,500 Sydney house sales with data on nearly 50,000 public trees. They found location is crucial.",
       "category": null,
+      "imagePath": null,
       "via": "tag",
       "fetchedAt": "2026-11-20T08:48:40.822Z"
     },
@@ -407,6 +450,7 @@
       "publishedAt": "2026-02-23T13:53:33.000Z",
       "excerpt": "Annual temperatures are rising in Ghana’s capital, Accra.",
       "category": null,
+      "imagePath": null,
       "via": "tag",
       "fetchedAt": "2026-11-20T08:48:40.822Z"
     },
@@ -421,6 +465,7 @@
       "publishedAt": "2026-01-14T12:39:08.000Z",
       "excerpt": "As urbanisation accelerates across India, the importance of urban forests is becoming more crucial.",
       "category": null,
+      "imagePath": null,
       "via": "tag",
       "fetchedAt": "2026-11-20T08:48:40.822Z"
     },
@@ -435,6 +480,7 @@
       "publishedAt": "2025-11-17T13:13:08.000Z",
       "excerpt": "Leaving more green space at the front of the house reduces flooding risk.",
       "category": null,
+      "imagePath": null,
       "via": "tag",
       "fetchedAt": "2026-11-20T08:48:40.822Z"
     },
@@ -449,6 +495,7 @@
       "publishedAt": "2025-11-13T19:08:27.000Z",
       "excerpt": "Woody meadows can create green corridors in urban landscapes at much less cost than traditional methods. Now keen gardeners can plant their own.",
       "category": null,
+      "imagePath": null,
       "via": "tag",
       "fetchedAt": "2026-11-20T08:48:40.822Z"
     },
@@ -463,6 +510,7 @@
       "publishedAt": "2025-10-28T13:21:30.000Z",
       "excerpt": "Urban green spaces should be better managed to provide places too cool off for the most underserved communities.",
       "category": null,
+      "imagePath": null,
       "via": "tag",
       "fetchedAt": "2026-11-20T08:48:40.822Z"
     },
@@ -477,6 +525,7 @@
       "publishedAt": "2025-09-16T15:46:20.000Z",
       "excerpt": "Incorporating nature-based solutions can help cities meet both their development and climate change goals.",
       "category": null,
+      "imagePath": null,
       "via": "tag",
       "fetchedAt": "2026-11-20T08:48:40.822Z"
     },
@@ -491,6 +540,7 @@
       "publishedAt": "2025-09-08T14:35:26.000Z",
       "excerpt": "Trees provide shade and cool our cities, but poor management can make them a hazard.",
       "category": null,
+      "imagePath": null,
       "via": "tag",
       "fetchedAt": "2026-11-20T08:48:40.822Z"
     },
@@ -505,6 +555,7 @@
       "publishedAt": "2025-09-08T11:47:52.000Z",
       "excerpt": "Nature-centric housing solutions already exist in places Brazil, Italy and the Netherlands. The challenge is how to build these at scale and adapt them to the UK.",
       "category": null,
+      "imagePath": null,
       "via": "tag",
       "fetchedAt": "2026-11-20T08:48:40.822Z"
     },
@@ -519,6 +570,7 @@
       "publishedAt": "2025-09-02T12:32:59.000Z",
       "excerpt": "Multiple studies show that grass, trees, shade and sidewalks on a campus reduce student anxiety.",
       "category": null,
+      "imagePath": null,
       "via": "tag",
       "fetchedAt": "2026-11-20T08:48:40.822Z"
     },
@@ -533,6 +585,7 @@
       "publishedAt": "2025-09-02T11:59:16.000Z",
       "excerpt": "If parks become music venues then locals deserve more input, and a fairer share of the rewards.",
       "category": null,
+      "imagePath": null,
       "via": "tag",
       "fetchedAt": "2026-11-20T08:48:40.822Z"
     },
@@ -547,25 +600,12 @@
       "publishedAt": "2025-08-11T12:34:31.000Z",
       "excerpt": "New technologies are making it easier to find these urban heat islets, opening the door to new strategies for efficiently improving community health.",
       "category": null,
-      "via": "tag",
-      "fetchedAt": "2026-11-20T08:48:40.822Z"
-    },
-    {
-      "urlKey": "theconversation.com/urban-trees-vs-cool-roofs-whats-the-best-way-for-cities-to-beat-the-heat-260188",
-      "url": "https://theconversation.com/urban-trees-vs-cool-roofs-whats-the-best-way-for-cities-to-beat-the-heat-260188",
-      "title": "Urban trees vs. cool roofs: What’s the best way for cities to beat the heat?",
-      "sourceId": "theconversation",
-      "sourceName": "The Conversation",
-      "sourceDomain": "theconversation.com",
-      "lang": "en",
-      "publishedAt": "2025-07-23T12:39:30.000Z",
-      "excerpt": "Cities are seeking low-cost ways to ease the heat island effect. Researchers found benefits and trade-offs in two popular options, but they vary by city and even neighborhood.",
-      "category": null,
+      "imagePath": null,
       "via": "tag",
       "fetchedAt": "2026-11-20T08:48:40.822Z"
     }
   ],
-  "fetchedAt": "2026-11-20T08:48:40.822Z",
-  "lastSuccessAt": "2026-11-20T08:48:40.822Z",
+  "fetchedAt": "2026-11-20T12:25:37.461Z",
+  "lastSuccessAt": "2026-11-20T12:25:37.461Z",
   "sourceErrors": []
 }
