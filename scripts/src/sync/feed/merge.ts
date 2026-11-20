@@ -49,6 +49,7 @@ export function toFeedItem(
     publishedAt: raw.publishedAt,
     excerpt: source.excerptAllowed ? excerptOf(raw.html) : null,
     category: null,
+    imagePath: null,
     via,
     fetchedAt: now,
   };

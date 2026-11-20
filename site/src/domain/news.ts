@@ -34,6 +34,8 @@ export interface FeedCard {
   excerpt: string | null;
   /** Ссылка на машинный перевод; у украинских публикаций — `null`. */
   translateUrl: string | null;
+  /** Фото публикации у нас (решение 034); `null` — наша иллюстрация. */
+  imagePath: string | null;
 }
 
 /**
@@ -59,6 +61,7 @@ export function feedCards(file: FeedFile, limit: number): FeedCard[] {
         langLabel: LANG_LABELS[item.lang],
         excerpt: item.excerpt,
         translateUrl: item.lang === 'uk' ? null : translateUrl(item.url),
+        imagePath: item.imagePath,
       };
     });
 }

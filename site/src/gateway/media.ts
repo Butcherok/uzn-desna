@@ -18,6 +18,24 @@ const LEADER_PHOTOS = import.meta.glob<{ default: ImageMetadata }>('../../../med
   eager: true,
 });
 
+/**
+ * Фото публикаций ленты (решение 034): кладёт синхронизация в
+ * `data/sync/media/feed/`, при сборке каталог приходит из ветки `sync-data`.
+ * Файла нет (данные опережают фото или фото не скачалось) — `null`, карточка
+ * выводит нашу иллюстрацию; это не ошибка сборки, в отличие от руководства.
+ */
+const FEED_PHOTOS = import.meta.glob<{ default: ImageMetadata }>(
+  '../../../data/sync/media/feed/*.webp',
+  { eager: true },
+);
+
+export function feedPhoto(imagePath: string | null): ImageMetadata | null {
+  if (imagePath === null) return null;
+  const name = imagePath.slice(imagePath.lastIndexOf('/') + 1);
+  const entry = Object.entries(FEED_PHOTOS).find(([key]) => key.endsWith(`/${name}`));
+  return entry?.[1].default ?? null;
+}
+
 export function leaderPhoto(photoPath: string): ImageMetadata {
   const name = photoPath.slice(photoPath.lastIndexOf('/') + 1);
   const entry = Object.entries(LEADER_PHOTOS).find(([key]) => key.endsWith(`/${name}`));
