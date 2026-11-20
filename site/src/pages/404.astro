@@ -9,7 +9,13 @@ import { withBase } from '../config/site';
 const office = contactBySlug(contacts, 'pryimalnia');
 ---
 
-<BaseLayout section="Сторінку не знайдено" path="/404.html">
+<BaseLayout
+  section="Сторінку не знайдено"
+  path="/404.html"
+  description="Такої сторінки немає. Посилання на головну, «Куди звертатися», «Контакти» і телефон приймальні."
+  indexable={false}
+  errorPage
+>
   <h1>Сторінку не знайдено</h1>
   <p>Можливо, адреса набрана з помилкою або сторінку перенесено.</p>
 

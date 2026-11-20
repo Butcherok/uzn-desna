@@ -23,6 +23,12 @@ export const ENTERPRISE = {
   nameShort: 'КП УЗН Деснянського району',
   edrpou: '04589645',
   address: '02232, м. Київ, вул. Героїв Енергетиків, 26',
+  /** Та же адреса по частям — для разметки Schema.org (решение 039) */
+  postalAddress: {
+    postalCode: '02232',
+    locality: 'Київ',
+    streetAddress: 'вул. Героїв Енергетиків, 26',
+  },
   facebook: 'https://www.facebook.com/kpuzndesn',
   /**
    * Точка на карте по документированному формату Google Maps URLs: поиск по
@@ -33,6 +39,17 @@ export const ENTERPRISE = {
   mapsUrl:
     'https://www.google.com/maps/search/?api=1&query=%D0%B2%D1%83%D0%BB.%20%D0%93%D0%B5%D1%80%D0%BE%D1%97%D0%B2%20%D0%95%D0%BD%D0%B5%D1%80%D0%B3%D0%B5%D1%82%D0%B8%D0%BA%D1%96%D0%B2%2C%2026%2C%20%D0%9A%D0%B8%D1%97%D0%B2%2C%2002232',
 } as const;
+
+/**
+ * Индексация поисковиками (ТЗ 3.3, 11.4). Пока `false`, на каждой странице
+ * `noindex, nofollow`. Снятие закрытия — одна эта строка плюс `robots.txt` и
+ * `sitemap.xml` (ТЗ 11.4, порядок снятия; решение 039). Страницы с
+ * `indexable={false}` (404, «Новини») остаются вне индекса и после снятия.
+ */
+export const INDEXING_ENABLED = false;
+
+/** Название сайта для `og:site_name` и разметки Schema.org (решение 039). */
+export const SITE_NAME = 'КП УЗН Деснянського району';
 
 export const NETWORK_LINKS = [
   { label: 'Київзеленбуд', href: 'https://kyivzelenbud.com/' },
