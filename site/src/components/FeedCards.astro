@@ -6,13 +6,16 @@
  * «Машинний переклад» (только у неукраинских публикаций) и справа
  * «Детальніше» — единственная ссылка на оригинал.
  *
- * Фото источников не выводятся (ТЗ 7.4, п. 8; инструкции проекта, п. 8):
- * вместо них — наша иллюстрация, встроенный SVG в цветах темы, без запроса.
+ * Фото — картинка статьи, скачанная синхронизацией и отданная с адреса сайта
+ * (решение 034), с подписью «Фото: <источник>». Фото нет — наша иллюстрация,
+ * встроенный SVG в цветах темы, без запроса.
  *
  * Заголовок и отрывок неукраинской публикации помечены `lang`: экранный
  * диктор читает их нужным произношением (ТЗ 11.3).
  */
+import { Image } from 'astro:assets';
 import type { FeedCard } from '../domain/news';
+import { feedPhoto } from '../gateway/media';
 
 interface Props {
   cards: readonly FeedCard[];
@@ -24,18 +27,37 @@ const { cards } = Astro.props;
 <ul class="grid grid--3 grid--even list-bare">
   {cards.map((card) => (
     <li class="card card--feed">
-      <div class="card__media" aria-hidden="true">
-        <svg viewBox="0 0 160 90" preserveAspectRatio="xMidYMid slice" focusable="false">
-          <rect width="160" height="90" class="ill-sky" />
-          <path d="M0 62 Q40 46 80 58 T160 52 V90 H0 Z" class="ill-hill" />
-          <path d="M0 74 Q50 62 100 72 T160 70 V90 H0 Z" class="ill-ground" />
-          <rect x="35" y="44" width="3" height="20" class="ill-trunk" />
-          <circle cx="36.5" cy="40" r="11" class="ill-crown" />
-          <rect x="112" y="38" width="3" height="24" class="ill-trunk" />
-          <circle cx="113.5" cy="33" r="13" class="ill-crown" />
-          <circle cx="128" cy="44" r="8" class="ill-crown ill-crown--light" />
-        </svg>
-      </div>
+      {(() => {
+        const photo = feedPhoto(card.imagePath);
+        return photo ? (
+          <figure class="card__media">
+            <Image
+              class="card__photo"
+              src={photo}
+              alt=""
+              widths={[400, 640, 960]}
+              sizes="(min-width: 1024px) 380px, (min-width: 600px) 50vw, 100vw"
+              format="webp"
+              quality={70}
+              loading="lazy"
+            />
+            <figcaption class="card__credit">Фото: {card.source}</figcaption>
+          </figure>
+        ) : (
+          <div class="card__media" aria-hidden="true">
+            <svg viewBox="0 0 160 90" preserveAspectRatio="xMidYMid slice" focusable="false">
+              <rect width="160" height="90" class="ill-sky" />
+              <path d="M0 62 Q40 46 80 58 T160 52 V90 H0 Z" class="ill-hill" />
+              <path d="M0 74 Q50 62 100 72 T160 70 V90 H0 Z" class="ill-ground" />
+              <rect x="35" y="44" width="3" height="20" class="ill-trunk" />
+              <circle cx="36.5" cy="40" r="11" class="ill-crown" />
+              <rect x="112" y="38" width="3" height="24" class="ill-trunk" />
+              <circle cx="113.5" cy="33" r="13" class="ill-crown" />
+              <circle cx="128" cy="44" r="8" class="ill-crown ill-crown--light" />
+            </svg>
+          </div>
+        );
+      })()}
       <h3 class="card__title card__clamp" lang={card.lang}>
         {card.title}
       </h3>

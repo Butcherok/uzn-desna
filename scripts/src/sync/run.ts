@@ -12,6 +12,7 @@ import {
 } from '@uzn/shared';
 import type {
   FeedFile,
+  FeedItem,
   FeedRules,
   FeedSourceId,
   SyncState,
@@ -37,6 +38,11 @@ export interface RunIo {
   /** Правила ленты из `data/feed-rules.json` (ТЗ 6.2, 7.4, п. 1). */
   readFeedRules: () => Promise<FeedRules>;
   fetchFeedSource: (id: FeedSourceId, rules: FeedRules) => Promise<SourceFetch>;
+  /**
+   * Фото публикаций (решение 034): проставляет `imagePath`, кладёт и удаляет
+   * файлы. Нет — фото не трогаются (тесты, прогон без сети к сайтам статей).
+   */
+  attachFeedImages?: (items: readonly FeedItem[]) => Promise<FeedItem[]>;
   now: () => string;
   log: (line: string) => void;
   secrets: readonly string[];
@@ -192,6 +198,11 @@ export async function runSync(steps: readonly Step[], io: RunIo): Promise<RunRes
       result.failReasons.push('feed: не ответил ни один источник ленты');
     }
     nextFeed = nextFeedFile(previousFeed, outcomes, now);
+    if (io.attachFeedImages !== undefined) {
+      const items = await io.attachFeedImages(nextFeed.items);
+      if (JSON.stringify(items) !== JSON.stringify(nextFeed.items))
+        nextFeed = { ...nextFeed, items };
+    }
 
     // «Новые» — вошедшие в файл впервые, а не вся выдача мимо хранимых 40:
     // у The Conversation выдача — годы записей (решение 027).

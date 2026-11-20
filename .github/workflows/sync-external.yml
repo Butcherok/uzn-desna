@@ -28,6 +28,11 @@ on:
         description: 'Только для проверки 12.3: другой адрес поиска Prozorro (пусто — рабочий)'
         required: false
         default: ''
+      dry_run:
+        description: 'Пробный прогон: ничего не записывать в sync-data и не публиковать, данные — артефактом'
+        type: boolean
+        required: false
+        default: false
 
 permissions:
   contents: write
@@ -78,6 +83,8 @@ jobs:
             git -C ../sync-data switch -c sync-data
             mkdir -p data/sync
             cp ../sync-data/data/sync/*.json data/sync/ 2> /dev/null || true
+            # Фото ленты (решение 034)
+            if [ -d ../sync-data/data/sync/media ]; then cp -r ../sync-data/data/sync/media data/sync/; fi
           else
             git worktree add --orphan -b sync-data ../sync-data
           fi
@@ -95,11 +102,22 @@ jobs:
           npm run sync -- $STEPS
           echo "exit=$?" >> "$GITHUB_OUTPUT"
 
+      - name: Upload dry-run data
+        if: inputs.dry_run
+        uses: actions/upload-artifact@v5
+        with:
+          name: sync-dry-run
+          path: data/sync
+
       - name: Commit to sync-data
-        if: steps.sync.outputs.any_changed == 'true'
+        if: steps.sync.outputs.any_changed == 'true' && !inputs.dry_run
         run: |
           mkdir -p ../sync-data/data/sync
           cp data/sync/*.json ../sync-data/data/sync/
+          # Фото ленты (решение 034): каталог заменяется целиком — удалённые
+          # синхронизацией файлы уходят и из ветки.
+          rm -rf ../sync-data/data/sync/media
+          if [ -d data/sync/media ]; then cp -r data/sync/media ../sync-data/data/sync/; fi
           cd ../sync-data
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
@@ -108,7 +126,7 @@ jobs:
           git push origin sync-data
 
       - name: Start deploy
-        if: steps.sync.outputs.site_changed == 'true' && github.ref == 'refs/heads/main'
+        if: steps.sync.outputs.site_changed == 'true' && github.ref == 'refs/heads/main' && !inputs.dry_run
         env:
           GH_TOKEN: ${{ github.token }}
         run: gh workflow run deploy.yml --ref main

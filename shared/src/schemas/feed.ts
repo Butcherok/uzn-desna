@@ -36,8 +36,18 @@ export const feedItemSchema = z.object({
   publishedAt: z.iso.datetime({ offset: true }),
   /** Только у источников с `excerptAllowed` (ТЗ 7.4, п. 7). */
   excerpt: z.string().max(200).nullable(),
-  /** Набора категорий пока нет (заглушка 23): всегда `null`. */
+  /** Категорий карточек нет (решение 031): всегда `null`. */
   category: z.string().max(40).nullable(),
+  /**
+   * Фото публикации у нас: `media/feed/<имя>.webp` в каталоге `data/sync/`
+   * (решение 034). `null` — фото не нашлось или ещё не скачано: карточка
+   * выводит нашу иллюстрацию. У файлов, записанных до решения 034, поля нет.
+   */
+  imagePath: z
+    .string()
+    .regex(/^media\/feed\/[0-9a-f]{12}\.webp$/)
+    .nullable()
+    .default(null),
   via: feedViaSchema,
   fetchedAt: z.iso.datetime(),
 });

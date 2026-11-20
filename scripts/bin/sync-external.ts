@@ -6,10 +6,13 @@
  * Пишет в `data/sync/`. Для рабочего процесса выводит `site_changed` и
  * `any_changed` в `GITHUB_OUTPUT`.
  */
-import { appendFile, mkdir, readFile, writeFile } from 'node:fs/promises';
+import { appendFile, mkdir, readFile, readdir, rm, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
+import sharp from 'sharp';
 import { feedRulesFileSchema } from '@uzn/shared';
+import { IMAGE_DIR, IMAGE_MAX_BYTES, attachImages } from '../src/sync/feed/images.js';
 import { fetchSource } from '../src/sync/feed/sources.js';
+import { ATTEMPT_TIMEOUT_MS, fetchText } from '../src/sync/http.js';
 import { fetchTenders, searchUrl } from '../src/sync/prozorro.js';
 import { mask, secretValues } from '../src/sync/mask.js';
 import { runSync } from '../src/sync/run.js';
@@ -37,6 +40,40 @@ const log = (line: string): void => console.log(mask(line, secrets));
 await mkdir(SYNC_DIR, { recursive: true });
 const deps = { fetch, log, sleep: (ms: number) => new Promise<void>((r) => setTimeout(r, ms)) };
 
+// Фото публикаций ленты (решение 034).
+const IMAGES_DIR = join(SYNC_DIR, IMAGE_DIR);
+const UA = { 'user-agent': 'uzn-desna-sync/1.0 (+https://github.com/Butcherok/uzn-desna)' };
+await mkdir(IMAGES_DIR, { recursive: true });
+const imageDeps = {
+  fetchPage: (url: string) =>
+    fetchText(`фото ${new URL(url).hostname}`, url, { headers: UA }, deps),
+  fetchImage: async (url: string) => {
+    const response = await fetch(url, {
+      headers: UA,
+      signal: AbortSignal.timeout(ATTEMPT_TIMEOUT_MS),
+    });
+    const type = response.headers.get('content-type') ?? '';
+    if (!response.ok || !type.startsWith('image/'))
+      throw new Error(`HTTP ${response.status} ${type}`);
+    const bytes = new Uint8Array(await response.arrayBuffer());
+    if (bytes.length > IMAGE_MAX_BYTES) throw new Error('too large');
+    return bytes;
+  },
+  // 960×540: на десктопе карточка шире 360 px, плотность 2 — 720; запас на 3 колонки.
+  toCardWebp: async (bytes: Uint8Array) =>
+    new Uint8Array(
+      await sharp(bytes)
+        .rotate()
+        .resize(960, 540, { fit: 'cover', position: 'attention' })
+        .webp({ quality: 72 })
+        .toBuffer(),
+    ),
+  listFiles: async () => (await readdir(IMAGES_DIR)).filter((f) => f.endsWith('.webp')),
+  writeFile: (name: string, bytes: Uint8Array) => writeFile(join(IMAGES_DIR, name), bytes),
+  removeFile: (name: string) => rm(join(IMAGES_DIR, name), { force: true }),
+  log,
+};
+
 const result = await runSync(steps, {
   readJson: async (name) => {
     try {
@@ -56,6 +93,7 @@ const result = await runSync(steps, {
     return rules;
   },
   fetchFeedSource: (id, rules) => fetchSource(id, rules, deps, new Date()),
+  attachFeedImages: (items) => attachImages(items, imageDeps),
   now: () => new Date().toISOString(),
   log,
   secrets,

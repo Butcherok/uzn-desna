@@ -14,6 +14,7 @@ function item(n: number, publishedAt: string, lang: 'uk' | 'en' = 'uk'): FeedIte
     publishedAt,
     excerpt: lang === 'en' ? 'Short excerpt' : null,
     category: null,
+    imagePath: null,
     via: 'tag',
     fetchedAt: '2026-11-20T05:10:00.000Z',
   };

@@ -107,6 +107,12 @@
   --c-print-bg:  #FFFFFF;
   --c-print-ink: #000000;
 
+  /* Подпись источника поверх фото ленты (решение 034): белый на чёрной
+     подложке 62 % — не ниже 4,5:1 при любом снимке под ней (худший случай —
+     белый снимок: подложка даёт #616161, 6,2:1). Одна на обе темы. */
+  --c-credit-bg:  rgba(0, 0, 0, 0.62);
+  --c-credit-ink: #FFFFFF;
+
   /* ---------- Шрифт ---------- */
   --f-head: "UZN Head", "UZN Head FB", system-ui, sans-serif;
   --f-text: "UZN Text", "UZN Text FB", system-ui, sans-serif;
