@@ -55,12 +55,27 @@ Atlas и Render 20.11.2026; где не сверены — сказано у ш�
 
 ## 5. Хэш пароля владельца
 
-PowerShell, в папке клона репозитория:
+Нужна папка с кодом репозитория на своём компьютере и Node.js 22.22 или
+новее (`node --version`). Путь — без пробелов и кириллицы, например `D:\dev`:
+с ними npm на Windows иногда ломается.
+
+Если папки ещё нет — с git (`git --version`):
 
 ```
-git checkout main
-git pull
-npm ci
+mkdir D:\dev
+cd D:\dev
+git clone https://github.com/Butcherok/uzn-desna.git
+cd uzn-desna
+```
+
+Без git: GitHub → `Butcherok/uzn-desna` → **Code** → **Download ZIP**,
+распаковать в `D:\dev`, перейти в `D:\dev\uzn-desna-main`. Если папка уже
+есть — в ней `git pull`.
+
+Затем (ставятся только зависимости сервера, как на Render):
+
+```
+npm ci --workspace=server --include-workspace-root
 npm run hash-password
 ```
 
@@ -110,7 +125,9 @@ Invoke-RestMethod "$api/health"
 Должно быть: `status ok`, `dbConnected True`, `version` — первые 7 знаков
 последнего коммита `main`.
 
-Вход и время проверки пароля — три раза подряд:
+Вход и время проверки пароля — три раза подряд. `ВАШ_ЛОГИН` — значение
+`BOOTSTRAP_OWNER_LOGIN` из шага 6 (если забыт — Atlas → **Browse Collections**
+→ `uzn` → `users`, поле `login`):
 
 ```
 $p = Read-Host -AsSecureString 'Пароль'

@@ -7,10 +7,11 @@
 
 ## Первый владелец
 
-1. На своём компьютере, в папке репозитория (PowerShell):
+1. На своём компьютере, в папке с кодом репозитория (как её получить —
+   `docs/runbook-backend-deploy.md`, шаг 5), PowerShell:
 
    ```
-   npm ci
+   npm ci --workspace=server --include-workspace-root
    npm run hash-password
    ```
 

@@ -38,9 +38,9 @@ services:
         value: https://butcherok.github.io
       - key: MONGODB_DB
         value: uzn
-      # Сколько прокси Render между клиентом и сервером. 1 — по наблюдению
-      # сообщества: Render дописывает в X-Forwarded-For один адрес. В документации
-      # Render не описано; проверяется живым прогоном (docs/runbook-backend-deploy.md).
+      # Сколько прокси Render между клиентом и сервером. В документации Render
+      # не описано; 1 подтверждено живым прогоном 20.11.2026: при подделанном
+      # X-Forwarded-For в журнале адрес клиента, а не подделка (решение 037).
       - key: TRUST_PROXY
         value: '1'
       - key: MONGODB_URI
