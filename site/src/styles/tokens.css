@@ -36,14 +36,38 @@
   descent-override: 22.92%;
   line-gap-override: 0%;
 }
+/* Шрифт заголовков — Fixel Display (MacPaw, OFL 1.1), решение 028.
+   Подмножество собрано из FixelVariable.ttf: ширина Display (wdth 100),
+   ось wght 600–700 (h4 — 600, остальное — 700); набор знаков — прежний
+   плюс неразрывный пробел, мягкий перенос и U+02BC.
+   Сборка — scripts/fonts/subset-fixel.py. */
 @font-face {
   font-family: "UZN Head";
-  src: url("../fonts/literata-cyrlat-var.woff2") format("woff2-variations");
-  font-weight: 500 700;
+  src: url("../fonts/fixel-display-cyrlat-var.woff2") format("woff2-variations");
+  font-weight: 600 700;
   font-style: normal;
   font-display: swap;
-  unicode-range: U+0000-00FF, U+2000-206F, U+20B4, U+2116,
+  unicode-range: U+0000-00FF, U+02BC, U+2000-206F, U+20B4, U+2116,
                  U+0400-045F, U+0490-0491;
+}
+/* Запасной шрифт заголовков, подогнанный по метрикам (решение 028, по
+   образцу 021): пока Fixel едет, заголовки рисуются системным жирным
+   рубленым, ширина которого выровнена под Fixel Display Bold. Fixel на
+   тексте заголовков всех страниц (2961 знак) шире Arial Bold на 2,99 %;
+   по страницам — от 2,67 до 3,55 %. Вертикальные метрики — из Fixel
+   (ascender 900, descender −190 при upm 1000), делённые на тот же
+   коэффициент. Засечек в запасном списке нет: Georgia и Times убраны. */
+@font-face {
+  font-family: "UZN Head FB";
+  src: local("Arial Bold"), local("Arial-BoldMT"),
+       local("Helvetica Neue Bold"), local("HelveticaNeue-Bold"),
+       local("Roboto Bold"), local("Roboto-Bold"),
+       local("Liberation Sans Bold"), local("LiberationSans-Bold");
+  font-weight: 600 700;
+  size-adjust: 102.99%;
+  ascent-override: 87.39%;
+  descent-override: 18.45%;
+  line-gap-override: 0%;
 }
 
 /* Цвет: светлая тема. Селектор шире `:root` намеренно (решение 024):
@@ -84,7 +108,7 @@
   --c-print-ink: #000000;
 
   /* ---------- Шрифт ---------- */
-  --f-head: "UZN Head", Georgia, "Times New Roman", serif;
+  --f-head: "UZN Head", "UZN Head FB", system-ui, sans-serif;
   --f-text: "UZN Text", "UZN Text FB", system-ui, sans-serif;
 
   /* Типографическая шкала, базовая точка 360 px */
