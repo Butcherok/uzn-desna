@@ -10,6 +10,7 @@ import { ApiError } from './domain/errors.js';
 import { StoreUnavailableError } from './domain/model.js';
 import { hashSessionToken } from './domain/sessions.js';
 import { authRoutes } from './routes/auth.js';
+import { contentRoutes } from './routes/content.js';
 import type { AppDeps } from './routes/http.js';
 
 export const API_PREFIX = '/api/v1';
@@ -139,6 +140,7 @@ export async function buildApp(deps: AppDeps, opts: BuildOptions = {}): Promise<
         version: config.version,
       }));
       authRoutes(api, deps);
+      contentRoutes(api, deps);
     },
     { prefix: API_PREFIX },
   );

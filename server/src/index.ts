@@ -7,6 +7,8 @@
 import { buildApp } from './app.js';
 import { ConfigError, loadConfig } from './config/env.js';
 import { BOOTSTRAP_MESSAGES, bootstrapOwner } from './domain/bootstrap.js';
+import { seedContent } from './domain/content-seed.js';
+import { INITIAL_DATA } from './gateway/initial-data.js';
 import { MongoStore } from './gateway/mongo-store.js';
 
 const RETRY_DELAYS_MS = [2_000, 5_000, 10_000, 30_000, 60_000];
@@ -43,6 +45,8 @@ async function main(): Promise<void> {
       const outcome = await bootstrapOwner(store, config.bootstrap, new Date());
       const level = outcome === 'created' || outcome === 'skipped-users-exist' ? 'info' : 'warn';
       app.log[level]({ bootstrap: outcome }, BOOTSTRAP_MESSAGES[outcome]);
+      const seed = await seedContent(store, INITIAL_DATA, new Date());
+      app.log.info({ seed }, 'initial content');
     } catch (err) {
       const delay = RETRY_DELAYS_MS[Math.min(attempt, RETRY_DELAYS_MS.length - 1)] ?? 60_000;
       app.log.warn({ err, retryInMs: delay }, 'database preparation failed, will retry');

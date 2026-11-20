@@ -14,6 +14,11 @@ import {
   DuplicateKeyError,
   StoreUnavailableError,
   type ActionLogEntry,
+  type ContentKind,
+  type ContentMeta,
+  type ContentOrderEntry,
+  type ContentRecord,
+  type NewContentRecord,
   type NewSession,
   type NewUser,
   type Session,
@@ -30,10 +35,34 @@ export const ACTION_LOG_TTL_SECONDS = 180 * 24 * 60 * 60;
 type UserDoc = Omit<User, 'id'> & { _id: ObjectId };
 type SessionDoc = Omit<Session, 'id' | 'userId'> & { _id: ObjectId; userId: ObjectId };
 type LogDoc = Omit<ActionLogEntry, 'userId'> & { userId: ObjectId | null };
+type ContentDoc = Omit<ContentRecord, 'id'> & { _id: ObjectId };
+/** Служебная запись контента — одна, с постоянным `_id`. */
+type MetaDoc = ContentMeta & { _id: 'content' };
+
+const META_ID = 'content' as const;
 
 function toUser(d: UserDoc): User {
   const { _id, ...rest } = d;
   return { ...rest, id: _id.toHexString() };
+}
+
+function toContent(d: ContentDoc): ContentRecord {
+  const { _id, ...rest } = d;
+  return { ...rest, id: _id.toHexString() };
+}
+
+/** Поля документа без `_id`: явный перечень, чтобы `id` записи не попал в БД. */
+function contentFields(r: NewContentRecord): Omit<ContentDoc, '_id'> {
+  return {
+    kind: r.kind,
+    key: r.key,
+    data: r.data,
+    status: r.status,
+    createdAt: r.createdAt,
+    updatedAt: r.updatedAt,
+    deletedAt: r.deletedAt,
+    firstPublishedAt: r.firstPublishedAt,
+  };
 }
 
 function toSession(d: SessionDoc): Session {
@@ -79,6 +108,8 @@ export class MongoStore implements Store {
   private readonly users: Collection<UserDoc>;
   private readonly sessions: Collection<SessionDoc>;
   private readonly log: Collection<LogDoc>;
+  private readonly content: Collection<ContentDoc>;
+  private readonly meta: Collection<MetaDoc>;
 
   constructor(opts: MongoStoreOptions) {
     this.client = new MongoClient(opts.uri, {
@@ -91,6 +122,8 @@ export class MongoStore implements Store {
     this.users = this.db.collection<UserDoc>('users');
     this.sessions = this.db.collection<SessionDoc>('sessions');
     this.log = this.db.collection<LogDoc>('action_log');
+    this.content = this.db.collection<ContentDoc>('content');
+    this.meta = this.db.collection<MetaDoc>('content_meta');
   }
 
   /** Индексы создаются при каждом запуске: повторное создание того же индекса ничего не меняет. */
@@ -110,6 +143,9 @@ export class MongoStore implements Store {
         { expireAfterSeconds: ACTION_LOG_TTL_SECONDS, name: 'log_ttl' },
       );
       await this.log.createIndex({ userId: 1, at: -1 }, { name: 'log_user' });
+      // Ключ уникален в пределах сущности, включая «Кошик» (решение 038).
+      await this.content.createIndex({ kind: 1, key: 1 }, { unique: true, name: 'kind_key' });
+      await this.content.createIndex({ updatedAt: 1 }, { name: 'content_updated' });
     });
   }
 
@@ -234,6 +270,118 @@ export class MongoStore implements Store {
     const userId = entry.userId ? oid(entry.userId) : null;
     return guard(async () => {
       await this.log.insertOne({ ...entry, userId });
+    });
+  }
+  listContent(kind: ContentKind): Promise<ContentRecord[]> {
+    return guard(async () => (await this.content.find({ kind }).toArray()).map(toContent));
+  }
+
+  findContent(kind: ContentKind, id: string): Promise<ContentRecord | null> {
+    const _id = oid(id);
+    if (!_id) return Promise.resolve(null);
+    return guard(async () => {
+      const d = await this.content.findOne({ _id, kind });
+      return d ? toContent(d) : null;
+    });
+  }
+
+  insertContent(record: NewContentRecord): Promise<ContentRecord> {
+    return guard(async () => {
+      const _id = new ObjectId();
+      await this.content.insertOne({ _id, ...contentFields(record) });
+      return { ...record, id: _id.toHexString() };
+    });
+  }
+
+  replaceContent(record: ContentRecord, expectedUpdatedAt: Date): Promise<boolean> {
+    const _id = oid(record.id);
+    if (!_id) return Promise.resolve(false);
+    return guard(async () => {
+      const r = await this.content.replaceOne(
+        { _id, kind: record.kind, updatedAt: expectedUpdatedAt },
+        contentFields(record),
+      );
+      return r.matchedCount === 1;
+    });
+  }
+
+  updateContentOrder(kind: ContentKind, entries: ContentOrderEntry[], at: Date): Promise<void> {
+    const ops = entries.flatMap(({ id, order }) => {
+      const _id = oid(id);
+      return _id
+        ? [
+            {
+              updateOne: {
+                filter: { _id, kind },
+                update: { $set: { 'data.order': order, updatedAt: at } },
+              },
+            },
+          ]
+        : [];
+    });
+    if (ops.length === 0) return Promise.resolve();
+    return guard(async () => {
+      await this.content.bulkWrite(ops, { ordered: true });
+    });
+  }
+
+  deleteContent(kind: ContentKind, id: string): Promise<boolean> {
+    const _id = oid(id);
+    if (!_id) return Promise.resolve(false);
+    return guard(async () => (await this.content.deleteOne({ _id, kind })).deletedCount === 1);
+  }
+
+  countContentChangedSince(since: Date | null): Promise<number> {
+    return guard(() =>
+      this.content.countDocuments(since === null ? {} : { updatedAt: { $gt: since } }),
+    );
+  }
+
+  getContentMeta(): Promise<ContentMeta> {
+    return guard(async () => {
+      const d = await this.meta.findOne({ _id: META_ID });
+      return {
+        seededAt: d?.seededAt ?? null,
+        lastPublishedAt: d?.lastPublishedAt ?? null,
+        purgedPending: d?.purgedPending ?? 0,
+      };
+    });
+  }
+
+  /**
+   * Отметка ставится одним атомарным `upsert` по условию «ещё не стояла»:
+   * два экземпляра на старте не загрузят данные дважды в счёт счётчика.
+   */
+  markContentSeeded(at: Date): Promise<boolean> {
+    return guard(async () => {
+      try {
+        const r = await this.meta.updateOne(
+          { _id: META_ID, seededAt: null },
+          {
+            $set: { seededAt: at, lastPublishedAt: at },
+            $setOnInsert: { purgedPending: 0 },
+          },
+          { upsert: true },
+        );
+        return r.modifiedCount === 1 || r.upsertedCount === 1;
+      } catch (err) {
+        // Отметка уже стоит: условие не совпало, а `upsert` упёрся в тот же `_id`.
+        if (err instanceof MongoServerError && err.code === 11000) return false;
+        throw err;
+      }
+    });
+  }
+
+  incrementPurgedPending(): Promise<void> {
+    return guard(async () => {
+      await this.meta.updateOne(
+        { _id: META_ID },
+        {
+          $inc: { purgedPending: 1 },
+          $setOnInsert: { seededAt: null, lastPublishedAt: null },
+        },
+        { upsert: true },
+      );
     });
   }
 }
