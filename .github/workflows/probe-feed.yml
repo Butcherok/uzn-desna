@@ -1,0 +1,40 @@
+# Temporary probe for the news feed sources (ТЗ 7.4). Removed before the PR.
+name: Probe feed
+
+on:
+  push:
+    branches: [feat/news-feed]
+    paths: [.github/workflows/probe-feed.yml]
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Fetch samples
+        run: |
+          mkdir -p out
+          UA='Mozilla/5.0 (compatible; uzn-desna-sync/1.0; +https://github.com/Butcherok/uzn-desna)'
+          d2=$(date -u +%d.%m.%Y)
+          d1=$(date -u -d '-120 days' +%d.%m.%Y)
+          after=$(date -u -d '-120 days' +%Y-%m-%dT00:00:00)
+          fetch() {
+            code=$(curl -sS -L -A "$UA" --max-time 20 -o "out/$1" -w '%{http_code} %{content_type}' "$2" || echo "fail")
+            echo "$1 | $code | $(wc -c < "out/$1" 2>/dev/null) | $2" | tee -a out/index.txt
+          }
+          fetch kmda-tag.html "https://kyivcity.gov.ua/news/?tag=19&dt1=$d1&dt2=$d2"
+          fetch kmda-tag-p2.html "https://kyivcity.gov.ua/news/?tag=19&dt1=$d1&dt2=$d2&page=2"
+          fetch kmda-rss.xml "https://kyivcity.gov.ua/rss/"
+          fetch kzb-rest.json "https://kyivzelenbud.com/wp-json/wp/v2/posts?after=$after&per_page=20&_fields=id,date,date_gmt,link,title,excerpt"
+          fetch kzb-feed.xml "https://kyivzelenbud.com/feed/"
+          for t in urban-greening-31678 green-infrastructure-22601 urban-trees-58019 green-space-5295 urban-green-space-91262 green-cities-15363 urban-heat-25654; do
+            fetch "tc-$t.atom" "https://theconversation.com/topics/$t/articles.atom"
+          done
+      - uses: actions/upload-artifact@v7
+        with:
+          name: feed-samples
+          path: out/
+          retention-days: 3
