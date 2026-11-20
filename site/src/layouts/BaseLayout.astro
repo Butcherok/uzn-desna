@@ -8,7 +8,7 @@ import SiteHeader from '../components/SiteHeader.astro';
 import SiteFooter from '../components/SiteFooter.astro';
 import { contacts, enterprise } from '../gateway/data';
 import { footerContacts } from '../domain/contacts';
-import { ENTERPRISE, withBase } from '../config/site';
+import { ENTERPRISE, INDEXING_ENABLED, SITE_NAME, withBase } from '../config/site';
 import headFontUrl from '../fonts/fixel-display-cyrlat-var.woff2?url';
 import '../styles/tokens.css';
 import '../styles/components.css';
@@ -20,9 +20,31 @@ interface Props {
   path: string;
   /** До появления заглушки 50 — название раздела */
   description?: string;
+  /**
+   * Полный `<title>` вместо формулы «Розділ — назва». Нужен главной: слово
+   * «Головна» в выдаче ничего не говорит (ТЗ 11.4, решение 039).
+   */
+  title?: string;
+  /** `false` — страница вне индекса и после снятия закрытия (ТЗ 11.4) */
+  indexable?: boolean;
+  /**
+   * Страница ошибки: GitHub Pages отдаёт её на любой несуществующий адрес,
+   * поэтому канонического адреса и `og:url` у неё нет (решение 039).
+   */
+  errorPage?: boolean;
+  /** Разметка Schema.org, выводится как `application/ld+json` */
+  jsonLd?: Record<string, unknown>;
 }
 
-const { section, path, description } = Astro.props;
+const {
+  section,
+  path,
+  description,
+  title: titleOverride,
+  indexable = true,
+  errorPage = false,
+  jsonLd,
+} = Astro.props;
 
 /**
  * Оболочка страницы читает данные подвала сама: подвал одинаков на всех
@@ -32,9 +54,19 @@ const { section, path, description } = Astro.props;
  */
 const footer = footerContacts(contacts);
 
-const title = `${section} — ${ENTERPRISE.nameShort}`;
+const title = titleOverride ?? `${section} — ${ENTERPRISE.nameShort}`;
 const canonical = new URL(withBase(path), Astro.site).href;
 const metaDescription = description ?? `${section} — ${ENTERPRISE.nameShort}`;
+
+/**
+ * Одна настройка на весь сайт (ТЗ 11.4, п. 1). До снятия закрытия — запрет
+ * везде; после — запрет только у страниц вне индекса, ссылки с них поисковик
+ * проходит (`follow`).
+ */
+const robots = !INDEXING_ENABLED ? 'noindex, nofollow' : indexable ? null : 'noindex, follow';
+
+/** `<` экранируется, чтобы текст данных не закрыл тег `script` */
+const jsonLdText = jsonLd ? JSON.stringify(jsonLd).replace(/</g, '\\u003c') : null;
 
 const csp = [
   "default-src 'self'",
@@ -56,11 +88,11 @@ const csp = [
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="color-scheme" content="light dark" />
     <meta http-equiv="Content-Security-Policy" content={csp} />
-    <meta name="robots" content="noindex, nofollow" />
+    {robots && <meta name="robots" content={robots} />}
 
     <title>{title}</title>
     <meta name="description" content={metaDescription} />
-    <link rel="canonical" href={canonical} />
+    {!errorPage && <link rel="canonical" href={canonical} />}
     {/* Значок вкладки. Адрес через withBase: корневой /favicon.ico браузера
         до страниц проекта не доходит — сайт живёт в подпапке (ТЗ 5.3, п. 10).
         Метка версии в адресе (`?v=3`): меняется при каждой правке рисунка: кэш значков Chrome держит значок дольше страницы,
@@ -71,7 +103,9 @@ const csp = [
     <meta property="og:locale" content="uk_UA" />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={metaDescription} />
-    <meta property="og:url" content={canonical} />
+    {!errorPage && <meta property="og:url" content={canonical} />}
+    <meta property="og:site_name" content={SITE_NAME} />
+    {jsonLdText && <script is:inline type="application/ld+json" set:html={jsonLdText} />}
 
     <link rel="preload" href={headFontUrl} as="font" type="font/woff2" crossorigin="anonymous" />
   </head>

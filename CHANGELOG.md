@@ -17,12 +17,14 @@
 - Данные `data/contacts.json`, `data/scenarios.json`, `data/enterprise.json` со схемами `Contact`, `Scenario`, `Enterprise` и проверкой в шаге `data:check` (ТЗ 6.2, 6.6, 13.1).
 - Защита адреса почты HTML-сущностями без JavaScript и тесты к ней (ТЗ 5.4, п. 7; решение 008).
 - Компонент ссылки-телефона `PhoneLink.astro` (дизайн-система 1.0, раздел 7).
+- Разметка Schema.org `GovernmentOrganization` на главной, `og:site_name`, растровый знак `logo-512.png`, настройка индексации `INDEXING_ENABLED` и шаг CI `seo:check` (ТЗ 11.4, решение 039).
 
 ### Изменено
 
 - Версии зависимостей и действий подняты до актуальных: `typescript` 6.0.3, `eslint-plugin-astro` 3, `prettier-plugin-astro` 1, `@types/node` 26, `@astrojs/react` 7; `actions/checkout` и `actions/setup-node` до v7, `actions/upload-pages-artifact` и `actions/deploy-pages` до v5.
 - В `dependabot.yml`: мажорные обновления `typescript` игнорируются до поддержки в `typescript-eslint`, обновления действий собираются в один PR.
 - Подвал: телефон оперативного дежурного рядом со ссылкой «Куди звертатися» (ТЗ 3.1, подвал, п. 2); телефоны и часы берутся из данных, а не из `config/site.ts` (решение 009).
+- `title` главной — «КП УЗН Деснянського району — озеленення й догляд»; у 404 нет канонического адреса; `description` «Послуг», «Куди звертатися», «Наших закупівель» уложены в 160 знаков; `robots.txt` бэкенда разрешает обход при `X-Robots-Tag: noindex` (ТЗ 3.30, решение 039).
 - Стили печати: подвал печатается по тексту, а не по тёмной заливке (ТЗ 11.7, п. 7).
 - Копия ТЗ в `docs/knowledge-base/` поднята до версии 3.4: закрыты заглушки 14–19 (ТЗ 13.2).
 

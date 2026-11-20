@@ -18,7 +18,8 @@ const description =
   'Новини галузі: публікації про парки, сквери, озеленення й міські зелені зони з Києва, України та світу.';
 ---
 
-<BaseLayout section="Новини" path="/news/" description={description}>
+{/* Лента — чужие публикации: вне индекса и после снятия закрытия (решение 039) */}
+<BaseLayout section="Новини" path="/news/" description={description} indexable={false}>
   <h1>Новини</h1>
 
   {cards.length === 0 && <p class="lead">Новин поки немає.</p>}

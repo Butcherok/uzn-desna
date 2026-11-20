@@ -115,11 +115,12 @@ describe('service endpoints', () => {
     expect((await ctx.app.inject('/api/v1/health')).statusCode).toBe(429);
   });
 
-  it('robots.txt forbids everything', async () => {
+  it('robots.txt allows crawling so the noindex header stays visible', async () => {
     const ctx = await setup();
     const res = await ctx.app.inject('/robots.txt');
-    expect(res.body).toBe('User-agent: *\nDisallow: /\n');
+    expect(res.body).toBe('User-agent: *\nDisallow:\n');
     expect(res.headers['content-type']).toContain('text/plain');
+    expect(res.headers['x-robots-tag']).toBe('noindex, nofollow');
   });
 
   it('unknown route returns the common error format', async () => {

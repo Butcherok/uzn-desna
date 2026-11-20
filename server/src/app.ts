@@ -122,9 +122,12 @@ export async function buildApp(deps: AppDeps, opts: BuildOptions = {}): Promise<
     return reply.code(e.status).send(e.toBody());
   });
 
-  // ТЗ 8.6: Render сам отвечает «disallow all» только за спящий сервис.
+  // ТЗ 8.6, 11.4 п. 5 (решение 039): обход разрешён, из индекса сервис
+  // убирает заголовок `X-Robots-Tag` на каждом ответе. Запрет обхода прятал бы
+  // этот заголовок от поисковика: адрес со ссылкой с `/admin` мог бы попасть в
+  // индекс без содержимого.
   app.get('/robots.txt', { config: { rateLimit: false } }, async (_req, reply) =>
-    reply.type('text/plain; charset=utf-8').send('User-agent: *\nDisallow: /\n'),
+    reply.type('text/plain; charset=utf-8').send('User-agent: *\nDisallow:\n'),
   );
 
   await app.register(
