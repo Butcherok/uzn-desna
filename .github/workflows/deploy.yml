@@ -65,6 +65,21 @@ jobs:
         with:
           path: site/dist
 
+  # Запасной путь синхронизации (решение 033): расписание `Sync external`
+  # с 19.11.2026 не срабатывало ни разу, а расписание `Deploy` срабатывает
+  # (с опозданием). Ежедневный прогон `Deploy` по расписанию сам запускает
+  # полную синхронизацию; она, если данные изменились, запустит `Deploy` ещё раз.
+  kick-sync:
+    if: github.event_name == 'schedule'
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+    steps:
+      - name: Start Sync external
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run sync-external.yml --repo "$GITHUB_REPOSITORY" --ref main -f steps="prozorro feed"
+
   deploy:
     needs: build
     runs-on: ubuntu-latest
