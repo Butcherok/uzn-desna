@@ -52,7 +52,11 @@ export function authRoutes(app: FastifyInstance, deps: AppDeps): void {
       // bcrypt считается всегда, даже без пользователя: время ответа не выдаёт,
       // существует ли логин (ТЗ 8.2, п. 3).
       const hash = user?.passwordHash ?? (await getDummyHash());
+      const verifyStart = performance.now();
       const passwordOk = (await verifyPassword(body.password, hash)) && user !== null;
+      // Время проверки пароля — для замера bcrypt на Render (решение 037). Оно
+      // одинаково для любого логина, поэтому ничего не выдаёт.
+      reply.header('Server-Timing', `pw;dur=${Math.round(performance.now() - verifyStart)}`);
 
       if (!user || !passwordOk || !user.active) {
         if (user) {
