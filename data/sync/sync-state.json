@@ -1,17 +1,39 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-11-19T17:22:24.979Z",
+  "generatedAt": "2026-11-20T08:48:40.822Z",
   "source": "sync",
   "items": [
     {
+      "source": "kyivzelenbud",
+      "lastRunAt": "2026-11-20T08:48:40.822Z",
+      "lastSuccessAt": "2026-11-20T08:48:40.822Z",
+      "result": "ok",
+      "errorCode": null,
+      "errorMessage": null,
+      "itemsFetched": 13,
+      "itemsNew": 13,
+      "consecutiveFailures": 0
+    },
+    {
       "source": "prozorro",
-      "lastRunAt": "2026-11-19T17:22:24.979Z",
-      "lastSuccessAt": "2026-11-19T17:22:24.979Z",
+      "lastRunAt": "2026-11-20T08:48:40.822Z",
+      "lastSuccessAt": "2026-11-20T08:48:40.822Z",
       "result": "ok",
       "errorCode": null,
       "errorMessage": null,
       "itemsFetched": 20,
       "itemsNew": 0,
+      "consecutiveFailures": 0
+    },
+    {
+      "source": "theconversation",
+      "lastRunAt": "2026-11-20T08:48:40.822Z",
+      "lastSuccessAt": "2026-11-20T08:48:40.822Z",
+      "result": "ok",
+      "errorCode": null,
+      "errorMessage": null,
+      "itemsFetched": 175,
+      "itemsNew": 27,
       "consecutiveFailures": 0
     }
   ]
