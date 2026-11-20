@@ -51,7 +51,7 @@ export type NavItem = {
   readonly children?: readonly NavItem[];
 };
 
-/** Верхнее меню версии 1 (ТЗ 3.1). Разделов версий 2 и 3 в меню нет. */
+/** Верхнее меню (ТЗ 3.1): версия 1 и пункты версии 2 — «Вакансії», «Новини». */
 export const NAV: readonly NavItem[] = [
   {
     label: 'Про підприємство',
@@ -65,4 +65,5 @@ export const NAV: readonly NavItem[] = [
   { label: 'Послуги', path: '/services/' },
   { label: 'Куди звертатися', path: '/where-to-ask/' },
   { label: 'Контакти', path: '/contacts/' },
+  { label: 'Новини', path: '/news/' },
 ];

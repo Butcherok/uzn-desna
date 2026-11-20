@@ -1,0 +1,37 @@
+---
+/**
+ * «Новини» (ТЗ 4.7, 4.8; решение 027). Два раздела: «Новини підприємства»
+ * (публикации страницы Facebook) и «Новини галузі» (тематическая лента
+ * сторонних источников).
+ *
+ * «Новини підприємства» — задача 4б: пока токен страницы не выдан, блок не
+ * публикуется (ТЗ 4.7, «При отсутствии данных»).
+ *
+ * Ленты нет ни одной карточки — блок скрывается целиком, без заголовка
+ * (ТЗ 4.8). Подпись блока — `news.feed.note` в `data/static-blocks.json`.
+ */
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import FeedCards from '../../components/FeedCards.astro';
+import { feed, staticBlockText } from '../../gateway/data';
+import { FEED_ITEMS_SHOWN, feedCards } from '../../domain/news';
+
+const cards = feedCards(feed, FEED_ITEMS_SHOWN);
+const note = staticBlockText('news.feed.note');
+
+const description =
+  'Новини галузі: публікації про парки, сквери, озеленення й міські зелені зони з Києва, України та світу.';
+---
+
+<BaseLayout section="Новини" path="/news/" description={description}>
+  <h1>Новини</h1>
+
+  {cards.length === 0 && <p class="lead">Новин поки немає.</p>}
+
+  {cards.length > 0 && (
+    <section class="section" aria-labelledby="news-feed">
+      <h2 id="news-feed">Новини галузі</h2>
+      {note && <p>{note.uk}</p>}
+      <FeedCards cards={cards} columns={2} />
+    </section>
+  )}
+</BaseLayout>

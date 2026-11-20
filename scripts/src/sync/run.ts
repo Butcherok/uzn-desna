@@ -4,19 +4,39 @@
  *
  * Ввод-вывод передаётся снаружи, поэтому прогон целиком проверяется тестом.
  */
-import { SCHEMA_VERSION, syncStateFileSchema, tendersFileSchema } from '@uzn/shared';
-import type { SyncState, SyncStateFile, Tender, TendersFile } from '@uzn/shared';
+import {
+  SCHEMA_VERSION,
+  feedFileSchema,
+  syncStateFileSchema,
+  tendersFileSchema,
+} from '@uzn/shared';
+import type {
+  FeedFile,
+  FeedRules,
+  FeedSourceId,
+  SyncState,
+  SyncStateFile,
+  Tender,
+  TendersFile,
+} from '@uzn/shared';
+import { emptyFeedFile, nextFeedFile } from './feed/merge.js';
+import type { FeedOutcome } from './feed/merge.js';
+import type { SourceFetch } from './feed/sources.js';
 import { SourceError } from './http.js';
 import { mask } from './mask.js';
+import { urlKey as urlKeyOf } from './feed/text.js';
 import { FAILURES_TO_FAIL, emptyTendersFile, nextSyncState, nextTendersFile } from './state.js';
 import type { Outcome } from './state.js';
 
-export type Step = 'prozorro';
+export type Step = 'prozorro' | 'feed';
 
 export interface RunIo {
   readJson: (name: string) => Promise<unknown>;
   writeJson: (name: string, value: unknown) => Promise<void>;
   fetchTenders: () => Promise<Tender[]>;
+  /** Правила ленты из `data/feed-rules.json` (ТЗ 6.2, 7.4, п. 1). */
+  readFeedRules: () => Promise<FeedRules>;
+  fetchFeedSource: (id: FeedSourceId, rules: FeedRules) => Promise<SourceFetch>;
   now: () => string;
   log: (line: string) => void;
   secrets: readonly string[];
@@ -34,6 +54,7 @@ export interface RunResult {
 
 export const TENDERS_FILE = 'tenders.json';
 export const SYNC_STATE_FILE = 'sync-state.json';
+export const FEED_FILE = 'feed.json';
 
 async function readOr<T>(
   io: RunIo,
@@ -120,6 +141,72 @@ export async function runSync(steps: readonly Step[], io: RunIo): Promise<RunRes
     }
   }
 
+  let nextFeed: FeedFile | undefined;
+  let previousFeed: FeedFile | undefined;
+  if (steps.includes('feed')) {
+    previousFeed = await readOr<FeedFile>(io, FEED_FILE, feedFileSchema, emptyFeedFile(now));
+    const rules = await io.readFeedRules();
+    const outcomes: FeedOutcome[] = [];
+    for (const source of rules.sources.filter((s) => s.enabled)) {
+      let fetched: SourceFetch | undefined;
+      let outcome: FeedOutcome;
+      try {
+        fetched = await io.fetchFeedSource(source.id, rules);
+        outcome = { source, ok: true, via: fetched.via, entries: fetched.entries };
+      } catch (error) {
+        const code = error instanceof SourceError ? error.code : 'SRC_PARSE';
+        outcome = { source, ok: false, code };
+        io.log(`${source.id}: ${code} — ${mask((error as Error).message, io.secrets)}`);
+      }
+      outcomes.push(outcome);
+
+      const previousState = states.get(source.id);
+      const previousIds = new Set(
+        previousFeed.items.filter((i) => i.sourceId === source.id).map((i) => i.urlKey),
+      );
+      let state = nextSyncState(
+        source.id,
+        previousState,
+        outcome.ok
+          ? { ok: true, items: outcome.entries.map((e) => ({ id: urlKeyOf(e.url) })) }
+          : { ok: false, code: outcome.code, message: outcome.code },
+        previousIds,
+        now,
+      );
+      // Сработал только запасной путь: источник ответил, но не основным путём.
+      if (fetched?.mainError) {
+        state = { ...state, result: 'partial', errorCode: fetched.mainError.code };
+      }
+      states.set(source.id, state);
+      if (stateKey(previousState) !== stateKey(state)) stateChanged = true;
+      if (outcome.ok) io.log(`${source.id}: ${fetched?.via}, записей ${outcome.entries.length}`);
+      if (state.consecutiveFailures >= FAILURES_TO_FAIL) {
+        result.failed = true;
+        result.failReasons.push(
+          `${source.id}: ${state.consecutiveFailures} неудачных прогона подряд (${state.errorCode})`,
+        );
+      }
+    }
+    if (outcomes.length > 0 && outcomes.every((o) => !o.ok)) {
+      result.failed = true;
+      result.failReasons.push('feed: не ответил ни один источник ленты');
+    }
+    nextFeed = nextFeedFile(previousFeed, outcomes, now);
+
+    // «Новые» — вошедшие в файл впервые, а не вся выдача мимо хранимых 40:
+    // у The Conversation выдача — годы записей (решение 027).
+    const before = new Set(previousFeed.items.map((i) => i.urlKey));
+    for (const outcome of outcomes) {
+      const state = states.get(outcome.source.id);
+      if (!outcome.ok || state === undefined) continue;
+      const itemsNew = nextFeed.items.filter(
+        (i) => i.sourceId === outcome.source.id && !before.has(i.urlKey),
+      ).length;
+      states.set(outcome.source.id, { ...state, itemsNew });
+      io.log(`${outcome.source.id}: в ленту вошло новых ${itemsNew}`);
+    }
+  }
+
   // Проверка схемой перед записью: файл, который не прошёл бы сборку,
   // не записывается вовсе (ТЗ 7.5, п. 3; код SCHEMA_MISMATCH).
   const tendersChecked = tendersFileSchema.safeParse(nextTenders);
@@ -130,12 +217,19 @@ export async function runSync(steps: readonly Step[], io: RunIo): Promise<RunRes
     items: [...states.values()].sort((a, b) => a.source.localeCompare(b.source)),
   };
   const stateChecked = syncStateFileSchema.safeParse(stateFile);
-  if (!tendersChecked.success || !stateChecked.success) {
+  const feedChecked =
+    nextFeed === undefined ? { success: true } : feedFileSchema.safeParse(nextFeed);
+  if (!tendersChecked.success || !stateChecked.success || !feedChecked.success) {
     return { ...result, failed: true, failReasons: [...result.failReasons, 'SCHEMA_MISMATCH'] };
   }
 
   if (JSON.stringify(nextTenders) !== JSON.stringify(previousTenders)) {
     await io.writeJson(TENDERS_FILE, nextTenders);
+    result.siteChanged = true;
+    result.anyChanged = true;
+  }
+  if (nextFeed !== undefined && JSON.stringify(nextFeed) !== JSON.stringify(previousFeed)) {
+    await io.writeJson(FEED_FILE, nextFeed);
     result.siteChanged = true;
     result.anyChanged = true;
   }

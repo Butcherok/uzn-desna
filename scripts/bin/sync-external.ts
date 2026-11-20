@@ -1,5 +1,5 @@
 /**
- * Точка входа `sync-external` (ТЗ 7.1). Запуск: `npm run sync -- prozorro`.
+ * Точка входа `sync-external` (ТЗ 7.1). Запуск: `npm run sync -- prozorro feed`.
  * Шаги перечисляются аргументами; рабочий процесс решает, какие шаги
  * выполняются в этом прогоне (Prozorro — только утром, ТЗ 7.3, п. 3).
  *
@@ -8,13 +8,16 @@
  */
 import { appendFile, mkdir, readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
+import { feedRulesFileSchema } from '@uzn/shared';
+import { fetchSource } from '../src/sync/feed/sources.js';
 import { fetchTenders, searchUrl } from '../src/sync/prozorro.js';
 import { mask, secretValues } from '../src/sync/mask.js';
 import { runSync } from '../src/sync/run.js';
 import type { Step } from '../src/sync/run.js';
 
 const SYNC_DIR = join('data', 'sync');
-const KNOWN_STEPS: readonly Step[] = ['prozorro'];
+const KNOWN_STEPS: readonly Step[] = ['prozorro', 'feed'];
+const FEED_RULES_FILE = join('data', 'feed-rules.json');
 /** Имена секретов, значения которых не должны попасть в журнал (ТЗ 7.5, п. 6). */
 const SECRET_NAMES = ['GITHUB_TOKEN', 'GH_TOKEN', 'FB_PAGE_TOKEN', 'MONGODB_URI', 'EXPORT_TOKEN'];
 
@@ -32,6 +35,7 @@ const secrets = secretValues(process.env, SECRET_NAMES);
 const log = (line: string): void => console.log(mask(line, secrets));
 
 await mkdir(SYNC_DIR, { recursive: true });
+const deps = { fetch, log, sleep: (ms: number) => new Promise<void>((r) => setTimeout(r, ms)) };
 
 const result = await runSync(steps, {
   readJson: async (name) => {
@@ -44,8 +48,14 @@ const result = await runSync(steps, {
   },
   writeJson: (name, value) =>
     writeFile(join(SYNC_DIR, name), `${JSON.stringify(value, null, 2)}\n`, 'utf8'),
-  fetchTenders: () =>
-    fetchTenders({ fetch, log, sleep: (ms) => new Promise((r) => setTimeout(r, ms)) }, prozorroUrl),
+  fetchTenders: () => fetchTenders(deps, prozorroUrl),
+  readFeedRules: async () => {
+    const file = feedRulesFileSchema.parse(JSON.parse(await readFile(FEED_RULES_FILE, 'utf8')));
+    const [rules] = file.items;
+    if (rules === undefined) throw new Error('data/feed-rules.json: нет записи правил');
+    return rules;
+  },
+  fetchFeedSource: (id, rules) => fetchSource(id, rules, deps, new Date()),
   now: () => new Date().toISOString(),
   log,
   secrets,
