@@ -4,7 +4,12 @@
  *
  * Ввод-вывод передаётся снаружи, поэтому прогон целиком проверяется тестом.
  */
-import { SCHEMA_VERSION, feedFileSchema, syncStateFileSchema, tendersFileSchema } from '@uzn/shared';
+import {
+  SCHEMA_VERSION,
+  feedFileSchema,
+  syncStateFileSchema,
+  tendersFileSchema,
+} from '@uzn/shared';
 import type {
   FeedFile,
   FeedRules,
@@ -174,9 +179,7 @@ export async function runSync(steps: readonly Step[], io: RunIo): Promise<RunRes
       }
       states.set(source.id, state);
       if (stateKey(previousState) !== stateKey(state)) stateChanged = true;
-      if (outcome.ok) {
-        io.log(`${source.id}: ${fetched?.via}, записей ${outcome.entries.length}, новых ${state.itemsNew}`);
-      }
+      if (outcome.ok) io.log(`${source.id}: ${fetched?.via}, записей ${outcome.entries.length}`);
       if (state.consecutiveFailures >= FAILURES_TO_FAIL) {
         result.failed = true;
         result.failReasons.push(
@@ -189,6 +192,19 @@ export async function runSync(steps: readonly Step[], io: RunIo): Promise<RunRes
       result.failReasons.push('feed: не ответил ни один источник ленты');
     }
     nextFeed = nextFeedFile(previousFeed, outcomes, now);
+
+    // «Новые» — вошедшие в файл впервые, а не вся выдача мимо хранимых 40:
+    // у The Conversation выдача — годы записей (решение 027).
+    const before = new Set(previousFeed.items.map((i) => i.urlKey));
+    for (const outcome of outcomes) {
+      const state = states.get(outcome.source.id);
+      if (!outcome.ok || state === undefined) continue;
+      const itemsNew = nextFeed.items.filter(
+        (i) => i.sourceId === outcome.source.id && !before.has(i.urlKey),
+      ).length;
+      states.set(outcome.source.id, { ...state, itemsNew });
+      io.log(`${outcome.source.id}: в ленту вошло новых ${itemsNew}`);
+    }
   }
 
   // Проверка схемой перед записью: файл, который не прошёл бы сборку,
@@ -201,7 +217,8 @@ export async function runSync(steps: readonly Step[], io: RunIo): Promise<RunRes
     items: [...states.values()].sort((a, b) => a.source.localeCompare(b.source)),
   };
   const stateChecked = syncStateFileSchema.safeParse(stateFile);
-  const feedChecked = nextFeed === undefined ? { success: true } : feedFileSchema.safeParse(nextFeed);
+  const feedChecked =
+    nextFeed === undefined ? { success: true } : feedFileSchema.safeParse(nextFeed);
   if (!tendersChecked.success || !stateChecked.success || !feedChecked.success) {
     return { ...result, failed: true, failReasons: [...result.failReasons, 'SCHEMA_MISMATCH'] };
   }

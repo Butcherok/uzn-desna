@@ -4,8 +4,9 @@
  * (дизайн-система, раздел 7а); растровый баннер и ночная картинка — решение 020.
  *
  * Блока цифр на главной нет (решение 018), абзаца-представления нет: его место
- * занимает лозунг (решение 019). Карточек разделов четыре; «Новини» появится
- * версией 2 (ТЗ 4.1).
+ * занимает лозунг (решение 019). Карточек разделов пять, пятая — «Новини»
+ * (ТЗ 4.1, версия 2). Блок «Новини галузі» — три последние карточки ленты
+ * (решение 027); ленты нет — блока нет.
  *
  * Все сведения о предприятии — из данных, придуманного здесь нет
  * (инструкции проекта, п. 5).
@@ -13,7 +14,9 @@
 import { getImage } from 'astro:assets';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import PhoneLink from '../components/PhoneLink.astro';
-import { contacts } from '../gateway/data';
+import FeedCards from '../components/FeedCards.astro';
+import { contacts, feed } from '../gateway/data';
+import { FEED_ITEMS_ON_HOME, feedCards } from '../domain/news';
 import { ASIDES, BANNER } from '../gateway/media';
 import { contactBySlug } from '../domain/contacts';
 import { ENTERPRISE, withBase } from '../config/site';
@@ -69,7 +72,12 @@ const BLANK = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'/%3E"
 
 const office = contactBySlug(contacts, 'pryimalnia');
 
-/** Карточки разделов. Пятая, «Новини», — версия 2 (ТЗ 4.1). */
+const news = feedCards(feed, FEED_ITEMS_ON_HOME);
+
+/**
+ * Карточки разделов (ТЗ 4.1). Пять карточек — в сетке на три колонки:
+ * в четыре колонки пятая осталась бы одна во втором ряду.
+ */
 const SECTIONS = [
   {
     path: '/where-to-ask/',
@@ -90,6 +98,11 @@ const SECTIONS = [
     path: '/about/',
     title: 'Про підприємство',
     text: 'Чим займається підприємство, керівництво, реквізити та публічна інформація.',
+  },
+  {
+    path: '/news/',
+    title: 'Новини',
+    text: 'Новини галузі: парки, сквери й озеленення в Києві, Україні та світі.',
   },
 ] as const;
 
@@ -167,7 +180,7 @@ const description =
       добавлял бы к названиям карточек. Название блока получает сам раздел —
       им пользуется навигация с экранного диктора (ТЗ 11.3) */}
   <section class="section" aria-label="Розділи сайту">
-    <div class="grid grid--4">
+    <div class="grid grid--3">
       {SECTIONS.map((item) => (
         <a class="card card--link" href={withBase(item.path)}>
           <span class="card__title">{item.title}</span>
@@ -176,6 +189,16 @@ const description =
       ))}
     </div>
   </section>
+
+  {news.length > 0 && (
+    <section class="section" aria-labelledby="home-news">
+      <h2 id="home-news">Новини галузі</h2>
+      <FeedCards cards={news} columns={3} />
+      <p class="mt-2">
+        Усі новини — на сторінці <a href={withBase('/news/')}>Новини</a>.
+      </p>
+    </section>
+  )}
 
   <section class="section">
     <h2>Контакти</h2>

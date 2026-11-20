@@ -1,0 +1,42 @@
+---
+/**
+ * Карточки «Новини галузі» (ТЗ 4.8): заголовок-ссылка на публикацию,
+ * источник, дата, язык оригинала, отрывок — только у разрешающих источников.
+ * Фото источников не выводятся; иллюстраций категорий пока нет (заглушка 23).
+ *
+ * Заголовок и отрывок английской публикации помечены `lang="en"`: экранный
+ * диктор читает их английским произношением (ТЗ 11.3).
+ */
+import type { FeedCard } from '../domain/news';
+
+interface Props {
+  cards: readonly FeedCard[];
+  /** Колонок на широком экране: на «Новинах» — 2, на главной — 3. */
+  columns: 2 | 3;
+}
+
+const { cards, columns } = Astro.props;
+---
+
+<ul class={`grid grid--${columns} list-bare`}>
+  {cards.map((card) => (
+    <li class="card">
+      <h3 class="card__title" lang={card.lang}>
+        <a class="ext" href={card.url} target="_blank" rel="noopener noreferrer">
+          {card.title}
+        </a>
+      </h3>
+      {card.excerpt && (
+        <p class="card__text" lang={card.lang}>
+          {card.excerpt}
+        </p>
+      )}
+      <p class="card__text">
+        {card.source} · <time datetime={card.isoDate}>{card.date}</time>
+      </p>
+      <p class="card__text">
+        <span class="tag">{card.langLabel}</span>
+      </p>
+    </li>
+  ))}
+</ul>

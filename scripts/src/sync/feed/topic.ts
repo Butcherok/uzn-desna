@@ -29,7 +29,10 @@ function phraseStarts(tokens: readonly (string | null)[], phrase: readonly strin
   return starts;
 }
 
-function hasAny(tokens: readonly (string | null)[], phrases: readonly (readonly string[])[]): boolean {
+function hasAny(
+  tokens: readonly (string | null)[],
+  phrases: readonly (readonly string[])[],
+): boolean {
   return phrases.some((phrase) => phraseStarts(tokens, phrase).length > 0);
 }
 

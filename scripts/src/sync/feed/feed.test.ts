@@ -41,9 +41,7 @@ describe('лента: словарь тем на украинских строк
   });
 
   it('тема в заголовке отменяет стоп-слова (ложный отсев отчёта 08, 12.2)', () => {
-    expect(
-      matchesTopic(UK, 'Зелені зони потребують захисту від паркування', ''),
-    ).toBe(true);
+    expect(matchesTopic(UK, 'Зелені зони потребують захисту від паркування', '')).toBe(true);
   });
 
   it('тема только в описании — проходит, если стоп-слов в заголовке нет', () => {
@@ -69,7 +67,9 @@ describe('лента: текст', () => {
 
   it('снимает разметку и выбрасывает подписи к фото', () => {
     expect(
-      stripHtml('<figure><img src="x"/><figcaption>Фото: Pexels</figcaption></figure><p>Текст <b>новини</b></p>'),
+      stripHtml(
+        '<figure><img src="x"/><figcaption>Фото: Pexels</figcaption></figure><p>Текст <b>новини</b></p>',
+      ),
     ).toBe('Текст новини');
   });
 
@@ -87,7 +87,9 @@ describe('лента: текст', () => {
   });
 
   it('нормализованный заголовок для дублей', () => {
-    expect(normalizedTitle('  Київ — «зелене» місто!  ')).toBe(normalizedTitle('київ зелене місто'));
+    expect(normalizedTitle('  Київ — «зелене» місто!  ')).toBe(
+      normalizedTitle('київ зелене місто'),
+    );
   });
 });
 
@@ -157,7 +159,9 @@ describe('лента: разбор ответов', () => {
 
   it('записи без даты нет — ответ из одних таких записей это SRC_PARSE', () => {
     expect(() =>
-      parseWpPosts(JSON.stringify([{ date_gmt: 'x', link: 'https://a.b/c', title: { rendered: 't' } }])),
+      parseWpPosts(
+        JSON.stringify([{ date_gmt: 'x', link: 'https://a.b/c', title: { rendered: 't' } }]),
+      ),
     ).toThrow(SourceError);
   });
 });
@@ -168,7 +172,8 @@ function respond(map: Record<string, string | number>): FetchDeps {
       const url = String(input);
       const key = Object.keys(map).find((k) => url.includes(k));
       const value = key === undefined ? 404 : map[key];
-      if (typeof value === 'number') return new Response('<html>Just a moment...</html>', { status: value });
+      if (typeof value === 'number')
+        return new Response('<html>Just a moment...</html>', { status: value });
       return new Response(value, { status: 200 });
     }) as typeof fetch,
     sleep: async () => {},
@@ -228,7 +233,7 @@ describe('лента: основной и запасной путь (ТЗ 7.4)',
       }) as typeof fetch,
     };
     await fetchSource('kyivzelenbud', RULES, spy, NOW);
-    expect(urls[0]).toContain('after=2026-10-21T05:10:00');
+    expect(urls[0]).toContain('after=2026-05-24T05:10:00');
   });
 });
 
@@ -236,10 +241,20 @@ const KZB = RULES.sources.find((s) => s.id === 'kyivzelenbud') as FeedRuleSource
 const TC = RULES.sources.find((s) => s.id === 'theconversation') as FeedRuleSource;
 
 function raw(n: number, date: string, host = 'kyivzelenbud.com'): RawEntry {
-  return { url: `https://${host}/news/${n}/`, title: `Новина ${n}`, publishedAt: date, html: '<p>x</p>' };
+  return {
+    url: `https://${host}/news/${n}/`,
+    title: `Новина ${n}`,
+    publishedAt: date,
+    html: '<p>x</p>',
+  };
 }
 
-function item(source: FeedRuleSource, n: number, date: string, at = '2026-11-01T00:00:00.000Z'): FeedItem {
+function item(
+  source: FeedRuleSource,
+  n: number,
+  date: string,
+  at = '2026-11-01T00:00:00.000Z',
+): FeedItem {
   const host = source.id === 'theconversation' ? 'theconversation.com' : 'kyivzelenbud.com';
   return toFeedItem(source, 'tag', raw(n, date, host), at);
 }
@@ -262,7 +277,11 @@ describe('лента: слияние и вытеснение', () => {
     const many = Array.from({ length: 45 }, (_, i) =>
       item(KZB, i, new Date(Date.UTC(2026, 0, 1 + i)).toISOString()),
     );
-    const merged = mergeItems([item(TC, 99, '2026-12-31T00:00:00.000Z')], many, new Set(['kyivzelenbud']));
+    const merged = mergeItems(
+      [item(TC, 99, '2026-12-31T00:00:00.000Z')],
+      many,
+      new Set(['kyivzelenbud']),
+    );
     expect(merged).toHaveLength(40);
     expect(merged[0]?.title).toBe('Новина 44');
     expect(merged.at(-1)?.title).toBe('Новина 5');
@@ -285,7 +304,11 @@ describe('лента: слияние и вытеснение', () => {
       state: 'data',
       items: [item(KZB, 1, '2026-11-01T00:00:00.000Z')],
     };
-    const next = nextFeedFile(previous, [{ source: KZB, ok: false, code: 'SRC_TIMEOUT' }], '2026-11-20T00:00:00.000Z');
+    const next = nextFeedFile(
+      previous,
+      [{ source: KZB, ok: false, code: 'SRC_TIMEOUT' }],
+      '2026-11-20T00:00:00.000Z',
+    );
     expect(next.state).toBe('unknown');
     expect(next.items).toEqual(previous.items);
     expect(next.generatedAt).toBe(previous.generatedAt);
@@ -333,18 +356,52 @@ describe('лента: прогон sync-external', () => {
     const io = feedIo({}, async (id) => {
       asked.push(id);
       return id === 'kyivzelenbud'
-        ? { via: 'rss', entries: [raw(1, '2026-11-01T00:00:00.000Z')], mainError: new SourceError('SRC_HTTP_4XX', 'x') }
-        : { via: 'tag', entries: [raw(2, '2026-11-02T00:00:00.000Z', 'theconversation.com')], mainError: null };
+        ? {
+            via: 'rss',
+            entries: [raw(1, '2026-11-01T00:00:00.000Z')],
+            mainError: new SourceError('SRC_HTTP_4XX', 'x'),
+          }
+        : {
+            via: 'tag',
+            entries: [raw(2, '2026-11-02T00:00:00.000Z', 'theconversation.com')],
+            mainError: null,
+          };
     });
     const result = await runSync(['feed'], io);
     expect(asked).toEqual(['kyivzelenbud', 'theconversation']);
     expect(result).toMatchObject({ siteChanged: true, anyChanged: true, failed: false });
-    const state = io.files['sync-state.json'] as { items: { source: string; result: string; errorCode: string | null }[] };
+    const state = io.files['sync-state.json'] as {
+      items: { source: string; result: string; errorCode: string | null }[];
+    };
     expect(state.items.find((s) => s.source === 'kyivzelenbud')).toMatchObject({
       result: 'partial',
       errorCode: 'SRC_HTTP_4XX',
     });
     expect((io.files['feed.json'] as FeedFile).items.map((i) => i.via)).toEqual(['tag', 'rss']);
+
+    // Повтор той же выдачи: новых записей нет, коммита нет.
+    const again = await runSync(['feed'], io);
+    expect(again.anyChanged).toBe(false);
+  });
+
+  it('«новые» — только записи, вошедшие в файл впервые', async () => {
+    const deep = Array.from({ length: 50 }, (_, i) =>
+      raw(i, new Date(Date.UTC(2025, 0, 1 + i)).toISOString(), 'theconversation.com'),
+    );
+    const io = feedIo({}, async (id) =>
+      id === 'theconversation'
+        ? { via: 'tag', entries: deep, mainError: null }
+        : { via: 'tag', entries: [], mainError: null },
+    );
+    await runSync(['feed'], io);
+    await runSync(['feed'], io);
+    const state = io.files['sync-state.json'] as {
+      items: { source: string; itemsNew: number; itemsFetched: number }[];
+    };
+    expect(state.items.find((s) => s.source === 'theconversation')).toMatchObject({
+      itemsFetched: 50,
+      itemsNew: 40,
+    });
   });
 
   it('один источник упал — прогон успешен; упали все — прогон падает', async () => {

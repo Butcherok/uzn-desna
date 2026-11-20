@@ -8,6 +8,7 @@
 import {
   contactsFileSchema,
   enterpriseFileSchema,
+  feedFileSchema,
   leadersFileSchema,
   publicDocsFileSchema,
   scenariosFileSchema,
@@ -22,6 +23,7 @@ import type {
   BlockKey,
   Contact,
   Enterprise,
+  FeedFile,
   LangText,
   Leader,
   Scenario,
@@ -40,6 +42,7 @@ import vacanciesRaw from '../../../data/vacancies.json';
 // Файл синхронизации (ТЗ 6.3). В `main` — заготовка; при деплое его
 // подменяет версия из ветки `sync-data` (решение 023).
 import tendersRaw from '../../../data/sync/tenders.json';
+import feedRaw from '../../../data/sync/feed.json';
 
 function parseFile<T>(name: string, schema: { parse: (input: unknown) => T }, raw: unknown): T {
   try {
@@ -61,6 +64,7 @@ const servicesFile = parseFile('services.json', servicesFileSchema, servicesRaw)
 const staticBlocksFile = parseFile('static-blocks.json', staticBlocksFileSchema, staticBlocksRaw);
 const vacanciesFile = parseFile('vacancies.json', vacanciesFileSchema, vacanciesRaw);
 const tendersFile = parseFile('sync/tenders.json', tendersFileSchema, tendersRaw);
+const feedFile = parseFile('sync/feed.json', feedFileSchema, feedRaw);
 
 for (const [name, file] of [
   ['contacts.json', contactsFile],
@@ -72,6 +76,7 @@ for (const [name, file] of [
   ['static-blocks.json', staticBlocksFile],
   ['vacancies.json', vacanciesFile],
   ['sync/tenders.json', tendersFile],
+  ['sync/feed.json', feedFile],
 ] as const) {
   if (file.schemaVersion !== SCHEMA_VERSION) {
     throw new Error(
@@ -86,6 +91,7 @@ export const scenarios: readonly Scenario[] = scenariosFile.items;
 export const leaders: readonly Leader[] = leadersFile.items;
 export const services: readonly Service[] = servicesFile.items;
 export const tenders: TendersFile = tendersFile;
+export const feed: FeedFile = feedFile;
 export const vacancies: readonly Vacancy[] = vacanciesFile.items;
 
 /** `Enterprise` — синглтон (ТЗ 6.2): количество записей проверено схемой файла. */

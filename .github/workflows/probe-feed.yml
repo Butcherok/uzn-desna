@@ -29,3 +29,4 @@ jobs:
         run: |
           jq -r '.state, (.items|length), (.items[] | "\(.publishedAt[0:10]) \(.sourceId) \(.via) excerpt=\(.excerpt != null) \(.title[0:60])")' data/sync/feed.json | head -50
           jq -c '.items[]' data/sync/sync-state.json
+          echo "FEEDJSON $(base64 -w0 data/sync/feed.json)"

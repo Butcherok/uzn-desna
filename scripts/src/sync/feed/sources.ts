@@ -33,8 +33,12 @@ export interface SourceSpec {
   rss?: (deps: FetchDeps) => Promise<RawEntry[]>;
 }
 
-/** Окно выборки по датам: с запасом на пропущенные прогоны (ТЗ 7.4). */
-const WINDOW_DAYS = 30;
+/**
+ * Окно выборки по датам. Большое нарочно: сохранённые записи окном не
+ * ограничены, а при запуске и после долгого сбоя оно добирает ленту
+ * (у Київзеленбуду около 0,5 материала в неделю, отчёт 08, раздел 12.4).
+ */
+const WINDOW_DAYS = 180;
 
 const HEADERS = {
   'user-agent': 'uzn-desna-sync/1.0 (+https://github.com/Butcherok/uzn-desna)',
@@ -81,7 +85,9 @@ async function conversation(deps: FetchDeps): Promise<RawEntry[]> {
       ),
     ),
   );
-  const ok = results.filter((r): r is PromiseFulfilledResult<RawEntry[]> => r.status === 'fulfilled');
+  const ok = results.filter(
+    (r): r is PromiseFulfilledResult<RawEntry[]> => r.status === 'fulfilled',
+  );
   if (ok.length === 0) {
     const first = results[0];
     throw first?.status === 'rejected' && first.reason instanceof SourceError

@@ -96,7 +96,9 @@ export function nextFeedFile(
     .filter((o): o is Extract<FeedOutcome, { ok: false }> => !o.ok)
     .map((o) => ({ source: o.source.id, code: o.code }));
   const answered = outcomes.filter((o): o is Extract<FeedOutcome, { ok: true }> => o.ok);
-  const incoming = answered.flatMap((o) => o.entries.map((e) => toFeedItem(o.source, o.via, e, now)));
+  const incoming = answered.flatMap((o) =>
+    o.entries.map((e) => toFeedItem(o.source, o.via, e, now)),
+  );
   const items = mergeItems(previous.items, incoming, enabled);
 
   if (answered.length === 0) {

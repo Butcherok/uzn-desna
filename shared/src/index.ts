@@ -58,4 +58,10 @@ export {
   FEED_ITEMS_SHOWN,
   FEED_ITEMS_ON_HOME,
 } from './schemas/feed.js';
-export type { FeedItem, FeedFile, FeedRules, FeedRuleSource, FeedSourceId } from './schemas/feed.js';
+export type {
+  FeedItem,
+  FeedFile,
+  FeedRules,
+  FeedRuleSource,
+  FeedSourceId,
+} from './schemas/feed.js';

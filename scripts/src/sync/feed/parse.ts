@@ -84,7 +84,10 @@ export function parseWpPosts(body: string): RawEntry[] {
   }
   const parsed = z.array(wpPostSchema).safeParse(json);
   if (!parsed.success) {
-    throw new SourceError('SRC_PARSE', `unexpected shape at ${parsed.error.issues[0]?.path.join('.')}`);
+    throw new SourceError(
+      'SRC_PARSE',
+      `unexpected shape at ${parsed.error.issues[0]?.path.join('.')}`,
+    );
   }
   return finish(
     parsed.data.length,
