@@ -3,6 +3,11 @@ import {
   DuplicateKeyError,
   StoreUnavailableError,
   type ActionLogEntry,
+  type ContentKind,
+  type ContentMeta,
+  type ContentOrderEntry,
+  type ContentRecord,
+  type NewContentRecord,
   type NewSession,
   type NewUser,
   type Session,
@@ -20,6 +25,8 @@ export class MemoryStore implements Store {
   readonly users = new Map<string, User>();
   readonly sessions = new Map<string, Session>();
   readonly log: ActionLogEntry[] = [];
+  readonly content = new Map<string, ContentRecord>();
+  meta: ContentMeta = { seededAt: null, lastPublishedAt: null, purgedPending: 0 };
   available = true;
 
   private check(): void {
@@ -104,4 +111,91 @@ export class MemoryStore implements Store {
     this.check();
     this.log.push({ ...entry });
   }
+
+  async listContent(kind: ContentKind): Promise<ContentRecord[]> {
+    this.check();
+    return [...this.content.values()].filter((r) => r.kind === kind).map(copyRecord);
+  }
+
+  async findContent(kind: ContentKind, id: string): Promise<ContentRecord | null> {
+    this.check();
+    const r = this.content.get(id);
+    return r && r.kind === kind ? copyRecord(r) : null;
+  }
+
+  async insertContent(record: NewContentRecord): Promise<ContentRecord> {
+    this.check();
+    this.assertKeyFree(record.kind, record.key, null);
+    const created = copyRecord({ ...record, id: randomUUID() });
+    this.content.set(created.id, created);
+    return copyRecord(created);
+  }
+
+  async replaceContent(record: ContentRecord, expectedUpdatedAt: Date): Promise<boolean> {
+    this.check();
+    const current = this.content.get(record.id);
+    if (!current || current.kind !== record.kind) return false;
+    if (current.updatedAt.getTime() !== expectedUpdatedAt.getTime()) return false;
+    this.assertKeyFree(record.kind, record.key, record.id);
+    this.content.set(record.id, copyRecord(record));
+    return true;
+  }
+
+  async updateContentOrder(
+    kind: ContentKind,
+    entries: ContentOrderEntry[],
+    at: Date,
+  ): Promise<void> {
+    this.check();
+    for (const { id, order } of entries) {
+      const r = this.content.get(id);
+      if (r && r.kind === kind) {
+        this.content.set(id, copyRecord({ ...r, data: { ...r.data, order }, updatedAt: at }));
+      }
+    }
+  }
+
+  async deleteContent(kind: ContentKind, id: string): Promise<boolean> {
+    this.check();
+    const r = this.content.get(id);
+    if (!r || r.kind !== kind) return false;
+    return this.content.delete(id);
+  }
+
+  async countContentChangedSince(since: Date | null): Promise<number> {
+    this.check();
+    let n = 0;
+    for (const r of this.content.values()) {
+      if (since === null || r.updatedAt.getTime() > since.getTime()) n += 1;
+    }
+    return n;
+  }
+
+  async getContentMeta(): Promise<ContentMeta> {
+    this.check();
+    return { ...this.meta };
+  }
+
+  async markContentSeeded(at: Date): Promise<boolean> {
+    this.check();
+    if (this.meta.seededAt) return false;
+    this.meta = { ...this.meta, seededAt: at, lastPublishedAt: at };
+    return true;
+  }
+
+  async incrementPurgedPending(): Promise<void> {
+    this.check();
+    this.meta = { ...this.meta, purgedPending: this.meta.purgedPending + 1 };
+  }
+
+  private assertKeyFree(kind: ContentKind, key: string, exceptId: string | null): void {
+    for (const r of this.content.values()) {
+      if (r.kind === kind && r.key === key && r.id !== exceptId) throw new DuplicateKeyError();
+    }
+  }
+}
+
+/** Глубокая копия: `data` — вложенные объекты, наружу ссылки не уходят. */
+function copyRecord(r: ContentRecord): ContentRecord {
+  return { ...r, data: structuredClone(r.data) };
 }

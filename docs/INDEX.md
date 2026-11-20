@@ -21,6 +21,7 @@
 | Замер Lighthouse                   | `.github/workflows/lighthouse.yml`, ветка `metrics`             |
 | Бэкенд: вход, сессии, ошибки, CORS | `server/src/app.ts`, `server/src/routes/`, `server/src/domain/` |
 | Хранилище БД и его тесты           | `server/src/gateway/`, `store-contract.ts`                      |
+| Контент: сущности, права, `slug`   | `server/src/domain/content-kinds.ts`, `content.ts`              |
 | Переменные бэкенда                 | `server/src/config/env.ts`, `.env.example`                      |
 | Первый владелец, потерян пароль    | `docs/runbook-admin-access.md`                                  |
 | Запуск бэкенда: Atlas и Render     | `docs/runbook-backend-deploy.md`, `render.yaml`                 |

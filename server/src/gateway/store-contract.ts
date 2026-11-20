@@ -5,7 +5,12 @@
  * тесты API, не расходится с настоящей БД.
  */
 import { beforeEach, describe, expect, it } from 'vitest';
-import { DuplicateKeyError, type NewUser, type Store } from '../domain/model.js';
+import {
+  DuplicateKeyError,
+  type NewContentRecord,
+  type NewUser,
+  type Store,
+} from '../domain/model.js';
 
 export function newUser(login: string, extra: Partial<NewUser> = {}): NewUser {
   return {
@@ -18,6 +23,21 @@ export function newUser(login: string, extra: Partial<NewUser> = {}): NewUser {
     createdAt: new Date('2026-11-20T10:00:00Z'),
     lastLoginAt: null,
     passwordChangedAt: null,
+    ...extra,
+  };
+}
+
+export function newContent(key: string, extra: Partial<NewContentRecord> = {}): NewContentRecord {
+  const at = new Date('2026-11-20T10:00:00Z');
+  return {
+    kind: 'contacts',
+    key,
+    data: { slug: key, nested: { order: 1 } },
+    status: 'draft',
+    createdAt: at,
+    updatedAt: at,
+    deletedAt: null,
+    firstPublishedAt: null,
     ...extra,
   };
 }
@@ -98,6 +118,67 @@ export function storeContract(name: string, make: () => Promise<Store>): void {
         details: {},
       });
       expect(await store.ping()).toBe(true);
+    });
+
+    it('stores content records; key is unique per kind', async () => {
+      const a = await store.insertContent(newContent('pryimalnia'));
+      expect(a.id).toMatch(/\S/);
+      // Тот же ключ в другой сущности — не конфликт.
+      await store.insertContent(newContent('pryimalnia', { kind: 'services' }));
+      await expect(store.insertContent(newContent('pryimalnia'))).rejects.toBeInstanceOf(
+        DuplicateKeyError,
+      );
+      const got = await store.findContent('contacts', a.id);
+      expect(got?.data).toEqual({ slug: 'pryimalnia', nested: { order: 1 } });
+      expect(got?.updatedAt.toISOString()).toBe(t0.toISOString());
+      expect(await store.findContent('services', a.id)).toBeNull();
+      expect(await store.findContent('contacts', 'not-an-id')).toBeNull();
+      expect((await store.listContent('contacts')).map((r) => r.id)).toEqual([a.id]);
+    });
+
+    it('replaces content only when updatedAt still matches', async () => {
+      const a = await store.insertContent(newContent('a'));
+      await store.insertContent(newContent('b'));
+      const next = { ...a, data: { slug: 'a2' }, key: 'a2', updatedAt: later(1000) };
+      expect(await store.replaceContent(next, later(5))).toBe(false);
+      expect(await store.replaceContent(next, t0)).toBe(true);
+      expect((await store.findContent('contacts', a.id))?.key).toBe('a2');
+      // Повтор с прежним updatedAt уже не проходит.
+      expect(await store.replaceContent({ ...next, key: 'a3' }, t0)).toBe(false);
+      await expect(
+        store.replaceContent({ ...next, key: 'b', updatedAt: later(2000) }, later(1000)),
+      ).rejects.toBeInstanceOf(DuplicateKeyError);
+    });
+
+    it('reorders, counts changes and deletes content', async () => {
+      const a = await store.insertContent(newContent('a', { data: { slug: 'a', order: 1 } }));
+      const b = await store.insertContent(newContent('b', { data: { slug: 'b', order: 2 } }));
+      expect(await store.countContentChangedSince(null)).toBe(2);
+      expect(await store.countContentChangedSince(t0)).toBe(0);
+      await store.updateContentOrder('contacts', [{ id: b.id, order: 1 }], later(1000));
+      const gotB = await store.findContent('contacts', b.id);
+      expect(gotB?.data.order).toBe(1);
+      expect(gotB?.updatedAt.toISOString()).toBe(later(1000).toISOString());
+      expect(await store.countContentChangedSince(t0)).toBe(1);
+      expect(await store.deleteContent('services', a.id)).toBe(false);
+      expect(await store.deleteContent('contacts', a.id)).toBe(true);
+      expect(await store.deleteContent('contacts', a.id)).toBe(false);
+      expect((await store.listContent('contacts')).map((r) => r.key)).toEqual(['b']);
+    });
+
+    it('marks seeding once and counts purged records', async () => {
+      expect(await store.getContentMeta()).toEqual({
+        seededAt: null,
+        lastPublishedAt: null,
+        purgedPending: 0,
+      });
+      await store.incrementPurgedPending();
+      expect(await store.markContentSeeded(t0)).toBe(true);
+      expect(await store.markContentSeeded(later(1000))).toBe(false);
+      const meta = await store.getContentMeta();
+      expect(meta.seededAt?.toISOString()).toBe(t0.toISOString());
+      expect(meta.lastPublishedAt?.toISOString()).toBe(t0.toISOString());
+      expect(meta.purgedPending).toBe(1);
     });
   });
 }

@@ -53,6 +53,56 @@ export interface UserPatch {
   passwordChangedAt?: Date;
 }
 
+/**
+ * Редактируемый контент (ТЗ 6.2, 8.3). Запись — служебные поля и `data`:
+ * `data` — ровно поля схемы из `shared/`, её же берёт выгрузка (решение 038).
+ */
+export const CONTENT_KINDS = [
+  'contacts',
+  'leaders',
+  'services',
+  'scenarios',
+  'vacancies',
+  'public-docs',
+  'static-blocks',
+  'enterprise',
+  'feed-rules',
+] as const;
+
+export type ContentKind = (typeof CONTENT_KINDS)[number];
+
+export type ContentStatus = 'draft' | 'published';
+
+export interface ContentRecord {
+  id: string;
+  kind: ContentKind;
+  /** Уникален в пределах `kind`: `slug`, `blockKey` или `singleton`. */
+  key: string;
+  data: Record<string, unknown>;
+  status: ContentStatus;
+  createdAt: Date;
+  updatedAt: Date;
+  /** Не `null` — запись в «Кошику» (ТЗ 6.1, п. 7). */
+  deletedAt: Date | null;
+  /** После первой публикации `slug` меняется только с подтверждением (ТЗ 8.3, п. 3). */
+  firstPublishedAt: Date | null;
+}
+
+export type NewContentRecord = Omit<ContentRecord, 'id'>;
+
+/** Служебная запись контента: загрузка начальных данных и последняя публикация. */
+export interface ContentMeta {
+  seededAt: Date | null;
+  lastPublishedAt: Date | null;
+  /** Окончательно удалённые записи, чьё удаление ещё не опубликовано. */
+  purgedPending: number;
+}
+
+export interface ContentOrderEntry {
+  id: string;
+  order: number;
+}
+
 export interface Store {
   /** Короткая проверка связи с БД для `/health`. */
   ping(): Promise<boolean>;
@@ -74,6 +124,28 @@ export interface Store {
   listUserSessions(userId: string, now: Date): Promise<Session[]>;
 
   appendLog(entry: ActionLogEntry): Promise<void>;
+
+  /** Все записи сущности, включая «Кошик»; порядок не гарантируется. */
+  listContent(kind: ContentKind): Promise<ContentRecord[]>;
+  findContent(kind: ContentKind, id: string): Promise<ContentRecord | null>;
+  /** Бросает `DuplicateKeyError`, если `key` занят в пределах `kind`. */
+  insertContent(record: NewContentRecord): Promise<ContentRecord>;
+  /**
+   * Заменяет запись, если её `updatedAt` всё ещё `expectedUpdatedAt`.
+   * `false` — запись изменили или удалили раньше. Бросает `DuplicateKeyError`
+   * при занятом `key`.
+   */
+  replaceContent(record: ContentRecord, expectedUpdatedAt: Date): Promise<boolean>;
+  /** Ставит `data.order` и `updatedAt` перечисленным записям. */
+  updateContentOrder(kind: ContentKind, entries: ContentOrderEntry[], at: Date): Promise<void>;
+  /** Физическое удаление. `false` — записи не было. */
+  deleteContent(kind: ContentKind, id: string): Promise<boolean>;
+  /** Число записей с `updatedAt` позже `since`; `null` — все записи. */
+  countContentChangedSince(since: Date | null): Promise<number>;
+  getContentMeta(): Promise<ContentMeta>;
+  /** Отмечает загрузку начальных данных. `false` — отметка уже стояла. */
+  markContentSeeded(at: Date): Promise<boolean>;
+  incrementPurgedPending(): Promise<void>;
 }
 
 export class DuplicateKeyError extends Error {
