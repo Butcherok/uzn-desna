@@ -26,7 +26,8 @@ const secrets = secretValues(env, ['EXPORT_TOKEN']);
 const log = (line: string) => console.log(mask(line, secrets));
 
 const apiBase = (env['API_BASE'] ?? '').replace(/\/+$/u, '');
-const token = env['EXPORT_TOKEN'] ?? '';
+// Пробелы и перевод строки по краям — частый след вставки; сервер их тоже обрезает.
+const token = (env['EXPORT_TOKEN'] ?? '').trim();
 const runId = env['RUN_ID'] && /^\d+$/u.test(env['RUN_ID']) ? env['RUN_ID'] : null;
 const prevDir = env['PREV_DIR'] || 'data';
 const outDir = env['OUT_DIR'] || 'data';

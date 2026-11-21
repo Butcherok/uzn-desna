@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { RunnerUnavailableError } from '../domain/publish.js';
-import { GitHubRunner, RUN_CACHE_TTL_MS, createRunner } from './github.js';
+import { GitHubRunner, RUN_CACHE_TTL_MS, createRunner, looksLikeGitHubToken } from './github.js';
 
 const TOKEN = 'github_pat_' + 'x'.repeat(30);
 const config = {
@@ -125,6 +125,30 @@ describe('GitHubRunner (decision 041)', () => {
     const r = new GitHubRunner({ config, fetch: f.impl });
     await expect(r.getRun(9)).rejects.toBeInstanceOf(RunnerUnavailableError);
     expect(await r.getRun(9)).toBe('in_progress');
+  });
+
+  it('logs the status of a failed request without the token', async () => {
+    const lines: string[] = [];
+    const r = new GitHubRunner({
+      config,
+      fetch: fakeFetch([json(401, {}), new TypeError('fetch failed'), json(422, {})]).impl,
+      warn: (m) => lines.push(m),
+    });
+    await expect(r.getRun(9)).rejects.toBeInstanceOf(RunnerUnavailableError);
+    await expect(r.getRun(10)).rejects.toBeInstanceOf(RunnerUnavailableError);
+    await expect(r.dispatch()).rejects.toBeInstanceOf(RunnerUnavailableError);
+    expect(lines).toEqual([
+      'github run 9: HTTP 401',
+      'github GET /repos/Butcherok/uzn-desna/actions/runs/10: TypeError',
+      'github dispatch: HTTP 422',
+    ]);
+    expect(lines.join('\n')).not.toContain(TOKEN);
+  });
+
+  it('tells a GitHub token from another string by prefix', () => {
+    expect(looksLikeGitHubToken('github_pat_abc')).toBe(true);
+    expect(looksLikeGitHubToken('ghp_abc')).toBe(true);
+    expect(looksLikeGitHubToken('0123456789abcdef'.repeat(4))).toBe(false);
   });
 
   it('is not created without a token', () => {
