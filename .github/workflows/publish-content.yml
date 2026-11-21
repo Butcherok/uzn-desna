@@ -1,0 +1,109 @@
+name: Publish content
+
+# Публикация правок из админки (ТЗ 8.5, 7.1; решение 041). Запускается
+# кнопкой «Опублікувати зміни» (бэкенд вызывает `workflow_dispatch`) и
+# первого числа месяца по расписанию. Забирает `GET /export`, пишет
+# редактируемые файлы `data/` в незащищённую ветку `content-data` и запускает
+# `Deploy`, дожидаясь его итога: итог этого прогона — итог публикации,
+# его читает `/publish/status`.
+on:
+  workflow_dispatch:
+  # 1-е число, 06:37 UTC — не на круглую минуту; запуски по расписанию
+  # GitHub может задерживать.
+  schedule:
+    - cron: '37 6 1 * *'
+
+permissions:
+  contents: write
+  actions: write
+
+concurrency:
+  group: publish-content
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      # Адрес сервиса не секрет; переменная репозитория `API_BASE` его заменяет.
+      API_BASE: ${{ vars.API_BASE || 'https://uzn-desna-api.onrender.com' }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      # Прежние опубликованные файлы — из `content-data`; ветки ещё нет —
+      # сравнение с `data/` в `main`, ветка создаётся первым коммитом.
+      - name: Prepare content-data
+        run: |
+          if git ls-remote --exit-code --heads origin content-data > /dev/null; then
+            git fetch --depth=1 origin content-data
+            git worktree add ../content-data FETCH_HEAD
+            git -C ../content-data switch -c content-data
+            echo "PREV_DIR=../content-data/data" >> "$GITHUB_ENV"
+          else
+            git worktree add --orphan -b content-data ../content-data
+            echo "PREV_DIR=data" >> "$GITHUB_ENV"
+          fi
+
+      - name: Export from backend
+        id: export
+        env:
+          EXPORT_TOKEN: ${{ secrets.EXPORT_TOKEN }}
+          RUN_ID: ${{ github.run_id }}
+        run: npm run publish:export
+
+      # Та же проверка, что у сборки: неверные данные не доходят до `Deploy`.
+      - name: Check data files
+        run: npm run data:check
+
+      - name: Commit to content-data
+        id: commit
+        if: steps.export.outputs.changed == 'true'
+        run: |
+          mkdir -p ../content-data/data
+          for name in contacts enterprise feed-rules leaders public-docs scenarios services static-blocks vacancies; do
+            cp "data/$name.json" ../content-data/data/
+          done
+          cd ../content-data
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data
+          if git diff --cached --quiet; then
+            echo "Изменений для content-data нет"
+            echo "pushed=false" >> "$GITHUB_OUTPUT"
+          else
+            git commit -m "chore(content): publish admin changes (run ${{ github.run_id }})"
+            git push origin content-data
+            echo "pushed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      # Коммит от `GITHUB_TOKEN` сам `Deploy` не запускает (решение 023),
+      # поэтому запуск — явный, и прогон ждёт его итога.
+      - name: Deploy and wait
+        if: steps.commit.outputs.pushed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          started=$(date -u -d '-5 seconds' +%Y-%m-%dT%H:%M:%SZ)
+          id=$(gh api -X POST "repos/$GITHUB_REPOSITORY/actions/workflows/deploy.yml/dispatches" \
+            -f ref=main -F return_run_details=true --jq '.workflow_run_id // empty' || true)
+          for i in 1 2 3 4 5; do
+            [ -n "$id" ] && break
+            sleep 5
+            id=$(gh run list --repo "$GITHUB_REPOSITORY" --workflow deploy.yml --event workflow_dispatch \
+              --created ">=$started" --limit 1 --json databaseId --jq '.[0].databaseId // empty')
+          done
+          if [ -z "$id" ]; then
+            echo "::error title=DEPLOY::прогон Deploy не найден"
+            exit 1
+          fi
+          echo "Deploy: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$id"
+          gh run watch "$id" --repo "$GITHUB_REPOSITORY" --exit-status --interval 15 > /dev/null

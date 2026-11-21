@@ -5,6 +5,8 @@ import {
   type ActionLogEntry,
   type ContentKind,
   type ContentMeta,
+  type PublishFinish,
+  type PublishRun,
   type ContentOrderEntry,
   type ContentRecord,
   type NewContentRecord,
@@ -26,7 +28,7 @@ export class MemoryStore implements Store {
   readonly sessions = new Map<string, Session>();
   readonly log: ActionLogEntry[] = [];
   readonly content = new Map<string, ContentRecord>();
-  meta: ContentMeta = { seededAt: null, lastPublishedAt: null, purgedPending: 0 };
+  meta: ContentMeta = { seededAt: null, lastPublishedAt: null, purgedPending: 0, lastRun: null };
   available = true;
 
   private check(): void {
@@ -173,7 +175,7 @@ export class MemoryStore implements Store {
 
   async getContentMeta(): Promise<ContentMeta> {
     this.check();
-    return { ...this.meta };
+    return { ...this.meta, lastRun: this.meta.lastRun ? { ...this.meta.lastRun } : null };
   }
 
   async markContentSeeded(at: Date): Promise<boolean> {
@@ -186,6 +188,34 @@ export class MemoryStore implements Store {
   async incrementPurgedPending(): Promise<void> {
     this.check();
     this.meta = { ...this.meta, purgedPending: this.meta.purgedPending + 1 };
+  }
+
+  async setPublishRun(run: PublishRun): Promise<void> {
+    this.check();
+    this.meta = { ...this.meta, lastRun: { ...run } };
+  }
+
+  async patchPublishRun(
+    runId: number,
+    patch: Partial<Omit<PublishRun, 'runId'>>,
+  ): Promise<boolean> {
+    this.check();
+    if (this.meta.lastRun?.runId !== runId) return false;
+    this.meta = { ...this.meta, lastRun: { ...this.meta.lastRun, ...patch } };
+    return true;
+  }
+
+  async finishPublishRun(runId: number, finish: PublishFinish): Promise<boolean> {
+    this.check();
+    const run = this.meta.lastRun;
+    if (run?.runId !== runId || run.result !== 'in_progress') return false;
+    this.meta = {
+      ...this.meta,
+      lastRun: { ...run, result: finish.result, finishedAt: finish.finishedAt },
+      lastPublishedAt: finish.publishedAt ?? this.meta.lastPublishedAt,
+      purgedPending: Math.max(0, this.meta.purgedPending - finish.purgedDelta),
+    };
+    return true;
   }
 
   private assertKeyFree(kind: ContentKind, key: string, exceptId: string | null): void {

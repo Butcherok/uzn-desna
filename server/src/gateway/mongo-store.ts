@@ -16,6 +16,8 @@ import {
   type ActionLogEntry,
   type ContentKind,
   type ContentMeta,
+  type PublishFinish,
+  type PublishRun,
   type ContentOrderEntry,
   type ContentRecord,
   type NewContentRecord,
@@ -344,6 +346,7 @@ export class MongoStore implements Store {
         seededAt: d?.seededAt ?? null,
         lastPublishedAt: d?.lastPublishedAt ?? null,
         purgedPending: d?.purgedPending ?? 0,
+        lastRun: d?.lastRun ?? null,
       };
     });
   }
@@ -359,7 +362,7 @@ export class MongoStore implements Store {
           { _id: META_ID, seededAt: null },
           {
             $set: { seededAt: at, lastPublishedAt: at },
-            $setOnInsert: { purgedPending: 0 },
+            $setOnInsert: { purgedPending: 0, lastRun: null },
           },
           { upsert: true },
         );
@@ -378,10 +381,55 @@ export class MongoStore implements Store {
         { _id: META_ID },
         {
           $inc: { purgedPending: 1 },
-          $setOnInsert: { seededAt: null, lastPublishedAt: null },
+          $setOnInsert: { seededAt: null, lastPublishedAt: null, lastRun: null },
         },
         { upsert: true },
       );
+    });
+  }
+
+  setPublishRun(run: PublishRun): Promise<void> {
+    return guard(async () => {
+      await this.meta.updateOne(
+        { _id: META_ID },
+        {
+          $set: { lastRun: run },
+          $setOnInsert: { seededAt: null, lastPublishedAt: null, purgedPending: 0 },
+        },
+        { upsert: true },
+      );
+    });
+  }
+
+  patchPublishRun(runId: number, patch: Partial<Omit<PublishRun, 'runId'>>): Promise<boolean> {
+    return guard(async () => {
+      const set = Object.fromEntries(Object.entries(patch).map(([k, v]) => [`lastRun.${k}`, v]));
+      if (Object.keys(set).length === 0) {
+        return (await this.meta.countDocuments({ _id: META_ID, 'lastRun.runId': runId })) === 1;
+      }
+      const r = await this.meta.updateOne({ _id: META_ID, 'lastRun.runId': runId }, { $set: set });
+      return r.matchedCount === 1;
+    });
+  }
+
+  /**
+   * Одно условное обновление: два одновременных опроса состояния не
+   * завершат прогон дважды и не вычтут удалённые записи два раза.
+   */
+  finishPublishRun(runId: number, finish: PublishFinish): Promise<boolean> {
+    return guard(async () => {
+      const r = await this.meta.updateOne(
+        { _id: META_ID, 'lastRun.runId': runId, 'lastRun.result': 'in_progress' },
+        {
+          $set: {
+            'lastRun.result': finish.result,
+            'lastRun.finishedAt': finish.finishedAt,
+            ...(finish.publishedAt ? { lastPublishedAt: finish.publishedAt } : {}),
+          },
+          $inc: { purgedPending: -finish.purgedDelta },
+        },
+      );
+      return r.modifiedCount === 1;
     });
   }
 }

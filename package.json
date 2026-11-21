@@ -34,6 +34,7 @@
     "docs:check": "node scripts/bin/docs-check.mjs",
     "docs:map": "node scripts/bin/docs-check.mjs --write",
     "sync": "tsx scripts/bin/sync-external.ts",
+    "publish:export": "tsx scripts/bin/publish-export.ts",
     "hash-password": "tsx server/src/bin/hash-password.ts",
     "server:build": "npm run build --workspace server",
     "ci": "npm run typecheck && npm run lint && npm run format:check && npm run contrast:check && npm run test && npm run data:check && npm run build && npm run server:build && npm run admin:build && npm run budget:check && npm run seo:check && npm run secrets:check && npm run docs:check",

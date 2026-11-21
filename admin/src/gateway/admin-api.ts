@@ -2,6 +2,7 @@
  * Эндпоинты API, которыми пользуется админка (ТЗ 8.2, 8.3, 8.5).
  */
 import type { Kind, RecordView, User } from '../domain/kinds';
+import type { PublishRunView, PublishStatus } from '../domain/publish';
 import { request, type ApiResponse, type RequestOptions } from './api';
 
 export interface ListResult {
@@ -15,9 +16,12 @@ export interface WriteResult {
   pendingChanges: number;
 }
 
-export interface PublishStatus {
-  lastPublishedAt: string | null;
-  pendingChanges: number;
+export type { PublishStatus } from '../domain/publish';
+
+export interface PublishStarted {
+  runId: number;
+  startedAt: string;
+  run: PublishRunView;
 }
 
 type Slow = Pick<RequestOptions, 'onSlow'>;
@@ -38,6 +42,9 @@ export const api = {
     }),
 
   publishStatus: (o: Slow = {}) => data(request<PublishStatus>('/publish/status', o)),
+  /** Запуск не повторяется после таймаута: вторая публикация получила бы 409. */
+  publish: (o: Slow = {}) =>
+    data(request<PublishStarted>('/publish', { ...o, method: 'POST', idempotent: false })),
 
   list: (kind: Kind, trashed: boolean, o: Slow = {}) =>
     data(request<ListResult>(`/${kind}`, { ...o, query: trashed ? { trashed: '1' } : {} })),

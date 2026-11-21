@@ -627,3 +627,39 @@ textarea {
 .publish__muted {
   color: var(--c-deep);
 }
+.publish {
+  align-items: center;
+  max-height: 60vh;
+  overflow-y: auto;
+}
+.publish__state {
+  flex: 1 1 16rem;
+  min-width: 0;
+}
+.publish__button {
+  flex: 0 0 auto;
+  margin: var(--s-1) 0;
+}
+.publish--progress {
+  background: var(--c-pale);
+}
+.publish--error .publish__state > .publish__line:first-child {
+  color: var(--c-alert);
+  font-weight: 600;
+}
+/* Перечень записей, из-за которых публикация не запущена (ТЗ 8.5, п. 2). */
+.publish__problems {
+  flex: 1 1 100%;
+  padding: var(--s-2) 0;
+  border-bottom: var(--bw) solid var(--c-line);
+}
+.publish__problems strong {
+  color: var(--c-alert);
+}
+.publish__problems ul {
+  margin: var(--s-1) 0 var(--s-2);
+  padding-left: var(--s-5);
+}
+.publish__problems li + li {
+  margin-top: var(--s-2);
+}

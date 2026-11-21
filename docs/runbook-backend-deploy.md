@@ -162,3 +162,57 @@ try { Invoke-WebRequest -UseBasicParsing "$api/auth/me" -Headers @{ 'X-Forwarded
 
 Стоп после этого шага: значение `TRUST_PROXY` и выбор по скорости входа
 решаются по присланному.
+
+## 10. Публикация: токены (задача 5д, решение 041)
+
+Делается один раз, после слияния PR задачи 5д и выкладки на Render. Значения
+токенов не присылать в чат и не сохранять в файлах репозитория.
+
+**Токен GitHub для запуска публикации.**
+
+1. GitHub → аватар справа вверху → **Settings** → внизу слева **Developer
+   settings** → **Personal access tokens** → **Fine-grained tokens** →
+   **Generate new token**.
+2. Token name: `uzn-desna publish`. Expiration: **No expiration**.
+   Resource owner: `Butcherok`.
+3. Repository access: **Only select repositories** → `Butcherok/uzn-desna`.
+4. Permissions → Repository permissions → **Actions: Read and write**. Больше
+   ничего не включать (`Metadata: Read` GitHub добавит сам).
+5. **Generate token** → скопировать значение (начинается с `github_pat_`).
+   Стоп, если в списке прав есть что-то кроме Actions и Metadata.
+
+**Токен выгрузки** — случайная строка из 64 знаков (PowerShell):
+
+```
+$b = New-Object byte[] 32
+[Security.Cryptography.RandomNumberGenerator]::Create().GetBytes($b)
+-join ($b | ForEach-Object { $_.ToString('x2') })
+```
+
+**Куда вписать.**
+
+1. Render → сервис `uzn-desna-api` → **Environment** → **Add Environment
+   Variable**: `GITHUB_DISPATCH_TOKEN` — токен GitHub; `EXPORT_TOKEN` — токен
+   выгрузки → **Save and deploy**.
+2. GitHub → репозиторий → **Settings** → **Secrets and variables** →
+   **Actions** → **New repository secret**: Name `EXPORT_TOKEN`, Secret — тот
+   же токен выгрузки → **Add secret**.
+3. В **Logs** Render после перезапуска не должно быть строк
+   `publishing is not configured` и `export is closed`.
+
+**Проверка.**
+
+1. Админка → «Послуги» → у любой карточки «Приховати» (подтвердить), затем
+   у неё же «Показати на сайті». Содержимое сайта не меняется. Внизу:
+   «Не опубліковано: 1 зміна» и кнопка «Опублікувати зміни».
+2. Нажать кнопку. Должно появиться «Зміни з'являться на сайті протягом
+   кількох хвилин», кнопка исчезает.
+3. GitHub → **Actions** → **Publish content** — идёт прогон, внутри шаг
+   `Deploy and wait`; через 3–5 минут зелёные и он, и запущенный им
+   **Deploy**. Первая публикация всегда доходит до сборки: сервер
+   переупорядочивает `static-blocks.json` по ключу (решение 041).
+4. Админка через минуту после этого: «Усі зміни опубліковано», время
+   последней публикации обновилось. В репозитории появилась ветка
+   `content-data`, сайт выглядит как прежде.
+5. Стоп, если прогон красный: прислать название упавшего шага и строку с
+   `::error` из его журнала (в журнале нет секретов).

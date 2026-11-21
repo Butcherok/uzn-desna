@@ -96,6 +96,39 @@ export interface ContentMeta {
   lastPublishedAt: Date | null;
   /** Окончательно удалённые записи, чьё удаление ещё не опубликовано. */
   purgedPending: number;
+  /** Последний прогон публикации (ТЗ 8.5; решение 041). */
+  lastRun: PublishRun | null;
+}
+
+export type PublishResult = 'in_progress' | 'success' | 'failure';
+
+/** Прогон рабочего процесса `publish-content` (ТЗ 8.5; решение 041). */
+export interface PublishRun {
+  /** Номер прогона GitHub Actions. */
+  runId: number;
+  runUrl: string;
+  startedAt: Date;
+  /** Имя того, кто нажал кнопку; `null` — запуск по расписанию. */
+  startedBy: string | null;
+  result: PublishResult;
+  finishedAt: Date | null;
+  /**
+   * Время выгрузки `GET /export`: правки до него уходят в эту публикацию.
+   * `null` — выгрузки ещё не было.
+   */
+  snapshotAt: Date | null;
+  /** Счётчик окончательно удалённых на момент выгрузки. */
+  purgedAtSnapshot: number;
+}
+
+/** Итог прогона: применяется, только если прогон всё ещё `in_progress`. */
+export interface PublishFinish {
+  result: 'success' | 'failure';
+  finishedAt: Date;
+  /** Успех с выгрузкой: новое время последней публикации. */
+  publishedAt: Date | null;
+  /** На сколько уменьшить счётчик окончательно удалённых. */
+  purgedDelta: number;
 }
 
 export interface ContentOrderEntry {
@@ -146,6 +179,15 @@ export interface Store {
   /** Отмечает загрузку начальных данных. `false` — отметка уже стояла. */
   markContentSeeded(at: Date): Promise<boolean>;
   incrementPurgedPending(): Promise<void>;
+  /** Записывает новый прогон публикации поверх прежнего. */
+  setPublishRun(run: PublishRun): Promise<void>;
+  /** Меняет поля прогона `runId`. `false` — последний прогон другой. */
+  patchPublishRun(runId: number, patch: Partial<Omit<PublishRun, 'runId'>>): Promise<boolean>;
+  /**
+   * Завершает прогон `runId`, если он ещё `in_progress`, и при успехе
+   * сдвигает время последней публикации. `false` — уже завершён или другой.
+   */
+  finishPublishRun(runId: number, finish: PublishFinish): Promise<boolean>;
 }
 
 export class DuplicateKeyError extends Error {

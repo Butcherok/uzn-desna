@@ -171,6 +171,7 @@ export function storeContract(name: string, make: () => Promise<Store>): void {
         seededAt: null,
         lastPublishedAt: null,
         purgedPending: 0,
+        lastRun: null,
       });
       await store.incrementPurgedPending();
       expect(await store.markContentSeeded(t0)).toBe(true);
@@ -178,6 +179,44 @@ export function storeContract(name: string, make: () => Promise<Store>): void {
       const meta = await store.getContentMeta();
       expect(meta.seededAt?.toISOString()).toBe(t0.toISOString());
       expect(meta.lastPublishedAt?.toISOString()).toBe(t0.toISOString());
+      expect(meta.purgedPending).toBe(1);
+    });
+
+    it('tracks a publish run and finishes it once', async () => {
+      await store.markContentSeeded(t0);
+      await store.incrementPurgedPending();
+      await store.incrementPurgedPending();
+      const run = {
+        runId: 42,
+        runUrl: 'https://github.com/o/r/actions/runs/42',
+        startedAt: t0,
+        startedBy: 'Власник',
+        result: 'in_progress' as const,
+        finishedAt: null,
+        snapshotAt: null,
+        purgedAtSnapshot: 0,
+      };
+      await store.setPublishRun(run);
+      expect(await store.patchPublishRun(7, { snapshotAt: later(1000) })).toBe(false);
+      expect(
+        await store.patchPublishRun(42, { snapshotAt: later(1000), purgedAtSnapshot: 1 }),
+      ).toBe(true);
+      expect((await store.getContentMeta()).lastRun?.snapshotAt?.toISOString()).toBe(
+        later(1000).toISOString(),
+      );
+      const finish = {
+        result: 'success' as const,
+        finishedAt: later(5000),
+        publishedAt: later(1000),
+        purgedDelta: 1,
+      };
+      expect(await store.finishPublishRun(7, finish)).toBe(false);
+      expect(await store.finishPublishRun(42, finish)).toBe(true);
+      expect(await store.finishPublishRun(42, finish)).toBe(false);
+      const meta = await store.getContentMeta();
+      expect(meta.lastRun?.result).toBe('success');
+      expect(meta.lastRun?.finishedAt?.toISOString()).toBe(later(5000).toISOString());
+      expect(meta.lastPublishedAt?.toISOString()).toBe(later(1000).toISOString());
       expect(meta.purgedPending).toBe(1);
     });
   });

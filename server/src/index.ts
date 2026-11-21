@@ -12,6 +12,7 @@ import { INITIAL_DATA } from './gateway/initial-data.js';
 import { MongoStore } from './gateway/mongo-store.js';
 import { fileURLToPath } from 'node:url';
 import { loadAdminAssets } from './gateway/admin-assets.js';
+import { createRunner } from './gateway/github.js';
 
 const RETRY_DELAYS_MS = [2_000, 5_000, 10_000, 30_000, 60_000];
 
@@ -34,7 +35,14 @@ async function main(): Promise<void> {
     config.adminDistDir ?? fileURLToPath(new URL('../../admin/dist/', import.meta.url));
   const adminAssets = await loadAdminAssets(adminDir);
   const app = await buildApp(
-    { config, store, now: () => new Date(), startedAt: new Date(), adminAssets },
+    {
+      config,
+      store,
+      now: () => new Date(),
+      startedAt: new Date(),
+      adminAssets,
+      runner: createRunner(config.publish),
+    },
     {
       logger: {
         level: config.env === 'production' ? 'info' : 'debug',
@@ -72,6 +80,8 @@ async function main(): Promise<void> {
 
   await app.listen({ host: config.host, port: config.port });
   if (!adminAssets) app.log.warn({ adminDir }, 'admin interface is not built');
+  if (!config.publish.githubToken) app.log.warn('publishing is not configured: no GitHub token');
+  if (!config.publish.exportToken) app.log.warn('export is closed: no export token');
   void prepareDb();
 }
 

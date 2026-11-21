@@ -626,6 +626,7 @@ describe('GET /publish/status (TZ 8.5, decision 040)', () => {
     expect(first.json()).toEqual({
       lastPublishedAt: new Date(T0).toISOString(),
       pendingChanges: 0,
+      configured: false,
       run: null,
     });
     tick(ctx);

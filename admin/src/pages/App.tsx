@@ -3,12 +3,21 @@
  * обязательная смена временного пароля (8.2, п. 6), раскладка и страницы.
  */
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { PublishBar } from '../components/PublishBar';
 import { ErrorBox, WakeNotice } from '../components/Status';
-import type { User } from '../domain/kinds';
+import { sectionOf, type User } from '../domain/kinds';
+import {
+  POLL_INTERVAL_MS,
+  PUBLISH_STARTED,
+  barView,
+  type PublishProblem,
+  type PublishStatus,
+} from '../domain/publish';
+import { pluralChanges } from '../domain/text';
 import { api } from '../gateway/admin-api';
 import { ApiRequestError } from '../gateway/api';
 import { pathOf } from '../domain/routes';
-import { navigate, useRoute } from '../gateway/router';
+import { linkProps, navigate, useRoute } from '../gateway/router';
 import { Ctx, type AdminCtx, type Notice } from './context';
 import { EditPage } from './EditPage';
 import { HelpPage } from './HelpPage';
@@ -25,8 +34,14 @@ export function App() {
   const [user, setUser] = useState<User | null | undefined>(undefined);
   const [slowCount, setSlowCount] = useState(0);
   const [bootError, setBootError] = useState<string | null>(null);
-  const [pending, setPending] = useState<number | null>(null);
-  const [lastPublishedAt, setLastPublishedAt] = useState<string | null>(null);
+  const [publish, setPublish] = useState<PublishStatus | null>(null);
+  const [publishBusy, setPublishBusy] = useState(false);
+  const [publishMsg, setPublishMsg] = useState<{ text: string; error: boolean } | null>(null);
+  const [problems, setProblems] = useState<PublishProblem[]>([]);
+  const setPending = useCallback(
+    (n: number) => setPublish((s) => (s ? { ...s, pendingChanges: n } : s)),
+    [],
+  );
   /** Сообщение привязано к адресу, на котором его показали. */
   const [notice, setNoticeAt] = useState<{ notice: Notice; path: string } | null>(null);
   const setNotice = useCallback(
@@ -61,16 +76,54 @@ export function App() {
 
   const signedIn = user && !user.mustChangePassword;
 
+  const refreshPublish = useCallback(
+    () =>
+      api
+        .publishStatus({ onSlow })
+        .then((s) => {
+          setPublish(s);
+          // Прогон закончился — сообщение «зміни з'являться…» больше не нужно.
+          if (s.run?.result !== 'in_progress') setPublishMsg((m) => (m?.error ? m : null));
+        })
+        .catch(() => undefined),
+    [onSlow],
+  );
+
   useEffect(() => {
-    if (!signedIn) return;
-    api
-      .publishStatus({ onSlow })
-      .then((s) => {
-        setPending(s.pendingChanges);
-        setLastPublishedAt(s.lastPublishedAt);
-      })
-      .catch(() => setPending(null));
-  }, [signedIn, onSlow, route]);
+    if (signedIn) void refreshPublish();
+  }, [signedIn, refreshPublish, route]);
+
+  const polling = signedIn && barView(publish, pluralChanges).poll;
+  useEffect(() => {
+    if (!polling) return;
+    const t = setInterval(() => void refreshPublish(), POLL_INTERVAL_MS);
+    return () => clearInterval(t);
+  }, [polling, refreshPublish]);
+
+  const startPublish = useCallback(async () => {
+    setPublishBusy(true);
+    setProblems([]);
+    setPublishMsg(null);
+    try {
+      const res = await api.publish({ onSlow });
+      setPublish((s) => (s ? { ...s, run: res.run } : s));
+      setPublishMsg({ text: PUBLISH_STARTED, error: false });
+    } catch (err) {
+      if (err instanceof ApiRequestError) {
+        if (err.failure.status === 401) {
+          setUser(null);
+          return;
+        }
+        setProblems(err.failure.problems);
+        setPublishMsg({ text: err.failure.message, error: true });
+        if (err.failure.code === 'PUBLISH_IN_PROGRESS') void refreshPublish();
+      } else {
+        setPublishMsg({ text: "Не вдалося з'єднатися. Спробуйте ще раз", error: true });
+      }
+    } finally {
+      setPublishBusy(false);
+    }
+  }, [onSlow, refreshPublish]);
 
   const signedOut = useCallback(() => {
     setUser(null);
@@ -79,7 +132,7 @@ export function App() {
 
   const ctx = useMemo<AdminCtx | null>(
     () => (user ? { user, setPending, notify: setNotice, onSlow, signedOut } : null),
-    [user, onSlow, signedOut, setNotice],
+    [user, onSlow, signedOut, setNotice, setPending],
   );
 
   const wake = <WakeNotice show={slowCount > 0} />;
@@ -171,8 +224,26 @@ export function App() {
         route={route}
         wake={wake}
         notice={notice && notice.path === pathOf(route) ? notice.notice : null}
-        pending={pending}
-        lastPublishedAt={lastPublishedAt}
+        publishBar={
+          <PublishBar
+            status={publish}
+            busy={publishBusy}
+            message={publishMsg}
+            problems={problems}
+            showRunLink={user.role === 'owner'}
+            onPublish={() => void startPublish()}
+            onCloseProblems={() => setProblems([])}
+            problemLink={(p) => {
+              const section = sectionOf(p.kind);
+              if (!section) return null;
+              return linkProps({
+                page: 'edit',
+                kind: section.kind,
+                id: section.singleton ? null : p.id,
+              });
+            }}
+          />
+        }
       >
         {page}
       </Layout>
