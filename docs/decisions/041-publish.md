@@ -77,5 +77,9 @@
 - Шаги владельца: токен GitHub, `GITHUB_DISPATCH_TOKEN` и `EXPORT_TOKEN` в
   Render, `EXPORT_TOKEN` в секретах Actions — `docs/runbook-backend-deploy.md`,
   раздел 10.
-- Живой прогон с GitHub и Render — после слияния; здесь проверено на
-  `MemoryStore` с подставным `WorkflowRunner`.
+- Живой прогон 21.11.2026: выгрузка, `content-data` и `Deploy` работают.
+- **Дополнение 21.11.2026.** Сбой запроса к GitHub пишется в журнал процесса
+  (`github run …: HTTP 401`), а при запуске — предупреждение, если
+  `GITHUB_DISPATCH_TOKEN` не начинается с `github_pat_` или `ghp_`. Причина:
+  неверный токен в Render был виден только как «Публікація триває» без конца.
+  Скрипт выгрузки обрезает пробелы по краям токена, как сервер.

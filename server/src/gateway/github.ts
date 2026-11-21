@@ -24,6 +24,12 @@ export interface GitHubRunnerOptions {
   now?: () => number;
   /** Пауза между поисками прогона после ответа 204. */
   sleep?: (ms: number) => Promise<void>;
+  /**
+   * Сбой запроса к GitHub — в журнал процесса: код ответа и что запрашивали,
+   * без заголовков и тела. Без этого неверный токен виден только как
+   * «публикация триває» без конца (решение 041).
+   */
+  warn?: (message: string) => void;
 }
 
 interface CacheEntry {
@@ -36,6 +42,7 @@ export class GitHubRunner implements WorkflowRunner {
   private readonly fetchImpl: Fetch;
   private readonly now: () => number;
   private readonly sleep: (ms: number) => Promise<void>;
+  private readonly warn: (message: string) => void;
   private readonly cache = new Map<number, CacheEntry>();
 
   constructor(opts: GitHubRunnerOptions) {
@@ -43,6 +50,7 @@ export class GitHubRunner implements WorkflowRunner {
     this.fetchImpl = opts.fetch ?? fetch;
     this.now = opts.now ?? Date.now;
     this.sleep = opts.sleep ?? ((ms) => new Promise((r) => setTimeout(r, ms)));
+    this.warn = opts.warn ?? (() => undefined);
   }
 
   runUrl(runId: number): string {
@@ -69,10 +77,14 @@ export class GitHubRunner implements WorkflowRunner {
         };
       }
     } else if (res.status !== 204) {
+      this.warn(`github dispatch: HTTP ${res.status}`);
       throw new RunnerUnavailableError(`dispatch: HTTP ${res.status}`);
     }
     const found = await this.findDispatchedRun(since);
-    if (found === null) throw new RunnerUnavailableError('dispatch: run not found');
+    if (found === null) {
+      this.warn('github dispatch: run not found in the run list');
+      throw new RunnerUnavailableError('dispatch: run not found');
+    }
     return { runId: found, runUrl: this.runUrl(found) };
   }
 
@@ -89,7 +101,10 @@ export class GitHubRunner implements WorkflowRunner {
   private async fetchRun(runId: number): Promise<RunState> {
     const res = await this.call('GET', `/repos/${this.cfg.repository}/actions/runs/${runId}`);
     if (res.status === 404) return 'missing';
-    if (!res.ok) throw new RunnerUnavailableError(`run: HTTP ${res.status}`);
+    if (!res.ok) {
+      this.warn(`github run ${runId}: HTTP ${res.status}`);
+      throw new RunnerUnavailableError(`run: HTTP ${res.status}`);
+    }
     const body = (await res.json().catch(() => null)) as {
       status?: unknown;
       conclusion?: unknown;
@@ -133,6 +148,7 @@ export class GitHubRunner implements WorkflowRunner {
       });
     } catch (err) {
       // Сообщение `fetch` не содержит заголовков: токен в ошибку не попадает.
+      this.warn(`github ${method} ${path.split('?')[0]}: ${(err as Error).name}`);
       throw new RunnerUnavailableError('github request failed', { cause: err });
     } finally {
       clearTimeout(timer);
@@ -140,7 +156,21 @@ export class GitHubRunner implements WorkflowRunner {
   }
 }
 
-export function createRunner(config: PublishConfig): GitHubRunner | null {
+export function createRunner(
+  config: PublishConfig,
+  warn?: (message: string) => void,
+): GitHubRunner | null {
   if (!config.githubToken) return null;
-  return new GitHubRunner({ config: { ...config, githubToken: config.githubToken } });
+  return new GitHubRunner({
+    config: { ...config, githubToken: config.githubToken },
+    ...(warn ? { warn } : {}),
+  });
+}
+
+/**
+ * Похож ли токен на токен GitHub: fine-grained — `github_pat_`, классический —
+ * `ghp_`. Значение не проверяется и не выводится — только префикс.
+ */
+export function looksLikeGitHubToken(token: string): boolean {
+  return /^(github_pat_|ghp_)/u.test(token);
 }
