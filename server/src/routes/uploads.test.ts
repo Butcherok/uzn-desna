@@ -1,4 +1,5 @@
 import type { FastifyInstance, InjectOptions, LightMyRequestResponse } from 'fastify';
+import { provisionalSlug } from '@uzn/shared';
 import sharp from 'sharp';
 import { afterEach, describe, expect, it } from 'vitest';
 import { buildApp, CSRF_VALUE } from '../app.js';
@@ -244,6 +245,33 @@ describe('POST /uploads (TZ 8.4)', () => {
       ...form({ entity: 'leaders', slug: 'a' }, file),
     });
     expect(csrf.statusCode).toBe(403);
+  });
+});
+
+describe('a new record that needs a file (fix 21.11.2026)', () => {
+  it('takes a file before the record exists and creates the record with it', async () => {
+    const ctx = await setup();
+    const editor = ctx.as('editor');
+    // Админка шлёт `slug` из названия, пока у записи его нет (`provisionalSlug`).
+    const up = await upload(
+      editor,
+      { data: Buffer.from('%PDF-1.7\n%%EOF\n'), filename: 'x.pdf', type: 'application/pdf' },
+      { entity: 'public-docs', slug: provisionalSlug('Статут підприємства') ?? '' },
+    );
+    expect(up.json().path).toMatch(/^media\/public-docs\/statut-pidpryiemstva-[0-9a-f]{8}\.pdf$/u);
+    const created = await editor({
+      method: 'POST',
+      url: '/api/v1/public-docs',
+      payload: {
+        title: { uk: 'Статут підприємства' },
+        publishedWhere: 'own',
+        filePath: up.json().path,
+        featured: false,
+      },
+    });
+    expect(created.statusCode).toBe(201);
+    const list = (await editor({ method: 'GET', url: '/api/v1/uploads' })).json();
+    expect(list.items[0].usedBy[0]).toMatchObject({ kind: 'public-docs' });
   });
 });
 
