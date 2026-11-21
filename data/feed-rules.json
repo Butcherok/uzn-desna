@@ -1,0 +1,106 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-11-20T07:30:00.000Z",
+  "source": "admin-export",
+  "items": [
+    {
+      "sources": [
+        {
+          "id": "kmda",
+          "name": "КМДА",
+          "enabled": false,
+          "excerptAllowed": true,
+          "note": "Виключено рішенням Замовника 20.11.2026 (рішення 030): kyivcity.gov.ua відповідає серверам GitHub перевіркою Cloudflare (403), стрічку звідти не отримати (рішення 027)."
+        },
+        { "id": "kyivzelenbud", "name": "Київзеленбуд", "enabled": true, "excerptAllowed": false },
+        {
+          "id": "theconversation",
+          "name": "The Conversation",
+          "enabled": true,
+          "excerptAllowed": true
+        },
+        {
+          "id": "hmarochos",
+          "name": "Хмарочос",
+          "enabled": false,
+          "excerptAllowed": false,
+          "note": "Вимкнено до письмового дозволу редакції (ТЗ 4.8)."
+        },
+        {
+          "id": "gdelt",
+          "name": "GDELT Project",
+          "enabled": false,
+          "excerptAllowed": false,
+          "note": "Вимкнено до вдалого повторного прогону (ТЗ 7.4)."
+        }
+      ],
+      "dictionary": {
+        "uk": {
+          "topics": [
+            "парк",
+            "сквер",
+            "мінісквер",
+            "озелен",
+            "клумб",
+            "квітк",
+            "квітник",
+            "газон",
+            "дерев",
+            "насадж",
+            "ботанічн",
+            "алея",
+            "висадк",
+            "листя"
+          ],
+          "pairs": [
+            ["зелен", "зон"],
+            ["зелен", "насадж"]
+          ],
+          "stop": [
+            "агро",
+            "аграр",
+            "сільськ",
+            "фермер",
+            "врожай",
+            "посів",
+            "зерн",
+            "тваринн",
+            "автопарк",
+            "технопарк",
+            "індустріальн парк",
+            "паркув",
+            "парковк",
+            "парк техніки"
+          ]
+        },
+        "en": {
+          "topics": [
+            "park",
+            "square",
+            "green space",
+            "urban greening",
+            "flower bed",
+            "tree planting",
+            "urban forest",
+            "botanical",
+            "pocket park"
+          ],
+          "pairs": [],
+          "stop": [
+            "agri",
+            "farm",
+            "crop",
+            "harvest",
+            "livestock",
+            "fertiliz",
+            "parking",
+            "car park",
+            "theme park",
+            "industrial park",
+            "business park"
+          ]
+        }
+      }
+    }
+  ]
+}
