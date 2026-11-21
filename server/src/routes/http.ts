@@ -6,6 +6,7 @@ import type { ResolvedSession } from '../domain/sessions.js';
 import { SESSION_TTL_MS, resolveSession } from '../domain/sessions.js';
 import type { Role, Store, User } from '../domain/model.js';
 import type { AdminAssets } from '../gateway/admin-assets.js';
+import type { WorkflowRunner } from '../domain/publish.js';
 
 /** Зависимости приложения: всё внешнее передаётся сюда, а не импортируется. */
 export interface AppDeps {
@@ -15,6 +16,8 @@ export interface AppDeps {
   startedAt: Date;
   /** Собранная админка (решение 040); `null` или нет — сборки нет. */
   adminAssets?: AdminAssets | null;
+  /** Запуск `publish-content` (решение 041); `null` или нет — публикация не настроена. */
+  runner?: WorkflowRunner | null;
 }
 
 declare module 'fastify' {

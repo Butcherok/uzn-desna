@@ -41,6 +41,18 @@ jobs:
             echo "Ветки sync-data нет — сборка на заготовке"
           fi
 
+      # Опубликованные из админки файлы живут в ветке `content-data`
+      # (решение 041). Нет ветки — сборка на файлах `data/` из `main`.
+      - name: Overlay published content
+        run: |
+          if git ls-remote --exit-code --heads origin content-data > /dev/null; then
+            git fetch --depth=1 origin content-data
+            git checkout FETCH_HEAD -- data
+            echo "data/*.json взяты из content-data $(git rev-parse --short FETCH_HEAD)"
+          else
+            echo "Ветки content-data нет — сборка на data/ из main"
+          fi
+
       - uses: actions/setup-node@v7
         with:
           node-version-file: .nvmrc

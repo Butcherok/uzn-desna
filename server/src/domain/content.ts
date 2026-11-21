@@ -518,7 +518,7 @@ function orderOf(r: ContentRecord | undefined): number {
   return typeof o === 'number' ? o : Number.MAX_SAFE_INTEGER;
 }
 
-function ukText(v: unknown): string | undefined {
+export function ukText(v: unknown): string | undefined {
   if (typeof v !== 'object' || v === null) return undefined;
   const uk = (v as { uk?: unknown }).uk;
   return typeof uk === 'string' && uk.trim() !== '' ? uk : undefined;

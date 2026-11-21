@@ -28,3 +28,4 @@
 | Запуск бэкенда: Atlas и Render     | `docs/runbook-backend-deploy.md`, `render.yaml`                                 |
 | Админка: страницы, формы, поля     | `admin/src/pages/`, `admin/src/domain/forms.ts`, решение 040                    |
 | Будильник `/admin` на Pages        | `site/src/pages/admin/index.astro`, `site/src/config/wake.ts`                   |
+| Публикация: кнопка, `/export`      | `server/src/domain/publish.ts`, `publish-content.yml`, решение 041              |

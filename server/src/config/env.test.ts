@@ -60,4 +60,23 @@ describe('environment', () => {
       displayName: 'Власник',
     });
   });
+
+  it('reads publishing settings with defaults and hides a short export token value', () => {
+    const c = loadConfig({ ...base, GITHUB_DISPATCH_TOKEN: 'github_pat_' + 'a'.repeat(20) });
+    expect(c.publish).toEqual({
+      githubToken: 'github_pat_' + 'a'.repeat(20),
+      repository: 'Butcherok/uzn-desna',
+      workflow: 'publish-content.yml',
+      ref: 'main',
+      exportToken: null,
+    });
+    let msg = '';
+    try {
+      loadConfig({ ...base, EXPORT_TOKEN: 'short-secret-value' });
+    } catch (e) {
+      msg = (e as Error).message;
+    }
+    expect(msg).toContain('EXPORT_TOKEN');
+    expect(msg).not.toContain('short-secret-value');
+  });
 });

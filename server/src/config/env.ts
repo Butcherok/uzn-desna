@@ -40,6 +40,23 @@ const envSchema = z
     RENDER_EXTERNAL_URL: origin.optional(),
     /** Каталог собранной админки; по умолчанию — `admin/dist` рядом с `server/`. */
     ADMIN_DIST_DIR: z.string().optional(),
+    /**
+     * Публикация (ТЗ 8.5; решение 041). Токен GitHub — fine-grained, только
+     * этот репозиторий, право Actions: Read and write. Без него кнопка
+     * публикации сообщает, что публикация не настроена.
+     */
+    GITHUB_DISPATCH_TOKEN: z.string().min(20, 'слишком короткий токен').optional(),
+    GITHUB_REPOSITORY: z
+      .string()
+      .regex(/^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/, 'ожидается владелец/репозиторий')
+      .default('Butcherok/uzn-desna'),
+    PUBLISH_WORKFLOW: z
+      .string()
+      .regex(/^[A-Za-z0-9_.-]+\.ya?ml$/)
+      .default('publish-content.yml'),
+    PUBLISH_REF: z.string().min(1).default('main'),
+    /** Общий секрет Render и Actions для `GET /export`. */
+    EXPORT_TOKEN: z.string().min(32, 'нужно не меньше 32 знаков').optional(),
     BOOTSTRAP_OWNER_LOGIN: z.string().optional(),
     BOOTSTRAP_OWNER_PASSWORD_HASH: z.string().optional(),
     BOOTSTRAP_OWNER_DISPLAY_NAME: z.string().optional(),
@@ -83,6 +100,15 @@ export interface AppConfig {
   trustProxy: number;
   version: string;
   bootstrap: { login: string; passwordHash: string; displayName: string } | null;
+  publish: PublishConfig;
+}
+
+export interface PublishConfig {
+  githubToken: string | null;
+  repository: string;
+  workflow: string;
+  ref: string;
+  exportToken: string | null;
 }
 
 /** Сервер разработки админки (`npm run dev --workspace admin`). */
@@ -144,5 +170,12 @@ export function loadConfig(source: Record<string, string | undefined> = process.
             displayName: e.BOOTSTRAP_OWNER_DISPLAY_NAME?.trim() || 'Власник',
           }
         : null,
+    publish: {
+      githubToken: e.GITHUB_DISPATCH_TOKEN?.trim() ?? null,
+      repository: e.GITHUB_REPOSITORY,
+      workflow: e.PUBLISH_WORKFLOW,
+      ref: e.PUBLISH_REF,
+      exportToken: e.EXPORT_TOKEN?.trim() ?? null,
+    },
   };
 }
