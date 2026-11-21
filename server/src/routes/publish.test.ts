@@ -3,7 +3,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { buildApp, CSRF_VALUE } from '../app.js';
 import { loadConfig } from '../config/env.js';
 import { KINDS } from '../domain/content-kinds.js';
-import { seedContent } from '../domain/content-seed.js';
+import { mediaPathsIn, seedContent } from '../domain/content-seed.js';
 import type { Role } from '../domain/model.js';
 import { RUN_STALE_MS, RunnerUnavailableError, type RunState } from '../domain/publish.js';
 import type { WorkflowRunner } from '../domain/publish.js';
@@ -70,6 +70,7 @@ async function setup({ runner = true, exportToken = true } = {}): Promise<Ctx> {
     now,
     startedAt: now(),
     runner: runner ? fake : null,
+    repoMedia: mediaPathsIn(INITIAL_DATA),
   });
   opened.push(app);
   await seedContent(store, INITIAL_DATA, now());

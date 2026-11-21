@@ -7,7 +7,8 @@
  *
  * Тело ответа и токен в журнал не пишутся — только коды и длины (ТЗ 7.5, п. 6).
  */
-import { SCHEMA_VERSION, envelopeSchema } from '@uzn/shared';
+import { createHash } from 'node:crypto';
+import { SCHEMA_VERSION, UPLOAD_ENTITIES, UPLOAD_PATH_RE, envelopeSchema } from '@uzn/shared';
 import { z } from 'zod';
 
 /** Редактируемые файлы `data/` (ТЗ 6.6, п. 1) — те, что отдаёт `/export`. */
@@ -178,4 +179,126 @@ export function canonical(value: unknown): string {
       ? Object.fromEntries(Object.entries(v).sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0)))
       : v,
   );
+}
+
+// ------------------------------------------------------------------ файлы
+
+/** Каталоги загруженных файлов в ветке `content-data` (решение 042). */
+export const MEDIA_DIRS = UPLOAD_ENTITIES.map((e) => `media/${e}`);
+
+export interface MediaEntry {
+  path: string;
+  sha256: string;
+  bytes: number;
+}
+
+const mediaSchema = z.array(
+  z.object({
+    path: z.string().regex(UPLOAD_PATH_RE),
+    sha256: z.string().regex(/^[0-9a-f]{64}$/u),
+    bytes: z.number().int().positive(),
+  }),
+);
+
+/**
+ * Перечень файлов из ответа. Нет перечня — `SCHEMA_MISMATCH`, а не пустой
+ * список: пустой означал бы «удалить все файлы ветки».
+ */
+export function parseMediaManifest(body: unknown): MediaEntry[] {
+  const raw = (body as { media?: unknown } | null)?.media;
+  const parsed = mediaSchema.safeParse(raw);
+  if (!parsed.success)
+    throw new PublishError('SCHEMA_MISMATCH', 'ответ выгрузки без перечня media');
+  return parsed.data;
+}
+
+/** Файловые операции шага: в тестах — каталог во временной папке. */
+export interface MediaFs {
+  /** Файлы под каталогом, пути от корня ветки (`media/leaders/…`). */
+  list(dir: string): Promise<string[]>;
+  read(path: string): Promise<Buffer | null>;
+  write(path: string, data: Buffer): Promise<void>;
+  remove(path: string): Promise<void>;
+}
+
+export interface MediaSyncResult {
+  written: string[];
+  removed: string[];
+}
+
+const sha256Of = (data: Buffer): string => createHash('sha256').update(data).digest('hex');
+
+/**
+ * Приводит `media/` ветки к перечню: недостающий или изменившийся файл
+ * скачивается с `/export/media` и сверяется по хэшу, лишний — удаляется.
+ * Файлы вне `MEDIA_DIRS` (оформление сайта в `main`) не трогаются.
+ */
+export async function syncMedia(
+  apiBase: string,
+  token: string,
+  manifest: readonly MediaEntry[],
+  fs: MediaFs,
+  deps: ExportDeps,
+): Promise<MediaSyncResult> {
+  const written: string[] = [];
+  for (const entry of manifest) {
+    const current = await fs.read(entry.path);
+    if (current !== null && sha256Of(current) === entry.sha256) continue;
+    const data = await fetchMedia(apiBase, token, entry, deps);
+    await fs.write(entry.path, data);
+    written.push(entry.path);
+  }
+  const wanted = new Set(manifest.map((m) => m.path));
+  const removed: string[] = [];
+  for (const dir of MEDIA_DIRS) {
+    for (const path of await fs.list(dir)) {
+      if (wanted.has(path)) continue;
+      await fs.remove(path);
+      removed.push(path);
+    }
+  }
+  return { written, removed };
+}
+
+async function fetchMedia(
+  apiBase: string,
+  token: string,
+  entry: MediaEntry,
+  deps: ExportDeps,
+): Promise<Buffer> {
+  const url = `${apiBase}/api/v1/export/media?path=${encodeURIComponent(entry.path)}`;
+  let last = 'нет ответа';
+  for (let attempt = 0; attempt <= RETRY_DELAYS_MS.length; attempt += 1) {
+    if (attempt > 0) await deps.sleep(RETRY_DELAYS_MS[attempt - 1] ?? 0);
+    try {
+      const res = await deps.fetch(url, {
+        headers: { Authorization: `Bearer ${token}` },
+        signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+      });
+      const data = Buffer.from(await res.arrayBuffer());
+      deps.log(`media: ${entry.path}, попытка ${attempt + 1}, код ${res.status}`);
+      if (res.ok) {
+        if (data.length !== entry.bytes || sha256Of(data) !== entry.sha256) {
+          throw new PublishError('SCHEMA_MISMATCH', `${entry.path}: хэш не совпал с перечнем`);
+        }
+        return data;
+      }
+      if (res.status === 404) {
+        throw new PublishError(
+          'EXPORT_UNAVAILABLE',
+          `${entry.path}: файла нет ни в content-data, ни на сервере`,
+        );
+      }
+      if (res.status === 401) {
+        throw new PublishError('EXPORT_UNAVAILABLE', 'токен выгрузки не принят (401)');
+      }
+      last = `HTTP ${res.status}`;
+      if (res.status < 500 && res.status !== 429) break;
+    } catch (error) {
+      if (error instanceof PublishError) throw error;
+      last = (error as Error).name;
+      deps.log(`media: ${entry.path}, попытка ${attempt + 1}, сбой ${last}`);
+    }
+  }
+  throw new PublishError('EXPORT_UNAVAILABLE', `${entry.path}: файл не получен: ${last}`);
 }

@@ -26,6 +26,7 @@ import { Layout } from './Layout';
 import { ListPage } from './ListPage';
 import { LoginPage } from './LoginPage';
 import { PasswordPage } from './PasswordPage';
+import { FilesPage } from './FilesPage';
 import { TrashPage } from './TrashPage';
 
 export function App() {
@@ -191,6 +192,9 @@ export function App() {
       break;
     case 'trash':
       page = <TrashPage />;
+      break;
+    case 'files':
+      page = <FilesPage />;
       break;
     case 'list':
       page = <ListPage key={route.kind} kind={route.kind} />;

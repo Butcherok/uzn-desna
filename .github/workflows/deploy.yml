@@ -42,13 +42,18 @@ jobs:
           fi
 
       # Опубликованные из админки файлы живут в ветке `content-data`
-      # (решение 041). Нет ветки — сборка на файлах `data/` из `main`.
+      # (решения 041, 042). Нет ветки — сборка на файлах `data/` из `main`.
       - name: Overlay published content
         run: |
           if git ls-remote --exit-code --heads origin content-data > /dev/null; then
             git fetch --depth=1 origin content-data
             git checkout FETCH_HEAD -- data
             echo "data/*.json взяты из content-data $(git rev-parse --short FETCH_HEAD)"
+            # Загруженные файлы (решение 042): поверх `media/` из `main`.
+            if git cat-file -e FETCH_HEAD:media 2> /dev/null; then
+              git checkout FETCH_HEAD -- media
+              echo "media/ взят из content-data"
+            fi
           else
             echo "Ветки content-data нет — сборка на data/ из main"
           fi

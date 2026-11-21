@@ -6,6 +6,7 @@ import {
   MongoServerError,
   MongoServerSelectionError,
   MongoTopologyClosedError,
+  Binary,
   ObjectId,
   type Collection,
   type Db,
@@ -26,6 +27,8 @@ import {
   type Session,
   type Store,
   type User,
+  type UploadMeta,
+  type UploadRecord,
   type UserPatch,
 } from '../domain/model.js';
 
@@ -42,6 +45,17 @@ type ContentDoc = Omit<ContentRecord, 'id'> & { _id: ObjectId };
 type MetaDoc = ContentMeta & { _id: 'content' };
 
 const META_ID = 'content' as const;
+
+/** Файл: `_id` — путь (ТЗ 8.4, п. 5). Содержимое — `Binary`, до публикации. */
+type UploadDoc = Omit<UploadRecord, 'path' | 'data'> & { _id: string; data: Binary | null };
+
+const UPLOAD_META_PROJECTION = { data: 0 } as const;
+
+function toUploadMeta(d: Omit<UploadDoc, 'data'> & { data?: unknown }): UploadMeta {
+  const { _id, ...rest } = d;
+  delete rest.data;
+  return { ...rest, path: _id };
+}
 
 function toUser(d: UserDoc): User {
   const { _id, ...rest } = d;
@@ -112,6 +126,7 @@ export class MongoStore implements Store {
   private readonly log: Collection<LogDoc>;
   private readonly content: Collection<ContentDoc>;
   private readonly meta: Collection<MetaDoc>;
+  private readonly uploads: Collection<UploadDoc>;
 
   constructor(opts: MongoStoreOptions) {
     this.client = new MongoClient(opts.uri, {
@@ -126,6 +141,7 @@ export class MongoStore implements Store {
     this.log = this.db.collection<LogDoc>('action_log');
     this.content = this.db.collection<ContentDoc>('content');
     this.meta = this.db.collection<MetaDoc>('content_meta');
+    this.uploads = this.db.collection<UploadDoc>('uploads');
   }
 
   /** Индексы создаются при каждом запуске: повторное создание того же индекса ничего не меняет. */
@@ -430,6 +446,61 @@ export class MongoStore implements Store {
         },
       );
       return r.modifiedCount === 1;
+    });
+  }
+
+  insertUpload(upload: UploadRecord): Promise<void> {
+    const { path, data, ...rest } = upload;
+    return guard(async () => {
+      await this.uploads.insertOne({
+        _id: path,
+        ...rest,
+        data: data ? new Binary(data) : null,
+      });
+    });
+  }
+
+  listUploads(): Promise<UploadMeta[]> {
+    return guard(async () =>
+      (await this.uploads.find({}, { projection: UPLOAD_META_PROJECTION }).toArray()).map(
+        toUploadMeta,
+      ),
+    );
+  }
+
+  findUpload(path: string): Promise<UploadMeta | null> {
+    return guard(async () => {
+      const d = await this.uploads.findOne({ _id: path }, { projection: UPLOAD_META_PROJECTION });
+      return d ? toUploadMeta(d) : null;
+    });
+  }
+
+  readUploadData(path: string): Promise<Buffer | null> {
+    return guard(async () => {
+      const d = await this.uploads.findOne({ _id: path }, { projection: { data: 1 } });
+      return d?.data ? Buffer.from(d.data.buffer) : null;
+    });
+  }
+
+  setUploadDeleteRequested(path: string, at: Date | null): Promise<boolean> {
+    return guard(
+      async () =>
+        (await this.uploads.updateOne({ _id: path }, { $set: { deleteRequestedAt: at } }))
+          .matchedCount === 1,
+    );
+  }
+
+  deleteUpload(path: string): Promise<boolean> {
+    return guard(async () => (await this.uploads.deleteOne({ _id: path })).deletedCount === 1);
+  }
+
+  settleUploads(snapshotAt: Date, exported: readonly string[]): Promise<void> {
+    return guard(async () => {
+      await this.uploads.deleteMany({ deleteRequestedAt: { $ne: null, $lte: snapshotAt } });
+      await this.uploads.updateMany(
+        { _id: { $in: [...exported] }, publishedAt: null },
+        { $set: { publishedAt: snapshotAt, data: null } },
+      );
     });
   }
 }

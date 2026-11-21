@@ -6,9 +6,13 @@ import {
   WAKE_BUDGET_MS,
   fetchExport,
   mergeExport,
+  parseMediaManifest,
+  syncMedia,
   waitForApi,
   type ExportDeps,
+  type MediaFs,
 } from './export.js';
+import { createHash } from 'node:crypto';
 
 const API = 'https://api.example';
 const TOKEN = 't'.repeat(40);
@@ -156,5 +160,60 @@ describe('mergeExport', () => {
   it('covers exactly the editable data files the build checks', () => {
     const check = readFileSync('scripts/bin/data-check.ts', 'utf8');
     for (const name of EXPORT_FILES) expect(check).toContain(`'${name}'`);
+  });
+});
+
+describe('media (decision 042)', () => {
+  const sha = (b: Buffer) => createHash('sha256').update(b).digest('hex');
+  const A = Buffer.from('photo-a');
+  const B = Buffer.from('photo-b');
+  const pa = 'media/leaders/karp-ye-a-0a1b2c3d.jpg';
+  const pb = 'media/public-docs/statut-1a2b3c4d.pdf';
+  const old = 'media/leaders/old-2a2b3c4d.jpg';
+  const entry = (path: string, data: Buffer) => ({ path, sha256: sha(data), bytes: data.length });
+
+  function memFs(files: Record<string, Buffer>): MediaFs & { files: Map<string, Buffer> } {
+    const map = new Map(Object.entries(files));
+    return {
+      files: map,
+      list: async (dir) => [...map.keys()].filter((p) => p.startsWith(`${dir}/`)),
+      read: async (p) => map.get(p) ?? null,
+      write: async (p, d) => void map.set(p, d),
+      remove: async (p) => void map.delete(p),
+    };
+  }
+
+  it('requires the manifest: none would mean "delete every file"', () => {
+    expect(() => parseMediaManifest({ files: {} })).toThrow(PublishError);
+    expect(() => parseMediaManifest({ media: [{ path: '../x', sha256: 'a', bytes: 1 }] })).toThrow(
+      PublishError,
+    );
+    expect(parseMediaManifest({ media: [entry(pa, A)] })).toHaveLength(1);
+  });
+
+  it('downloads missing files, keeps matching ones, removes the rest', async () => {
+    const fs = memFs({ [pa]: A, [old]: Buffer.from('x'), 'media/banner/banner-day.png': B });
+    const { d, urls } = deps([new Response(B, { status: 200 })]);
+    const r = await syncMedia(API, TOKEN, [entry(pa, A), entry(pb, B)], fs, d);
+    expect(r).toEqual({ written: [pb], removed: [old] });
+    expect(urls).toEqual([`${API}/api/v1/export/media?path=${encodeURIComponent(pb)}`]);
+    expect(fs.files.get(pb)?.equals(B)).toBe(true);
+    // Оформление сайта вне каталогов загрузки не трогается.
+    expect(fs.files.has('media/banner/banner-day.png')).toBe(true);
+  });
+
+  it('fails on a hash mismatch or a file nobody has, retries server errors', async () => {
+    const fs = memFs({});
+    const bad = deps([new Response(Buffer.from('other!!'), { status: 200 })]);
+    await expect(syncMedia(API, TOKEN, [entry(pa, A)], fs, bad.d)).rejects.toMatchObject({
+      code: 'SCHEMA_MISMATCH',
+    });
+    const missing = deps([new Response('', { status: 404 })]);
+    await expect(syncMedia(API, TOKEN, [entry(pa, A)], fs, missing.d)).rejects.toMatchObject({
+      code: 'EXPORT_UNAVAILABLE',
+    });
+    const flaky = deps([new Response('', { status: 503 }), new Response(A, { status: 200 })]);
+    expect((await syncMedia(API, TOKEN, [entry(pa, A)], fs, flaky.d)).written).toEqual([pa]);
+    expect(fs.files.size).toBe(1);
   });
 });

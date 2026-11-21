@@ -7,7 +7,7 @@
 import { buildApp } from './app.js';
 import { ConfigError, loadConfig } from './config/env.js';
 import { BOOTSTRAP_MESSAGES, bootstrapOwner } from './domain/bootstrap.js';
-import { seedContent } from './domain/content-seed.js';
+import { mediaPathsIn, seedContent } from './domain/content-seed.js';
 import { INITIAL_DATA } from './gateway/initial-data.js';
 import { MongoStore } from './gateway/mongo-store.js';
 import { fileURLToPath } from 'node:url';
@@ -44,6 +44,7 @@ async function main(): Promise<void> {
       startedAt: new Date(),
       adminAssets,
       runner: createRunner(config.publish, (m) => warn(m)),
+      repoMedia: mediaPathsIn(INITIAL_DATA),
     },
     {
       logger: {

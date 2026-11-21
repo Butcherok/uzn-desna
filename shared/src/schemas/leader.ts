@@ -34,7 +34,7 @@ export const leaderSchema = z
     photoPath: z
       .string()
       .max(200)
-      .regex(/^media\/leaders\/[a-z0-9-]+\.(?:jpg|webp)$/u, 'Путь вида media/leaders/имя.jpg')
+      .regex(/^media\/leaders\/[a-z0-9-]+\.(?:jpg|png|webp)$/u, 'Путь вида media/leaders/имя.jpg')
       .optional(),
     photoAlt: langText(150).optional(),
     /** Дата назначения на должность. Известна только у директора */

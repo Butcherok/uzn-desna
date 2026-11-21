@@ -4,6 +4,7 @@
  * обработчик приходят параметрами.
  */
 import type { ReactNode } from 'react';
+import { FileField, type FileApi } from './FileField';
 import type { Field, Option } from '../domain/forms';
 import type { Confirm, FieldErrors, FormGroupItem, FormValue, Lang } from '../domain/form-values';
 import { formatDateTime } from '../domain/kinds';
@@ -30,6 +31,10 @@ interface Props {
   errors: FieldErrors;
   tab: Tab;
   contacts: readonly Option[];
+  /** Сохранённый `slug` записи для поля файла; `null` — запись ещё не сохранена. */
+  slug?: string | null;
+  /** Загрузка файлов; без неё поле файла не выводится. */
+  files?: FileApi;
 }
 
 function Describe({ id, hint, error }: { id: string; hint: string; error?: string | undefined }) {
@@ -362,6 +367,22 @@ export function FieldView(p: Props) {
       return <BoolInput {...p} />;
     case 'confirm':
       return <ConfirmInput {...p} />;
+    case 'file':
+      if (!p.files) return null;
+      return (
+        <FileField
+          api={p.files}
+          id={fieldId(p.fieldKey)}
+          label={f.label}
+          hint={f.hint}
+          entity={f.entity}
+          accept={f.accept}
+          slug={p.slug ?? null}
+          value={typeof p.value === 'string' ? p.value : ''}
+          error={p.errors[p.fieldKey]}
+          onChange={p.onChange}
+        />
+      );
     default:
       return <SimpleInput {...p} />;
   }

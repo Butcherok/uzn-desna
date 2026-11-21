@@ -29,6 +29,8 @@ export class ApiRequestError extends Error {
 export interface RequestOptions {
   method?: 'GET' | 'POST' | 'PATCH' | 'DELETE';
   body?: unknown;
+  /** Файл формой `multipart/form-data` (ТЗ 8.4): заголовок типа ставит браузер. */
+  form?: FormData;
   query?: Record<string, string>;
   headers?: Record<string, string>;
   /** Создание записи: после таймаута не повторяется (domain/retry). */
@@ -107,6 +109,7 @@ export async function request<T>(path: string, opts: RequestOptions = {}): Promi
     headers,
     credentials: 'same-origin',
     ...(opts.body !== undefined ? { body: JSON.stringify(opts.body) } : {}),
+    ...(opts.form !== undefined ? { body: opts.form } : {}),
   };
   let slow = false;
   const slowTimer = setTimeout(() => {

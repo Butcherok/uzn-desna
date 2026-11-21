@@ -119,6 +119,8 @@ export interface PublishRun {
   snapshotAt: Date | null;
   /** Счётчик окончательно удалённых на момент выгрузки. */
   purgedAtSnapshot: number;
+  /** Неопубликованные файлы, ушедшие в эту выгрузку (решение 042). */
+  uploadPaths?: string[];
 }
 
 /** Итог прогона: применяется, только если прогон всё ещё `in_progress`. */
@@ -130,6 +132,35 @@ export interface PublishFinish {
   /** На сколько уменьшить счётчик окончательно удалённых. */
   purgedDelta: number;
 }
+
+/**
+ * Загруженный файл (ТЗ 8.4; решение 042). Содержимое лежит в БД, только пока
+ * файл не опубликован: успешная публикация переносит его в ветку
+ * `content-data`, и `data` становится `null`.
+ */
+export interface UploadRecord {
+  /** `media/{entity}/{slug}-{hash}.{ext}` — уникален. */
+  path: string;
+  entity: string;
+  slug: string;
+  mime: string;
+  bytes: number;
+  width: number | null;
+  height: number | null;
+  /** SHA-256 содержимого, шестнадцатеричный: по нему выгрузка сверяет файл. */
+  sha256: string;
+  alt: string | null;
+  uploadedAt: Date;
+  uploadedBy: string;
+  /** Время выгрузки, с которой файл ушёл на сайт; `null` — ещё не опубликован. */
+  publishedAt: Date | null;
+  /** Владелец удалил опубликованный файл: уйдёт из ветки со следующей публикацией. */
+  deleteRequestedAt: Date | null;
+  /** Содержимое до публикации; после — `null`. */
+  data: Buffer | null;
+}
+
+export type UploadMeta = Omit<UploadRecord, 'data'>;
 
 export interface ContentOrderEntry {
   id: string;
@@ -188,6 +219,24 @@ export interface Store {
    * сдвигает время последней публикации. `false` — уже завершён или другой.
    */
   finishPublishRun(runId: number, finish: PublishFinish): Promise<boolean>;
+
+  /** Бросает `DuplicateKeyError`, если путь занят. */
+  insertUpload(upload: UploadRecord): Promise<void>;
+  /** Все файлы без содержимого. */
+  listUploads(): Promise<UploadMeta[]>;
+  findUpload(path: string): Promise<UploadMeta | null>;
+  /** Содержимое неопубликованного файла; `null` — нет файла или уже опубликован. */
+  readUploadData(path: string): Promise<Buffer | null>;
+  /** Ставит или снимает отметку удаления. `false` — файла нет. */
+  setUploadDeleteRequested(path: string, at: Date | null): Promise<boolean>;
+  /** Физическое удаление записи. `false` — файла не было. */
+  deleteUpload(path: string): Promise<boolean>;
+  /**
+   * Итог успешной публикации с выгрузкой `snapshotAt`: файлы `exported`
+   * становятся опубликованными (содержимое из БД убирается), а удалённые
+   * владельцем до выгрузки — исчезают.
+   */
+  settleUploads(snapshotAt: Date, exported: readonly string[]): Promise<void>;
 }
 
 export class DuplicateKeyError extends Error {

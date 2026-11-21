@@ -6,6 +6,7 @@
  */
 import { useEffect, useMemo, useRef, useState, type FormEvent, type KeyboardEvent } from 'react';
 import { FieldView, fieldId, hasLang, type Tab } from '../components/FieldView';
+import type { FileApi } from '../components/FileField';
 import { ErrorBox, StatusBadge } from '../components/Status';
 import { formFields, freeBlockKeys, type Option } from '../domain/forms';
 import {
@@ -20,7 +21,7 @@ import {
   type FormState,
 } from '../domain/form-values';
 import { formatDateTime, sectionOf, titleOf, type Kind, type RecordView } from '../domain/kinds';
-import { api } from '../gateway/admin-api';
+import { api, uploadUrl } from '../gateway/admin-api';
 import { ApiRequestError } from '../gateway/api';
 import { navigate, setDirty } from '../gateway/router';
 import { useAdmin } from './context';
@@ -38,6 +39,19 @@ export function EditPage({ kind, id, isNew }: Props) {
   const section = sectionOf(kind);
   const { user, onSlow, setPending, notify } = useAdmin();
   const failure = useFailure();
+  const files = useMemo<FileApi>(
+    () => ({
+      upload: async (entity, slug, file) => {
+        try {
+          return (await api.upload(entity, slug, file, { onSlow })).path;
+        } catch (err) {
+          throw new Error(failure(err), { cause: err });
+        }
+      },
+      url: uploadUrl,
+    }),
+    [onSlow, failure],
+  );
   const fields = useMemo(() => formFields(kind, user.role), [kind, user.role]);
   const isOwner = user.role === 'owner';
   const singleton = section?.singleton ?? false;
@@ -412,6 +426,8 @@ export function EditPage({ kind, id, isNew }: Props) {
                 errors={errors}
                 tab={tab}
                 contacts={contacts}
+                slug={isNew || !originalSlug ? null : originalSlug}
+                files={files}
               />
             ))}
 

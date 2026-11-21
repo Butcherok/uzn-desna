@@ -12,6 +12,7 @@ import { KINDS, type KindDef } from './content-kinds.js';
 import { listRecords, ukText } from './content.js';
 import { ApiError, type PublishProblem } from './errors.js';
 import type { ContentRecord, PublishRun, Store, User } from './model.js';
+import { filesOf, mediaManifest, type MediaManifestEntry } from './uploads.js';
 
 export type RunState = 'in_progress' | 'success' | 'failure' | 'missing';
 
@@ -43,6 +44,8 @@ export interface PublishCtx {
   store: Store;
   runner: WorkflowRunner | null;
   now: Date;
+  /** Файлы `media/`, лежащие в `main` с начальными данными (не загруженные). */
+  repoMedia: ReadonlySet<string>;
 }
 
 // ---------------------------------------------------------------- выгрузка
@@ -59,6 +62,17 @@ export interface ExportBody {
   generatedAt: string;
   /** Имя файла `data/` → конверт ТЗ 6.6. */
   files: Record<string, ExportFile>;
+  /**
+   * Загруженные файлы, которые должны лежать в `content-data` (решение 042).
+   * Остальные файлы `media/` ветки рабочий процесс удаляет.
+   */
+  media: MediaManifestEntry[];
+}
+
+export interface ExportResult {
+  body: ExportBody;
+  /** Неопубликованные файлы из этой выгрузки: их содержимое отдаёт `/export/media`. */
+  pendingPaths: string[];
 }
 
 /** Файл `data/` сущности: имя совпадает с адресом эндпоинта (ТЗ 6.6, п. 1). */
@@ -72,11 +86,21 @@ async function publishedByKind(store: Store): Promise<Map<KindDef, ContentRecord
   return out;
 }
 
+/** Пути файлов в опубликованных записях. */
+function referencedFiles(byKind: Map<KindDef, ContentRecord[]>): Set<string> {
+  const out = new Set<string>();
+  for (const [def, records] of byKind) {
+    for (const r of records) for (const p of filesOf(def.kind, r.data)) out.add(p);
+  }
+  return out;
+}
+
 /** Полный набор редактируемых данных — только `published`, без «Кошика» (ТЗ 8.5). */
-export async function buildExport(store: Store, now: Date): Promise<ExportBody> {
+export async function buildExport(store: Store, now: Date): Promise<ExportResult> {
   const generatedAt = now.toISOString();
   const files: Record<string, ExportFile> = {};
-  for (const [def, records] of await publishedByKind(store)) {
+  const byKind = await publishedByKind(store);
+  for (const [def, records] of byKind) {
     files[fileNameOf(def)] = {
       schemaVersion: SCHEMA_VERSION,
       generatedAt,
@@ -84,7 +108,14 @@ export async function buildExport(store: Store, now: Date): Promise<ExportBody> 
       items: records.map((r) => r.data),
     };
   }
-  return { schemaVersion: SCHEMA_VERSION, generatedAt, files };
+  const uploads = await store.listUploads();
+  const media = mediaManifest(uploads, referencedFiles(byKind));
+  const listed = new Set(media.map((m) => m.path));
+  const pendingPaths = uploads
+    .filter((u) => u.publishedAt === null && listed.has(u.path))
+    .map((u) => u.path)
+    .sort();
+  return { body: { schemaVersion: SCHEMA_VERSION, generatedAt, files, media }, pendingPaths };
 }
 
 /**
@@ -92,9 +123,15 @@ export async function buildExport(store: Store, now: Date): Promise<ExportBody> 
  * в рабочий процесс. Те же схемы, что у `data:check`, плюс синглтон ровно один
  * и ссылка на опубликованный контакт.
  */
-export async function publishProblems(store: Store): Promise<PublishProblem[]> {
+export async function publishProblems(
+  store: Store,
+  repoMedia: ReadonlySet<string>,
+): Promise<PublishProblem[]> {
   const byKind = await publishedByKind(store);
   const problems: PublishProblem[] = [];
+  const available = new Set(repoMedia);
+  for (const u of await store.listUploads())
+    if (u.deleteRequestedAt === null) available.add(u.path);
   const contacts = new Set(
     [...byKind.entries()]
       .filter(([def]) => def.kind === 'contacts')
@@ -121,6 +158,16 @@ export async function publishProblems(store: Store): Promise<PublishProblem[]> {
           id: r.id,
           title,
           message: 'Не всі поля заповнені правильно. Відкрийте запис і перевірте поля',
+        });
+        continue;
+      }
+      if (filesOf(def.kind, r.data).some((p) => !available.has(p))) {
+        problems.push({
+          kind: def.kind,
+          label: def.label,
+          id: r.id,
+          title,
+          message: 'Файл не знайдено. Відкрийте запис і завантажте файл ще раз',
         });
         continue;
       }
@@ -172,6 +219,10 @@ export async function refreshRun(ctx: PublishCtx): Promise<PublishRun | null> {
     purgedDelta: success ? run.purgedAtSnapshot : 0,
   };
   if (await ctx.store.finishPublishRun(run.runId, finish)) {
+    // Файлы — после итога прогона, один раз: второй опрос сюда не попадёт.
+    if (success && run.snapshotAt) {
+      await ctx.store.settleUploads(run.snapshotAt, run.uploadPaths ?? []);
+    }
     await ctx.store.appendLog({
       at: ctx.now,
       userId: null,
@@ -197,7 +248,7 @@ export async function startPublish(ctx: PublishCtx, actor: User): Promise<Publis
     throw new ApiError('PUBLISH_IN_PROGRESS');
   }
 
-  const problems = await publishProblems(ctx.store);
+  const problems = await publishProblems(ctx.store, ctx.repoMedia);
   if (problems.length > 0) {
     await logStart(ctx, actor, null, 'denied', { problems: problems.length });
     throw new ApiError('VALIDATION_FAILED', PUBLISH_BLOCKED_MESSAGE, { problems });
@@ -225,6 +276,7 @@ export async function startPublish(ctx: PublishCtx, actor: User): Promise<Publis
     finishedAt: null,
     snapshotAt: early?.snapshotAt ?? null,
     purgedAtSnapshot: early?.purgedAtSnapshot ?? 0,
+    uploadPaths: early?.uploadPaths ?? [],
   };
   await ctx.store.setPublishRun(run);
   await logStart(ctx, actor, run.runId, 'ok', {});
@@ -240,9 +292,10 @@ export async function recordExport(
   runner: WorkflowRunner | null,
   runId: number,
   now: Date,
+  uploadPaths: string[],
 ): Promise<void> {
   const meta = await store.getContentMeta();
-  const snapshot = { snapshotAt: now, purgedAtSnapshot: meta.purgedPending };
+  const snapshot = { snapshotAt: now, purgedAtSnapshot: meta.purgedPending, uploadPaths };
   if (await store.patchPublishRun(runId, snapshot)) return;
   await store.setPublishRun({
     runId,

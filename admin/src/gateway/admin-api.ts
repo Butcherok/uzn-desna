@@ -3,6 +3,7 @@
  */
 import type { Kind, RecordView, User } from '../domain/kinds';
 import type { PublishRunView, PublishStatus } from '../domain/publish';
+import { ADMIN_CONFIG } from '../config/admin';
 import { request, type ApiResponse, type RequestOptions } from './api';
 
 export interface ListResult {
@@ -28,6 +29,28 @@ type Slow = Pick<RequestOptions, 'onSlow'>;
 type Data = Record<string, unknown>;
 
 const data = async <T>(p: Promise<ApiResponse<T>>): Promise<T> => (await p).data;
+
+/** Загруженный файл (ТЗ 8.4; решение 042). */
+export interface UploadView {
+  path: string;
+  entity: string;
+  mime: string;
+  bytes: number;
+  width: number | null;
+  height: number | null;
+  uploadedAt: string;
+  uploadedBy: string;
+  /** `pending` — ще не на сайті, `published` — на сайті, `deleting` — зникне з наступною публікацією. */
+  state: 'pending' | 'published' | 'deleting';
+}
+
+export interface UploadListItem extends UploadView {
+  usedBy: { kind: Kind; label: string; id: string; title: string; inTrash: boolean }[];
+}
+
+/** Адрес просмотра файла в админке: тот же сервер, по сессии. */
+export const uploadUrl = (path: string): string =>
+  `${ADMIN_CONFIG.apiBase}/uploads/${path.split('/').map(encodeURIComponent).join('/')}`;
 
 export const api = {
   me: (o: Slow = {}) => data(request<User>('/auth/me', o)),
@@ -86,6 +109,22 @@ export const api = {
         method: 'DELETE',
         query: { permanent: '1' },
       }),
+    ),
+  upload: (entity: string, slug: string, file: File, o: Slow = {}) => {
+    const form = new FormData();
+    form.append('entity', entity);
+    form.append('slug', slug);
+    form.append('file', file);
+    // Тот же файл ещё раз даёт тот же путь: повтор после таймаута безопасен.
+    return data(request<UploadView>('/uploads', { ...o, method: 'POST', form }));
+  },
+  uploads: (o: Slow = {}) => data(request<{ items: UploadListItem[] }>('/uploads', o)),
+  removeUpload: (path: string, o: Slow = {}) =>
+    data(
+      request<{ outcome: 'removed' | 'deleting' }>(
+        `/uploads/${path.split('/').map(encodeURIComponent).join('/')}`,
+        { ...o, method: 'DELETE' },
+      ),
     ),
   reorder: (kind: Kind, ids: string[], o: Slow = {}) =>
     data(request<ListResult>(`/${kind}/order`, { ...o, method: 'PATCH', body: { ids } })),
