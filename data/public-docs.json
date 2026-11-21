@@ -1,12 +1,16 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-11-15T18:00:00.000Z",
+  "generatedAt": "2026-11-21T11:37:54.690Z",
   "source": "admin-export",
   "items": [
     {
       "slug": "info-reference",
-      "title": { "uk": "Інформаційна довідка про підприємство" },
-      "normRef": { "uk": "Цілі діяльності підприємства" },
+      "title": {
+        "uk": "Інформаційна довідка про підприємство"
+      },
+      "normRef": {
+        "uk": "Цілі діяльності підприємства"
+      },
       "publishedWhere": "parent",
       "externalUrl": "https://desna.kyivzelenbud.com/about/info/",
       "featured": false,
@@ -14,7 +18,9 @@
     },
     {
       "slug": "financial-statements",
-      "title": { "uk": "Фінансова звітність, фінансові плани, аудиторські звіти" },
+      "title": {
+        "uk": "Фінансова звітність, фінансові плани, аудиторські звіти"
+      },
       "normRef": {
         "uk": "Квартальна та річна фінансова звітність підприємства за останні три роки"
       },
@@ -25,7 +31,9 @@
     },
     {
       "slug": "audit-reports",
-      "title": { "uk": "Аудиторські звіти" },
+      "title": {
+        "uk": "Аудиторські звіти"
+      },
       "normRef": {
         "uk": "Аудиторські висновки щодо річної фінансової звітності за останні три роки, якщо аудит проводився"
       },
@@ -36,15 +44,21 @@
     },
     {
       "slug": "statute",
-      "title": { "uk": "Статут підприємства" },
-      "normRef": { "uk": "Статут підприємства у чинній редакції та попередні редакції" },
+      "title": {
+        "uk": "Статут підприємства"
+      },
+      "normRef": {
+        "uk": "Статут підприємства у чинній редакції та попередні редакції"
+      },
       "publishedWhere": "request",
       "featured": false,
       "order": 4
     },
     {
       "slug": "director-biography",
-      "title": { "uk": "Біографічна довідка керівника" },
+      "title": {
+        "uk": "Біографічна довідка керівника"
+      },
       "normRef": {
         "uk": "Біографічна довідка керівника підприємства з урахуванням вимог законодавства про захист персональних даних"
       },
@@ -55,15 +69,21 @@
     },
     {
       "slug": "director-annual-reports",
-      "title": { "uk": "Річні звіти керівника" },
-      "normRef": { "uk": "Річні звіти керівника підприємства" },
+      "title": {
+        "uk": "Річні звіти керівника"
+      },
+      "normRef": {
+        "uk": "Річні звіти керівника підприємства"
+      },
       "publishedWhere": "request",
       "featured": false,
       "order": 6
     },
     {
       "slug": "director-remuneration",
-      "title": { "uk": "Інформація про оплату праці" },
+      "title": {
+        "uk": "Інформація про оплату праці"
+      },
       "normRef": {
         "uk": "Структура, принципи формування та розмір винагороди керівника підприємства"
       },
@@ -74,15 +94,21 @@
     },
     {
       "slug": "governing-body-decisions",
-      "title": { "uk": "Рішення органу управління щодо підприємства" },
-      "normRef": { "uk": "Рішення органу управління щодо підприємства" },
+      "title": {
+        "uk": "Рішення органу управління щодо підприємства"
+      },
+      "normRef": {
+        "uk": "Рішення органу управління щодо підприємства"
+      },
       "publishedWhere": "request",
       "featured": false,
       "order": 8
     },
     {
       "slug": "risk-description",
-      "title": { "uk": "Опис істотних факторів ризику" },
+      "title": {
+        "uk": "Опис істотних факторів ризику"
+      },
       "normRef": {
         "uk": "Опис істотних передбачуваних факторів ризику та заходів щодо управління ними"
       },
@@ -92,7 +118,9 @@
     },
     {
       "slug": "edata-agreements",
-      "title": { "uk": "Реєстр договорів на порталі Є-data" },
+      "title": {
+        "uk": "Реєстр договорів на порталі Є-data"
+      },
       "normRef": {
         "uk": "Відомості про договори, інформація про які підлягає оприлюдненню за Законом № 183-VIII"
       },
@@ -103,7 +131,9 @@
     },
     {
       "slug": "edata-transactions",
-      "title": { "uk": "Трансакції підприємства на порталі Є-data" },
+      "title": {
+        "uk": "Трансакції підприємства на порталі Є-data"
+      },
       "normRef": {
         "uk": "Операції та зобов'язання підприємства з бюджетом, з державними та комунальними підприємствами, установами, організаціями"
       },
@@ -114,7 +144,9 @@
     },
     {
       "slug": "strategic-plan",
-      "title": { "uk": "Стратегічний план розвитку на 2026–2028 роки" },
+      "title": {
+        "uk": "Стратегічний план розвитку на 2026–2028 роки"
+      },
       "publishedWhere": "parent",
       "externalUrl": "https://desna.kyivzelenbud.com/wp-content/uploads/sites/5/2026/03/STRATEGIYA-na-2026-2028.pdf",
       "featured": true,
@@ -122,11 +154,23 @@
     },
     {
       "slug": "prozorro-tenders",
-      "title": { "uk": "Закупівлі підприємства у Prozorro" },
+      "title": {
+        "uk": "Закупівлі підприємства у Prozorro"
+      },
       "publishedWhere": "prozorro",
       "externalUrl": "https://prozorro.gov.ua/uk/search/tender?buyer=04589645&sort=publication_date,desc",
       "featured": false,
       "order": 13
+    },
+    {
+      "slug": "testovyi-dokument-perevirky",
+      "title": {
+        "uk": "Тестовий документ перевірки"
+      },
+      "publishedWhere": "own",
+      "filePath": "media/public-docs/testovyi-dokument-perevirky-b421dd26.pdf",
+      "featured": false,
+      "order": 14
     }
   ]
 }
