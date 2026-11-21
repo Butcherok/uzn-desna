@@ -15,6 +15,8 @@ import {
   type Session,
   type Store,
   type User,
+  type UploadMeta,
+  type UploadRecord,
   type UserPatch,
 } from '../domain/model.js';
 
@@ -28,6 +30,7 @@ export class MemoryStore implements Store {
   readonly sessions = new Map<string, Session>();
   readonly log: ActionLogEntry[] = [];
   readonly content = new Map<string, ContentRecord>();
+  readonly uploads = new Map<string, UploadRecord>();
   meta: ContentMeta = { seededAt: null, lastPublishedAt: null, purgedPending: 0, lastRun: null };
   available = true;
 
@@ -218,6 +221,55 @@ export class MemoryStore implements Store {
     return true;
   }
 
+  async insertUpload(upload: UploadRecord): Promise<void> {
+    this.check();
+    if (this.uploads.has(upload.path)) throw new DuplicateKeyError();
+    this.uploads.set(upload.path, copyUpload(upload));
+  }
+
+  async listUploads(): Promise<UploadMeta[]> {
+    this.check();
+    return [...this.uploads.values()].map(metaOf);
+  }
+
+  async findUpload(path: string): Promise<UploadMeta | null> {
+    this.check();
+    const u = this.uploads.get(path);
+    return u ? metaOf(u) : null;
+  }
+
+  async readUploadData(path: string): Promise<Buffer | null> {
+    this.check();
+    const data = this.uploads.get(path)?.data;
+    return data ? Buffer.from(data) : null;
+  }
+
+  async setUploadDeleteRequested(path: string, at: Date | null): Promise<boolean> {
+    this.check();
+    const u = this.uploads.get(path);
+    if (!u) return false;
+    this.uploads.set(path, { ...u, deleteRequestedAt: at });
+    return true;
+  }
+
+  async deleteUpload(path: string): Promise<boolean> {
+    this.check();
+    return this.uploads.delete(path);
+  }
+
+  async settleUploads(snapshotAt: Date, exported: readonly string[]): Promise<void> {
+    this.check();
+    const t = snapshotAt.getTime();
+    const sent = new Set(exported);
+    for (const [path, u] of this.uploads) {
+      if (u.deleteRequestedAt !== null && u.deleteRequestedAt.getTime() <= t) {
+        this.uploads.delete(path);
+      } else if (u.publishedAt === null && sent.has(path)) {
+        this.uploads.set(path, { ...u, publishedAt: snapshotAt, data: null });
+      }
+    }
+  }
+
   private assertKeyFree(kind: ContentKind, key: string, exceptId: string | null): void {
     for (const r of this.content.values()) {
       if (r.kind === kind && r.key === key && r.id !== exceptId) throw new DuplicateKeyError();
@@ -228,4 +280,14 @@ export class MemoryStore implements Store {
 /** Глубокая копия: `data` — вложенные объекты, наружу ссылки не уходят. */
 function copyRecord(r: ContentRecord): ContentRecord {
   return { ...r, data: structuredClone(r.data) };
+}
+
+function copyUpload(u: UploadRecord): UploadRecord {
+  return { ...u, data: u.data ? Buffer.from(u.data) : null };
+}
+
+function metaOf(u: UploadRecord): UploadMeta {
+  const meta: Partial<UploadRecord> = { ...u };
+  delete meta.data;
+  return meta as UploadMeta;
 }

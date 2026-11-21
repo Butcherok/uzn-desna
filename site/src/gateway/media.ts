@@ -14,8 +14,23 @@ import asideBinFile from '../../../media/aside/aside-bin.png';
 import asidePlanterFile from '../../../media/aside/aside-planter.png';
 import asidePlantsFile from '../../../media/aside/aside-plants.png';
 
-const LEADER_PHOTOS = import.meta.glob<{ default: ImageMetadata }>('../../../media/leaders/*.jpg', {
+/**
+ * Фото руководства: начальные — из `main`, загруженные в админке — из ветки
+ * `content-data` (решение 042; `Deploy` кладёт их в тот же каталог).
+ */
+const LEADER_PHOTOS = import.meta.glob<{ default: ImageMetadata }>(
+  '../../../media/leaders/*.{jpg,png,webp}',
+  { eager: true },
+);
+
+/**
+ * Документы «Публічної інформації», загруженные в админке (решение 042):
+ * сборка копирует файл как есть и отдаёт адрес с меткой содержимого.
+ */
+const PUBLIC_DOC_FILES = import.meta.glob<string>('../../../media/public-docs/*.{pdf,docx}', {
   eager: true,
+  query: '?no-inline',
+  import: 'default',
 });
 
 /**
@@ -43,6 +58,21 @@ export function leaderPhoto(photoPath: string): ImageMetadata {
     throw new Error(`Нет файла ${photoPath}: путь из data/leaders.json не найден в media/`);
   }
   return entry[1].default;
+}
+
+export interface DocFile {
+  href: string;
+  /** Подпись типа рядом со ссылкой: посетитель видит, что откроется файл. */
+  kind: 'PDF' | 'Word';
+}
+
+export function publicDocFile(filePath: string): DocFile {
+  const name = filePath.slice(filePath.lastIndexOf('/') + 1);
+  const entry = Object.entries(PUBLIC_DOC_FILES).find(([key]) => key.endsWith(`/${name}`));
+  if (entry === undefined) {
+    throw new Error(`Нет файла ${filePath}: путь из data/public-docs.json не найден в media/`);
+  }
+  return { href: entry[1], kind: name.endsWith('.pdf') ? 'PDF' : 'Word' };
 }
 
 /**

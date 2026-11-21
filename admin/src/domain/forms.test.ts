@@ -206,7 +206,7 @@ describe('form values', () => {
   });
 
   it('checks public document rules across fields', () => {
-    expect(crossCheck('public-docs', { publishedWhere: 'own' })).toHaveProperty('externalUrl');
+    expect(crossCheck('public-docs', { publishedWhere: 'parent' })).toHaveProperty('externalUrl');
     expect(
       crossCheck('public-docs', { publishedWhere: 'request', externalUrl: 'https://a.b' }),
     ).toHaveProperty('externalUrl');
@@ -214,7 +214,29 @@ describe('form values', () => {
       'featured',
     );
     expect(
-      crossCheck('public-docs', { publishedWhere: 'own', externalUrl: 'https://a.b' }),
+      crossCheck('public-docs', { publishedWhere: 'parent', externalUrl: 'https://a.b' }),
+    ).toEqual({});
+  });
+
+  it('wants a file instead of a link for a document on this site', () => {
+    const file = 'media/public-docs/statut-1a2b3c4d.pdf';
+    expect(crossCheck('public-docs', { publishedWhere: 'own' })).toHaveProperty('filePath');
+    expect(
+      crossCheck('public-docs', {
+        publishedWhere: 'own',
+        filePath: file,
+        externalUrl: 'https://a.b',
+      }),
+    ).toHaveProperty('externalUrl');
+    expect(
+      crossCheck('public-docs', {
+        publishedWhere: 'parent',
+        externalUrl: 'https://a.b',
+        filePath: file,
+      }),
+    ).toHaveProperty('filePath');
+    expect(
+      crossCheck('public-docs', { publishedWhere: 'own', filePath: file, featured: true }),
     ).toEqual({});
   });
 

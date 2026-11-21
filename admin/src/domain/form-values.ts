@@ -168,6 +168,11 @@ function convert(f: Field, raw: FormValue | undefined, key: string, now: () => D
     }
     case 'bool':
       return { value: raw === true, errors };
+    case 'file': {
+      const s = str(raw).trim();
+      if (!s) return f.required ? fail('Додайте файл') : { value: undefined, errors };
+      return { value: s, errors };
+    }
     case 'enum':
     case 'contact': {
       const s = str(raw);
@@ -345,13 +350,22 @@ export function crossCheck(kind: string, data: Data): FieldErrors {
   if (kind === 'public-docs') {
     const where = data['publishedWhere'];
     const url = data['externalUrl'];
+    const file = data['filePath'];
     if (where === 'request' && url !== undefined) {
       errors['externalUrl'] = 'Для документа «за запитом» посилання не потрібне';
-    } else if (where !== undefined && where !== 'request' && url === undefined) {
+    } else if (where === 'own' && url !== undefined) {
+      errors['externalUrl'] = 'Для документа «на цьому сайті» замість посилання додайте файл';
+    } else if (where !== undefined && where !== 'request' && where !== 'own' && url === undefined) {
       errors['externalUrl'] = 'Додайте посилання на документ';
     }
-    if (data['featured'] === true && url === undefined) {
-      errors['featured'] = 'У блок документів потрапляє лише документ із посиланням';
+    if (where === 'own' && file === undefined) {
+      errors['filePath'] = 'Додайте файл документа';
+    } else if (where !== undefined && where !== 'own' && file !== undefined) {
+      errors['filePath'] =
+        'Файл потрібен лише для «На цьому сайті». Приберіть файл або змініть місце';
+    }
+    if (data['featured'] === true && url === undefined && file === undefined) {
+      errors['featured'] = 'У блок документів потрапляє лише документ із посиланням або файлом';
     }
   }
   if (kind === 'leaders' && data['photoPath'] !== undefined && data['photoAlt'] === undefined) {

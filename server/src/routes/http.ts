@@ -18,6 +18,8 @@ export interface AppDeps {
   adminAssets?: AdminAssets | null;
   /** Запуск `publish-content` (решение 041); `null` или нет — публикация не настроена. */
   runner?: WorkflowRunner | null;
+  /** Файлы `media/` из `main`, на которые ссылаются начальные данные (решение 042). */
+  repoMedia?: ReadonlySet<string>;
 }
 
 declare module 'fastify' {

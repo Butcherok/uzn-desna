@@ -80,6 +80,7 @@ export function Layout({ route, wake, notice, publishBar, children }: Props) {
           {content.map((s) =>
             item({ page: 'list', kind: s.kind }, s.label, isCurrent(route, s.kind)),
           )}
+          {item({ page: 'files' }, 'Файли', route.page === 'files')}
           {item({ page: 'trash' }, 'Кошик', route.page === 'trash')}
         </ul>
         {service.length > 0 && (

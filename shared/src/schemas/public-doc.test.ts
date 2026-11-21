@@ -65,4 +65,34 @@ describe('publicDocSchema', () => {
       publicDocSchema.safeParse({ ...base, slug: 'оплата-праці', externalUrl: url }).success,
     ).toBe(false);
   });
+
+  describe('пункт с файлом на этом сайте (own)', () => {
+    const own = { ...base, publishedWhere: 'own' as const };
+    const file = 'media/public-docs/statut-1a2b3c4d.pdf';
+
+    it('принимает файл без адреса, в том числе в блоке документов', () => {
+      expect(publicDocSchema.safeParse({ ...own, filePath: file, featured: true }).success).toBe(
+        true,
+      );
+      expect(
+        publicDocSchema.safeParse({ ...own, filePath: file, docUpdatedAt: '2026-11-21' }).success,
+      ).toBe(true);
+    });
+
+    it('требует файл и не пускает адрес', () => {
+      expect(publicDocSchema.safeParse(own).success).toBe(false);
+      expect(publicDocSchema.safeParse({ ...own, filePath: file, externalUrl: url }).success).toBe(
+        false,
+      );
+    });
+
+    it('не пускает файл у других пунктов и чужие пути', () => {
+      expect(publicDocSchema.safeParse({ ...base, externalUrl: url, filePath: file }).success).toBe(
+        false,
+      );
+      expect(
+        publicDocSchema.safeParse({ ...own, filePath: 'media/leaders/x-1a2b3c4d.jpg' }).success,
+      ).toBe(false);
+    });
+  });
 });

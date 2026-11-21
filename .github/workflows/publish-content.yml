@@ -3,7 +3,8 @@ name: Publish content
 # Публикация правок из админки (ТЗ 8.5, 7.1; решение 041). Запускается
 # кнопкой «Опублікувати зміни» (бэкенд вызывает `workflow_dispatch`) и
 # первого числа месяца по расписанию. Забирает `GET /export`, пишет
-# редактируемые файлы `data/` в незащищённую ветку `content-data` и запускает
+# редактируемые файлы `data/` и загруженные файлы `media/` (решение 042) в
+# незащищённую ветку `content-data` и запускает
 # `Deploy`, дожидаясь его итога: итог этого прогона — итог публикации,
 # его читает `/publish/status`.
 on:
@@ -58,6 +59,8 @@ jobs:
         env:
           EXPORT_TOKEN: ${{ secrets.EXPORT_TOKEN }}
           RUN_ID: ${{ github.run_id }}
+          # Загруженные файлы приводятся к перечню прямо в ветке (решение 042).
+          MEDIA_DIR: ../content-data
         run: npm run publish:export
 
       # Та же проверка, что у сборки: неверные данные не доходят до `Deploy`.
@@ -75,7 +78,8 @@ jobs:
           cd ../content-data
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data
+          # В ветке только `data/` и `media/`: добавляется всё, удалённые файлы тоже.
+          git add -A
           if git diff --cached --quiet; then
             echo "Изменений для content-data нет"
             echo "pushed=false" >> "$GITHUB_OUTPUT"

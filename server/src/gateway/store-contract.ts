@@ -10,6 +10,7 @@ import {
   type NewContentRecord,
   type NewUser,
   type Store,
+  type UploadRecord,
 } from '../domain/model.js';
 
 export function newUser(login: string, extra: Partial<NewUser> = {}): NewUser {
@@ -38,6 +39,26 @@ export function newContent(key: string, extra: Partial<NewContentRecord> = {}): 
     updatedAt: at,
     deletedAt: null,
     firstPublishedAt: null,
+    ...extra,
+  };
+}
+
+export function newUpload(path: string, extra: Partial<UploadRecord> = {}): UploadRecord {
+  return {
+    path,
+    entity: 'leaders',
+    slug: 'karp-ye-a',
+    mime: 'image/jpeg',
+    bytes: 3,
+    width: 1,
+    height: 1,
+    sha256: 'a'.repeat(64),
+    alt: null,
+    uploadedAt: new Date('2026-11-20T10:00:00Z'),
+    uploadedBy: 'Анна',
+    publishedAt: null,
+    deleteRequestedAt: null,
+    data: Buffer.from([1, 2, 3]),
     ...extra,
   };
 }
@@ -218,6 +239,49 @@ export function storeContract(name: string, make: () => Promise<Store>): void {
       expect(meta.lastRun?.finishedAt?.toISOString()).toBe(later(5000).toISOString());
       expect(meta.lastPublishedAt?.toISOString()).toBe(later(1000).toISOString());
       expect(meta.purgedPending).toBe(1);
+    });
+
+    it('stores uploads: path unique, content apart from metadata', async () => {
+      const p = 'media/leaders/karp-ye-a-0a1b2c3d.jpg';
+      await store.insertUpload(newUpload(p));
+      await expect(store.insertUpload(newUpload(p))).rejects.toBeInstanceOf(DuplicateKeyError);
+      const list = await store.listUploads();
+      expect(list).toHaveLength(1);
+      expect(list[0]).not.toHaveProperty('data');
+      expect(list[0]?.path).toBe(p);
+      expect((await store.findUpload(p))?.uploadedAt.toISOString()).toBe(t0.toISOString());
+      expect(await store.findUpload('media/leaders/none.jpg')).toBeNull();
+      expect([...((await store.readUploadData(p)) ?? [])]).toEqual([1, 2, 3]);
+      expect(await store.setUploadDeleteRequested(p, later(10))).toBe(true);
+      expect(await store.setUploadDeleteRequested('nope', later(10))).toBe(false);
+      expect((await store.findUpload(p))?.deleteRequestedAt?.toISOString()).toBe(
+        later(10).toISOString(),
+      );
+      expect(await store.deleteUpload(p)).toBe(true);
+      expect(await store.deleteUpload(p)).toBe(false);
+    });
+
+    it('settles exported uploads; removes those deleted before the snapshot', async () => {
+      const before = 'media/leaders/a-00000001.jpg';
+      const after = 'media/leaders/b-00000002.jpg';
+      const gone = 'media/leaders/c-00000003.jpg';
+      const goneLater = 'media/leaders/d-00000004.jpg';
+      await store.insertUpload(newUpload(before, { uploadedAt: later(1000) }));
+      await store.insertUpload(newUpload(after, { uploadedAt: later(1000) }));
+      const published = { publishedAt: t0, data: null };
+      await store.insertUpload(newUpload(gone, { ...published, deleteRequestedAt: later(1500) }));
+      await store.insertUpload(
+        newUpload(goneLater, { ...published, deleteRequestedAt: later(2500) }),
+      );
+
+      await store.settleUploads(later(2000), [before, gone]);
+      const byPath = new Map((await store.listUploads()).map((u) => [u.path, u]));
+      expect(byPath.get(before)?.publishedAt?.toISOString()).toBe(later(2000).toISOString());
+      expect(await store.readUploadData(before)).toBeNull();
+      expect(byPath.get(after)?.publishedAt).toBeNull();
+      expect(await store.readUploadData(after)).not.toBeNull();
+      expect(byPath.has(gone)).toBe(false);
+      expect(byPath.get(goneLater)?.deleteRequestedAt).not.toBeNull();
     });
   });
 }

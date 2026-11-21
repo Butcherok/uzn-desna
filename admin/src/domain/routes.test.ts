@@ -7,6 +7,7 @@ describe('admin routes', () => {
       ['/admin/', { page: 'home' }],
       ['/admin/help', { page: 'help' }],
       ['/admin/trash', { page: 'trash' }],
+      ['/admin/files', { page: 'files' }],
       ['/admin/contacts', { page: 'list', kind: 'contacts' }],
       ['/admin/contacts/new', { page: 'new', kind: 'contacts' }],
       ['/admin/contacts/abc123', { page: 'edit', kind: 'contacts', id: 'abc123' }],

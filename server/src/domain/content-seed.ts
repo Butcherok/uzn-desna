@@ -65,3 +65,22 @@ export async function seedContent(
   });
   return { status: 'seeded', counts };
 }
+
+/**
+ * Пути `media/…` в начальных данных: эти файлы лежат в `main`, а не среди
+ * загруженных, и проверка перед публикацией их принимает (решение 042).
+ */
+export function mediaPathsIn(data: InitialData): Set<string> {
+  const out = new Set<string>();
+  const walk = (v: unknown): void => {
+    if (typeof v === 'string') {
+      if (v.startsWith('media/')) out.add(v);
+    } else if (Array.isArray(v)) {
+      v.forEach(walk);
+    } else if (v !== null && typeof v === 'object') {
+      Object.values(v).forEach(walk);
+    }
+  };
+  walk(data);
+  return out;
+}

@@ -663,3 +663,47 @@ textarea {
 .publish__problems li + li {
   margin-top: var(--s-2);
 }
+
+/* Поле файла (ТЗ 8.4; решение 042). Поле выбора скрыто, фокус виден на кнопке-подписи. */
+.file__preview {
+  display: block;
+  width: 88px;
+  height: 88px;
+  margin: var(--s-2) 0 0;
+  object-fit: cover;
+  border: var(--bw) solid var(--c-line);
+  border-radius: var(--r-sm);
+}
+.file__name {
+  margin: var(--s-2) 0 0;
+  overflow-wrap: anywhere;
+}
+.file__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+  margin-top: var(--s-2);
+}
+.file__pick {
+  cursor: pointer;
+}
+.file__pick:focus-within {
+  outline: var(--focus-w) solid var(--c-focus);
+  outline-offset: var(--focus-offset);
+}
+.file-row {
+  display: flex;
+  gap: var(--s-3);
+  align-items: flex-start;
+  min-width: 0;
+}
+.file-row .row__main {
+  min-width: 0;
+}
+.row__thumb {
+  flex: none;
+  width: 56px;
+  height: 56px;
+  object-fit: cover;
+  border-radius: var(--r-sm);
+}
