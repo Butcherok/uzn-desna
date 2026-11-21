@@ -46,4 +46,13 @@ export default [
     files: ['site/src/components/**/*.{ts,tsx}'],
     rules: layerRules,
   },
+  // Админка (решение 040): код исполняется в браузере; слои — как у сайта.
+  {
+    files: ['admin/src/**/*.{ts,tsx}'],
+    languageOptions: { globals: { ...globals.browser } },
+  },
+  {
+    files: ['admin/src/domain/**/*.ts', 'admin/src/components/**/*.{ts,tsx}'],
+    rules: layerRules,
+  },
 ];

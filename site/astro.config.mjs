@@ -30,4 +30,12 @@ export default defineConfig({
   devToolbar: {
     enabled: false,
   },
+  vite: {
+    build: {
+      // Скрипт страницы — отдельным файлом, а не встроенным в HTML: политика
+      // содержимого разрешает только `script-src 'self'` (ТЗ 11.5, п. 5). Astro
+      // встраивает скрипты меньше 4 КБ; остальное (картинки) — как прежде.
+      assetsInlineLimit: (filePath) => (filePath.endsWith('.js') ? false : undefined),
+    },
+  },
 });

@@ -1,0 +1,99 @@
+---
+/**
+ * Страница-будильник `/admin` (ТЗ 4.14, 8.7; решения 036, 040). Формы входа
+ * нет: страница будит сервис на Render запросом `/health`, через 3 с без ответа
+ * объясняет ожидание и, когда сервис ответил, переводит на админку по его
+ * адресу. Без JavaScript — прямая ссылка.
+ */
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { API_ORIGIN } from '../../config/site';
+
+const adminUrl = `${API_ORIGIN}/admin/`;
+---
+
+<BaseLayout
+  section="Адміністрування"
+  path="/admin/"
+  description="Вхід в адміністрування сайту для працівників підприємства."
+  indexable={false}
+  connectSrc={[API_ORIGIN]}
+>
+  <h1>Адміністрування</h1>
+  <div class="wake" data-api={API_ORIGIN}>
+    <p class="wake__status" role="status" aria-live="polite" data-status>
+      Підключаємося до сервісу…
+    </p>
+    <p data-fail hidden>
+      <button type="button" class="btn btn--ghost" data-retry>
+        Спробувати ще раз
+      </button>
+    </p>
+    <p class="wake__direct" data-direct hidden>
+      Або <a href={adminUrl}>відкрийте адміністрування напряму</a>.
+    </p>
+    <noscript>
+      <p>
+        <a href={adminUrl}>Відкрити адміністрування</a> — відкриття може тривати до хвилини.
+      </p>
+    </noscript>
+  </div>
+</BaseLayout>
+
+<script>
+  import { WAKE } from '../../config/wake';
+
+  const root = document.querySelector<HTMLElement>('[data-api]');
+  const status = root?.querySelector<HTMLElement>('[data-status]');
+  const fail = root?.querySelector<HTMLElement>('[data-fail]');
+  const direct = root?.querySelector<HTMLElement>('[data-direct]');
+  const retry = root?.querySelector<HTMLButtonElement>('[data-retry]');
+  const api = root?.dataset['api'];
+
+  const say = (text: string) => {
+    if (status) status.textContent = text;
+  };
+
+  async function ping(base: string): Promise<boolean> {
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), WAKE.timeoutMs);
+    try {
+      const res = await fetch(`${base}/api/v1/health`, {
+        cache: 'no-store',
+        credentials: 'omit',
+        signal: ctrl.signal,
+      });
+      return res.ok;
+    } catch {
+      return false;
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+
+  async function wake(): Promise<void> {
+    if (!api) return;
+    if (fail) fail.hidden = true;
+    if (direct) direct.hidden = true;
+    say('Підключаємося до сервісу…');
+    const notice = setTimeout(() => say(WAKE.waking), WAKE.noticeAfterMs);
+    try {
+      // Один автоматичний повтор (ТЗ 8.7, п. 3).
+      for (let attempt = 0; attempt < 2; attempt += 1) {
+        if (await ping(api)) {
+          say('Сервіс відповів. Відкриваємо адміністрування…');
+          window.location.assign(`${api}/admin/`);
+          return;
+        }
+      }
+    } finally {
+      clearTimeout(notice);
+    }
+    say(WAKE.failed);
+    if (fail) fail.hidden = false;
+    if (direct) direct.hidden = false;
+    retry?.focus();
+  }
+
+  retry?.addEventListener('click', () => void wake());
+  void wake();
+</script>

@@ -32,6 +32,14 @@ const envSchema = z
     TRUST_PROXY: z.coerce.number().int().min(0).max(5).default(0),
     BUILD_VERSION: z.string().optional(),
     RENDER_GIT_COMMIT: z.string().optional(),
+    /**
+     * Собственный адрес сервиса. Render задаёт его веб-сервису сам
+     * (`https://<имя>.onrender.com`). Админка отдаётся с этого адреса, и её
+     * изменяющие запросы несут его в `Origin` (решения 036, 040).
+     */
+    RENDER_EXTERNAL_URL: origin.optional(),
+    /** Каталог собранной админки; по умолчанию — `admin/dist` рядом с `server/`. */
+    ADMIN_DIST_DIR: z.string().optional(),
     BOOTSTRAP_OWNER_LOGIN: z.string().optional(),
     BOOTSTRAP_OWNER_PASSWORD_HASH: z.string().optional(),
     BOOTSTRAP_OWNER_DISPLAY_NAME: z.string().optional(),
@@ -62,6 +70,13 @@ export interface AppConfig {
   siteOrigin: string;
   /** Разрешённые источники CORS: сайт и в разработке — `localhost:4321`. */
   corsOrigins: string[];
+  /**
+   * Источники, с которых принимаются изменяющие запросы (ТЗ 8.2, п. 2): сайт,
+   * собственный адрес сервиса и в разработке — сервер разработки админки.
+   */
+  mutationOrigins: string[];
+  /** Каталог собранной админки (решение 040). */
+  adminDistDir: string | null;
   cookieSameSite: 'lax' | 'strict' | 'none';
   cookieSecure: boolean;
   cookieName: string;
@@ -69,6 +84,9 @@ export interface AppConfig {
   version: string;
   bootstrap: { login: string; passwordHash: string; displayName: string } | null;
 }
+
+/** Сервер разработки админки (`npm run dev --workspace admin`). */
+export const ADMIN_DEV_ORIGIN = 'http://localhost:5173';
 
 export class ConfigError extends Error {
   constructor(message: string) {
@@ -91,6 +109,16 @@ export function loadConfig(source: Record<string, string | undefined> = process.
   const secure = e.NODE_ENV === 'production';
   const bootLogin = e.BOOTSTRAP_OWNER_LOGIN?.trim().toLowerCase();
   const bootHash = e.BOOTSTRAP_OWNER_PASSWORD_HASH?.trim();
+  const corsOrigins =
+    e.NODE_ENV === 'production'
+      ? [e.SITE_ORIGIN]
+      : [...new Set([e.SITE_ORIGIN, 'http://localhost:4321'])];
+  const selfOrigins = [
+    ...(e.RENDER_EXTERNAL_URL ? [e.RENDER_EXTERNAL_URL] : []),
+    ...(e.NODE_ENV === 'production'
+      ? []
+      : [`http://localhost:${e.PORT}`, `http://127.0.0.1:${e.PORT}`, ADMIN_DEV_ORIGIN]),
+  ];
   return {
     env: e.NODE_ENV,
     host: e.HOST,
@@ -98,10 +126,9 @@ export function loadConfig(source: Record<string, string | undefined> = process.
     mongoUri: e.MONGODB_URI,
     mongoDb: e.MONGODB_DB,
     siteOrigin: e.SITE_ORIGIN,
-    corsOrigins:
-      e.NODE_ENV === 'production'
-        ? [e.SITE_ORIGIN]
-        : [...new Set([e.SITE_ORIGIN, 'http://localhost:4321'])],
+    corsOrigins,
+    mutationOrigins: [...new Set([...corsOrigins, ...selfOrigins])],
+    adminDistDir: e.ADMIN_DIST_DIR ?? null,
     cookieSameSite: e.COOKIE_SAME_SITE,
     cookieSecure: secure,
     // Префикс `__Host-` браузер принимает только у Secure-cookie с Path=/ и без Domain:

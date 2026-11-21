@@ -1,0 +1,23 @@
+{
+  "name": "@uzn/admin",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Інтерфейс адміністрування (ТЗ 9.3, 9.4): Vite і React, віддається сервером з /admin/ (рішення 040).",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@uzn/shared": "*",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@vitejs/plugin-react": "^6.0.0",
+    "vite": "^8.0.0"
+  }
+}

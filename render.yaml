@@ -10,9 +10,10 @@ services:
     branch: main
     # Корень репозитория, а не `server`: файлы вне rootDir Render при сборке не
     # отдаёт, а серверу нужны `shared/` и общий package-lock.json. Ставятся
-    # только зависимости сервера и корня, сайт (Astro, sharp) не ставится.
-    # `--include=dev`: NODE_ENV=production задан и для сборки, а esbuild — devDependency.
-    buildCommand: npm ci --include=dev --workspace=server --include-workspace-root && npm run server:build
+    # только зависимости сервера, админки и корня, сайт (Astro, sharp) не ставится.
+    # `--include=dev`: NODE_ENV=production задан и для сборки, а esbuild и Vite —
+    # devDependencies. Админку сервер отдаёт по `/admin/` (решение 040).
+    buildCommand: npm ci --include=dev --workspace=server --workspace=admin --include-workspace-root && npm run server:build && npm run admin:build
     # Напрямую через node, без npm: сигнал остановки получает сам сервер.
     startCommand: node --enable-source-maps server/dist/index.js
     healthCheckPath: /api/v1/health
@@ -22,6 +23,10 @@ services:
       paths:
         - server/**
         - shared/**
+        - admin/**
+        # Токены и шрифты дизайн-системы, которые собирает админка.
+        - site/src/styles/tokens.css
+        - site/src/fonts/**
         - package.json
         - package-lock.json
         - .nvmrc

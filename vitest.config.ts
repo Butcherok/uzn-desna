@@ -7,6 +7,7 @@ export default defineConfig({
       'site/src/**/*.test.ts',
       'server/src/**/*.test.ts',
       'scripts/src/**/*.test.ts',
+      'admin/src/**/*.test.ts',
     ],
     environment: 'node',
   },

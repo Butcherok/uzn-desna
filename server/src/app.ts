@@ -9,8 +9,10 @@ import Fastify, {
 import { ApiError } from './domain/errors.js';
 import { StoreUnavailableError } from './domain/model.js';
 import { hashSessionToken } from './domain/sessions.js';
+import { ADMIN_CSP, adminRoutes, isAdminPath } from './routes/admin.js';
 import { authRoutes } from './routes/auth.js';
 import { contentRoutes } from './routes/content.js';
+import { publishRoutes } from './routes/publish.js';
 import type { AppDeps } from './routes/http.js';
 
 export const API_PREFIX = '/api/v1';
@@ -77,7 +79,7 @@ export async function buildApp(deps: AppDeps, opts: BuildOptions = {}): Promise<
   app.addHook('onRequest', async (req) => {
     if (SAFE_METHODS.has(req.method)) return;
     const origin = req.headers.origin;
-    if (origin !== undefined && !config.corsOrigins.includes(origin)) {
+    if (origin !== undefined && !config.mutationOrigins.includes(origin)) {
       throw new ApiError('FORBIDDEN', 'Запит відхилено');
     }
     if (req.headers[CSRF_HEADER] !== CSRF_VALUE) {
@@ -85,11 +87,16 @@ export async function buildApp(deps: AppDeps, opts: BuildOptions = {}): Promise<
     }
   });
 
-  app.addHook('onSend', async (_req, reply) => {
+  app.addHook('onSend', async (req, reply) => {
     reply.header('X-Content-Type-Options', 'nosniff');
     reply.header('Referrer-Policy', 'no-referrer');
     reply.header('X-Frame-Options', 'DENY');
-    reply.header('Content-Security-Policy', "default-src 'none'; frame-ancestors 'none'");
+    reply.header(
+      'Content-Security-Policy',
+      isAdminPath(req.url.split('?')[0] ?? '')
+        ? ADMIN_CSP
+        : "default-src 'none'; frame-ancestors 'none'",
+    );
     reply.header('X-Robots-Tag', 'noindex, nofollow');
     if (!reply.hasHeader('Cache-Control')) reply.header('Cache-Control', 'no-store');
   });
@@ -144,9 +151,12 @@ export async function buildApp(deps: AppDeps, opts: BuildOptions = {}): Promise<
       }));
       authRoutes(api, deps);
       contentRoutes(api, deps);
+      publishRoutes(api, deps);
     },
     { prefix: API_PREFIX },
   );
+
+  adminRoutes(app, deps.adminAssets ?? null);
 
   return app;
 }

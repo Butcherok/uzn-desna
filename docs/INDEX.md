@@ -26,3 +26,5 @@
 | Переменные бэкенда                 | `server/src/config/env.ts`, `.env.example`                                      |
 | Первый владелец, потерян пароль    | `docs/runbook-admin-access.md`                                                  |
 | Запуск бэкенда: Atlas и Render     | `docs/runbook-backend-deploy.md`, `render.yaml`                                 |
+| Админка: страницы, формы, поля     | `admin/src/pages/`, `admin/src/domain/forms.ts`, решение 040                    |
+| Будильник `/admin` на Pages        | `site/src/pages/admin/index.astro`, `site/src/config/wake.ts`                   |

@@ -10,6 +10,8 @@ import { BOOTSTRAP_MESSAGES, bootstrapOwner } from './domain/bootstrap.js';
 import { seedContent } from './domain/content-seed.js';
 import { INITIAL_DATA } from './gateway/initial-data.js';
 import { MongoStore } from './gateway/mongo-store.js';
+import { fileURLToPath } from 'node:url';
+import { loadAdminAssets } from './gateway/admin-assets.js';
 
 const RETRY_DELAYS_MS = [2_000, 5_000, 10_000, 30_000, 60_000];
 
@@ -26,8 +28,13 @@ async function main(): Promise<void> {
   }
 
   const store = new MongoStore({ uri: config.mongoUri, dbName: config.mongoDb });
+  // `server/dist/index.js` и `server/src/index.ts` лежат на одной глубине:
+  // сборка админки — `admin/dist` в корне репозитория (решение 040).
+  const adminDir =
+    config.adminDistDir ?? fileURLToPath(new URL('../../admin/dist/', import.meta.url));
+  const adminAssets = await loadAdminAssets(adminDir);
   const app = await buildApp(
-    { config, store, now: () => new Date(), startedAt: new Date() },
+    { config, store, now: () => new Date(), startedAt: new Date(), adminAssets },
     {
       logger: {
         level: config.env === 'production' ? 'info' : 'debug',
@@ -64,6 +71,7 @@ async function main(): Promise<void> {
   process.once('SIGINT', () => void shutdown('SIGINT'));
 
   await app.listen({ host: config.host, port: config.port });
+  if (!adminAssets) app.log.warn({ adminDir }, 'admin interface is not built');
   void prepareDb();
 }
 

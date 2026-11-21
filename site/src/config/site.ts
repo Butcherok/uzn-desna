@@ -48,6 +48,14 @@ export const ENTERPRISE = {
  */
 export const INDEXING_ENABLED = false;
 
+/**
+ * Адрес сервиса на Render (ТЗ 10.5: не секрет; решения 036, 040). Страница
+ * `/admin` будит его и переводит браузер на админку по этому адресу.
+ */
+export const API_ORIGIN: string = new URL(
+  import.meta.env.PUBLIC_API_BASE || 'https://uzn-desna-api.onrender.com',
+).origin;
+
 /** Название сайта для `og:site_name` и разметки Schema.org (решение 039). */
 export const SITE_NAME = 'КП УЗН Деснянського району';
 

@@ -23,8 +23,8 @@ const DIST = 'site/dist';
 const CONFIG = 'site/src/config/site.ts';
 const TITLE_MAX = 60;
 const DESCRIPTION_MAX = 160;
-/** Страницы вне индекса и после снятия закрытия (решение 039) */
-const NOT_INDEXABLE = new Set(['404.html', 'news/index.html']);
+/** Страницы вне индекса и после снятия закрытия (решения 039, 040) */
+const NOT_INDEXABLE = new Set(['404.html', 'news/index.html', 'admin/index.html']);
 
 async function htmlFiles(dir) {
   const out = [];
