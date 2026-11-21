@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-11-21T11:37:54.690Z",
+  "generatedAt": "2026-11-21T11:42:35.372Z",
   "source": "admin-export",
   "items": [
     {
@@ -88,20 +88,6 @@
         "uk": "Фотопортрет: Степаненко Тетяна Миколаївна, головний бухгалтер"
       },
       "order": 5
-    },
-    {
-      "slug": "testova-kartka-perevirka",
-      "fullName": {
-        "uk": "Тестова Картка Перевірка"
-      },
-      "position": {
-        "uk": "Перевірка завантаження фото"
-      },
-      "photoPath": "media/leaders/testova-kartka-perevirka-a38a7353.jpg",
-      "photoAlt": {
-        "uk": "Тестове зображення для перевірки завантаження"
-      },
-      "order": 6
     }
   ]
 }
