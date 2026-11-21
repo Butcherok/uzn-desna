@@ -31,7 +31,7 @@ interface Props {
   errors: FieldErrors;
   tab: Tab;
   contacts: readonly Option[];
-  /** Сохранённый `slug` записи для поля файла; `null` — запись ещё не сохранена. */
+  /** `slug` для имени файла; `null` — у записи ещё нет названия. */
   slug?: string | null;
   /** Загрузка файлов; без неё поле файла не выводится. */
   files?: FileApi;

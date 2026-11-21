@@ -5,6 +5,7 @@
  * сохранении введённое не сбрасывается (ТЗ 8.7, п. 4).
  */
 import { useEffect, useMemo, useRef, useState, type FormEvent, type KeyboardEvent } from 'react';
+import { UPLOAD_TARGETS, provisionalSlug } from '@uzn/shared';
 import { FieldView, fieldId, hasLang, type Tab } from '../components/FieldView';
 import type { FileApi } from '../components/FileField';
 import { ErrorBox, StatusBadge } from '../components/Status';
@@ -19,6 +20,7 @@ import {
   toForm,
   type FieldErrors,
   type FormState,
+  type Lang,
 } from '../domain/form-values';
 import { formatDateTime, sectionOf, titleOf, type Kind, type RecordView } from '../domain/kinds';
 import { api, uploadUrl } from '../gateway/admin-api';
@@ -127,6 +129,12 @@ export function EditPage({ kind, id, isNew }: Props) {
   }, [kind, id, isNew, fields, onSlow, failure, attempt]);
 
   const originalSlug = typeof record?.data['slug'] === 'string' ? record.data['slug'] : '';
+  // Имя файла: у сохранённой записи — её `slug`, у новой — транслитерация
+  // названия (решение 042, правка 21.11.2026): иначе запись, которой файл
+  // обязателен («На цьому сайті»), не сохранить, а файл не добавить.
+  const uploadTarget = (UPLOAD_TARGETS as Record<string, { titleField: string } | undefined>)[kind];
+  const titleValue = uploadTarget ? (form[uploadTarget.titleField] as Lang | undefined) : undefined;
+  const fileSlug = originalSlug || provisionalSlug(titleValue?.uk ?? '');
   const dirty =
     isDirty(initial, form) ||
     (hasSlug && isOwner && !isNew && slug !== originalSlug) ||
@@ -426,7 +434,7 @@ export function EditPage({ kind, id, isNew }: Props) {
                 errors={errors}
                 tab={tab}
                 contacts={contacts}
-                slug={isNew || !originalSlug ? null : originalSlug}
+                slug={fileSlug}
                 files={files}
               />
             ))}

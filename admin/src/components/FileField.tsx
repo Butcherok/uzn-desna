@@ -2,7 +2,8 @@
  * Поле файла (ТЗ 8.4, 9.4; решение 042): фото руководителя или документ
  * «Публічної інформації». Файл отправляется сразу после выбора, в поле
  * записывается путь, который дал сервер; запись сохраняется обычной кнопкой.
- * До первого сохранения записи у неё нет `slug`, и файл не принимается.
+ * У новой записи имя файла строится из названия; пока названия нет, поле
+ * просит его заполнить.
  */
 import { useId, useState } from 'react';
 import {
@@ -26,7 +27,7 @@ interface Props {
   hint: string;
   entity: string;
   accept: UploadClass;
-  /** Сохранённый `slug` записи; `null` — запись ещё не сохранена. */
+  /** `slug` для имени файла; `null` — у записи ещё нет названия. */
   slug: string | null;
   value: string;
   error: string | undefined;
@@ -99,7 +100,7 @@ export function FileField(p: Props) {
       )}
 
       {p.slug === null ? (
-        <p className="field__hint">Спочатку збережіть запис, потім додайте файл.</p>
+        <p className="field__hint">Спочатку заповніть назву, потім додайте файл.</p>
       ) : (
         <div className="file__actions">
           <label className="btn btn--ghost btn--inline file__pick">

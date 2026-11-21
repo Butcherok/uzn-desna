@@ -110,4 +110,11 @@ jobs:
             exit 1
           fi
           echo "Deploy: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$id"
+          # Номер из ответа запуска API отдаёт не сразу: `gh run watch` на нём
+          # получал 404 и ронял публикацию при живом `Deploy` (21.11.2026).
+          for i in $(seq 1 12); do
+            gh run view "$id" --repo "$GITHUB_REPOSITORY" --json status > /dev/null 2>&1 && break
+            [ "$i" = 12 ] && { echo "::error title=DEPLOY::прогон Deploy $id не виден за минуту"; exit 1; }
+            sleep 5
+          done
           gh run watch "$id" --repo "$GITHUB_REPOSITORY" --exit-status --interval 15 > /dev/null

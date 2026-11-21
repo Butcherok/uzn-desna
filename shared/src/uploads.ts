@@ -1,12 +1,17 @@
+import { slugify } from './format/translit.js';
+
 /**
  * Правила загрузки файлов (ТЗ 8.4; решение 042). Одни и те же для сервера,
  * который принимает файл, и для админки, которая предупреждает до отправки.
  */
 
-/** Сущности, у которых есть поле загруженного файла, и само поле. */
+/**
+ * Сущности, у которых есть поле загруженного файла, само поле и языковое поле,
+ * из которого строится `slug` (то же, что `titleField` на сервере).
+ */
 export const UPLOAD_TARGETS = {
-  leaders: { field: 'photoPath', accept: 'image' },
-  'public-docs': { field: 'filePath', accept: 'document' },
+  leaders: { field: 'photoPath', accept: 'image', titleField: 'fullName' },
+  'public-docs': { field: 'filePath', accept: 'document', titleField: 'title' },
 } as const;
 
 export type UploadEntity = keyof typeof UPLOAD_TARGETS;
@@ -60,6 +65,16 @@ export const wrongTypeMessage = (cls: UploadClass): string =>
   cls === 'image'
     ? 'Це не зображення JPEG, PNG чи WebP. Збережіть фото в одному з цих форматів і спробуйте ще раз'
     : 'Це не PDF і не документ Word (.docx). Збережіть файл у PDF або .docx і спробуйте ще раз';
+
+/**
+ * `slug` для имени файла у записи, которая ещё не сохранена: та же
+ * транслитерация названия, что сделает сервер при создании. Совпадать с
+ * итоговым `slug` записи не обязано — имя файла влияет только на вид адреса.
+ * `null` — названия ещё нет.
+ */
+export function provisionalSlug(title: string): string | null {
+  return title.trim() === '' ? null : slugify(title);
+}
 
 /** Путь файла: `media/{entity}/{slug}-{8 знаков хэша}.{расширение}` (ТЗ 8.4, п. 5). */
 export const UPLOAD_PATH_RE =

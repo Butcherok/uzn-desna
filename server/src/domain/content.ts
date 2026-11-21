@@ -13,7 +13,7 @@ import {
   type Store,
   type User,
 } from './model.js';
-import { slugify, uniqueSlug } from './translit.js';
+import { slugify, uniqueSlug } from '@uzn/shared';
 
 export interface ContentCtx {
   store: Store;

@@ -92,7 +92,7 @@ export async function acceptUpload(
   const fields: Record<string, string> = {};
   if (!isEntity(input.entity)) fields['entity'] = 'Для цього розділу файли не завантажуються';
   if (input.slug.length > SLUG_MAX || !SLUG_RE.test(input.slug)) {
-    fields['slug'] = 'Спочатку збережіть запис, потім додайте файл';
+    fields['slug'] = 'Спочатку заповніть назву, потім додайте файл';
   }
   if (!isEntity(input.entity) || fields['slug']) {
     throw new ApiError('VALIDATION_FAILED', undefined, { fields });

@@ -75,7 +75,9 @@ export {
   ACCEPT_HINT,
   ACCEPT_ATTR,
   maxBytesOf,
+  provisionalSlug,
   tooLargeMessage,
   wrongTypeMessage,
 } from './uploads.js';
 export type { UploadEntity, UploadClass, UploadMime } from './uploads.js';
+export { SLUG_MAX, slugify, transliterateUk, uniqueSlug } from './format/translit.js';
