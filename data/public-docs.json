@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-11-21T11:37:54.690Z",
+  "generatedAt": "2026-11-21T11:39:48.434Z",
   "source": "admin-export",
   "items": [
     {
@@ -169,7 +169,8 @@
       },
       "publishedWhere": "own",
       "filePath": "media/public-docs/testovyi-dokument-perevirky-b421dd26.pdf",
-      "featured": false,
+      "docUpdatedAt": "2026-11-21",
+      "featured": true,
       "order": 14
     }
   ]
