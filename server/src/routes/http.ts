@@ -23,6 +23,8 @@ export interface AppDeps {
   repoMedia?: ReadonlySet<string>;
   /** Файл ленты для модерации (решение 043); `null` или нет — лента «невідома». */
   feedSource?: FeedSource | null;
+  /** Запуск рабочего процесса `backup` (решение 045); `null` или нет — не настроено. */
+  backupRunner?: WorkflowRunner | null;
 }
 
 declare module 'fastify' {

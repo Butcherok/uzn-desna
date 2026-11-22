@@ -525,6 +525,7 @@ export class MongoStore implements Store {
           filter.userId = id;
         }
       }
+      if (q.action !== undefined) filter.action = q.action;
       if (q.from !== undefined || q.to !== undefined) {
         filter.at = {
           ...(q.from !== undefined ? { $gte: q.from } : {}),

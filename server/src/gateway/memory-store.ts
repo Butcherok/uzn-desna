@@ -287,6 +287,7 @@ export class MemoryStore implements Store {
       .filter(
         (e) =>
           (q.userId === undefined || e.userId === q.userId) &&
+          (q.action === undefined || e.action === q.action) &&
           (q.from === undefined || e.at.getTime() >= q.from.getTime()) &&
           (q.to === undefined || e.at.getTime() < q.to.getTime()),
       )
