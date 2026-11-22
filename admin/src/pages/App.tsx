@@ -27,6 +27,7 @@ import { ListPage } from './ListPage';
 import { LoginPage } from './LoginPage';
 import { PasswordPage } from './PasswordPage';
 import { FeedPage } from './FeedPage';
+import { LogPage } from './LogPage';
 import { FilesPage } from './FilesPage';
 import { TrashPage } from './TrashPage';
 
@@ -199,6 +200,9 @@ export function App() {
       break;
     case 'feed':
       page = <FeedPage />;
+      break;
+    case 'log':
+      page = user.role === 'owner' ? <LogPage /> : <HomePage />;
       break;
     case 'list':
       page = <ListPage key={route.kind} kind={route.kind} />;

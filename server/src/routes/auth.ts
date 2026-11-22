@@ -59,18 +59,17 @@ export function authRoutes(app: FastifyInstance, deps: AppDeps): void {
       reply.header('Server-Timing', `pw;dur=${Math.round(performance.now() - verifyStart)}`);
 
       if (!user || !passwordOk || !user.active) {
-        if (user) {
-          await store.appendLog({
-            at: now,
-            userId: user.id,
-            action: 'auth.login',
-            entity: 'user',
-            entityId: user.id,
-            result: 'denied',
-            details: { reason: user.active ? 'bad-password' : 'inactive' },
-          });
-        }
-        // Неизвестный логин в журнал не пишется: в поле логина иногда вводят пароль.
+        // Неизвестный логин пишется без введённого текста: в поле логина
+        // иногда вводят пароль (ТЗ 9.7, п. 6).
+        await store.appendLog({
+          at: now,
+          userId: user?.id ?? null,
+          action: 'auth.login',
+          entity: 'user',
+          entityId: user?.id ?? null,
+          result: 'denied',
+          details: { reason: user ? (user.active ? 'bad-password' : 'inactive') : 'unknown-login' },
+        });
         throw new ApiError('UNAUTHENTICATED', LOGIN_FAILED_MESSAGE);
       }
 

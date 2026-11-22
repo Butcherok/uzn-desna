@@ -707,3 +707,39 @@ textarea {
   object-fit: cover;
   border-radius: var(--r-sm);
 }
+
+/* ---------------------------------------------------------- журнал дій */
+
+.log-filter {
+  display: grid;
+  gap: 0 var(--s-4);
+  margin: var(--s-4) 0;
+}
+.log-filter .field {
+  margin-bottom: var(--s-3);
+}
+.log-filter__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+  align-items: center;
+}
+@media (min-width: 768px) {
+  .log-filter {
+    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1fr);
+    align-items: end;
+  }
+  .log-filter__actions {
+    grid-column: 1 / -1;
+  }
+}
+.log__result {
+  margin-left: var(--s-2);
+}
+.pager {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s-3);
+  margin: var(--s-5) 0;
+}

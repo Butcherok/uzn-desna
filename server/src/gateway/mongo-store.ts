@@ -10,11 +10,14 @@ import {
   ObjectId,
   type Collection,
   type Db,
+  type Filter,
 } from 'mongodb';
 import {
   DuplicateKeyError,
   StoreUnavailableError,
   type ActionLogEntry,
+  type ActionLogRecord,
+  type LogQuery,
   type ContentKind,
   type ContentMeta,
   type PublishFinish,
@@ -40,7 +43,7 @@ export const ACTION_LOG_TTL_SECONDS = 180 * 24 * 60 * 60;
 
 type UserDoc = Omit<User, 'id'> & { _id: ObjectId };
 type SessionDoc = Omit<Session, 'id' | 'userId'> & { _id: ObjectId; userId: ObjectId };
-type LogDoc = Omit<ActionLogEntry, 'userId'> & { userId: ObjectId | null };
+type LogDoc = Omit<ActionLogEntry, 'userId'> & { _id?: ObjectId; userId: ObjectId | null };
 type ContentDoc = Omit<ContentRecord, 'id'> & { _id: ObjectId };
 /** Служебная запись контента — одна, с постоянным `_id`. */
 type MetaDoc = ContentMeta & { _id: 'content' };
@@ -509,6 +512,40 @@ export class MongoStore implements Store {
         { $set: { publishedAt: snapshotAt, data: null } },
       );
     });
+  }
+
+  listLog(q: LogQuery): Promise<{ items: ActionLogRecord[]; total: number }> {
+    return guard(async () => {
+      const filter: Filter<LogDoc> = {};
+      if (q.userId !== undefined) {
+        if (q.userId === null) filter.userId = null;
+        else {
+          const id = oid(q.userId);
+          if (!id) return { items: [], total: 0 };
+          filter.userId = id;
+        }
+      }
+      if (q.from !== undefined || q.to !== undefined) {
+        filter.at = {
+          ...(q.from !== undefined ? { $gte: q.from } : {}),
+          ...(q.to !== undefined ? { $lt: q.to } : {}),
+        };
+      }
+      const [docs, total] = await Promise.all([
+        this.log.find(filter).sort({ at: -1, _id: -1 }).skip(q.skip).limit(q.limit).toArray(),
+        this.log.countDocuments(filter),
+      ]);
+      const items = docs.map(({ _id, userId, ...rest }) => ({
+        ...rest,
+        id: _id?.toHexString() ?? '',
+        userId: userId?.toHexString() ?? null,
+      }));
+      return { items, total };
+    });
+  }
+
+  listUsers(): Promise<User[]> {
+    return guard(async () => (await this.users.find({}).toArray()).map(toUser));
   }
 
   listModeration(): Promise<ModerationRecord[]> {

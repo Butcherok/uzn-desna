@@ -3,6 +3,7 @@
  */
 import type { Kind, RecordView, User } from '../domain/kinds';
 import type { FeedList } from '../domain/feed';
+import type { LogPage } from '../domain/log';
 import type { PublishRunView, PublishStatus } from '../domain/publish';
 import { ADMIN_CONFIG } from '../config/admin';
 import { request, type ApiResponse, type RequestOptions } from './api';
@@ -137,6 +138,8 @@ export const api = {
         body: { urlKey, hidden },
       }),
     ),
+  log: (query: Record<string, string>, o: Slow = {}) =>
+    data(request<LogPage>('/log', { ...o, query })),
   reorder: (kind: Kind, ids: string[], o: Slow = {}) =>
     data(request<ListResult>(`/${kind}/order`, { ...o, method: 'PATCH', body: { ids } })),
 };

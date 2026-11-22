@@ -237,9 +237,23 @@ describe('login', () => {
       // Заголовок замера есть и у отказа: его наличие не выдаёт, существует ли логин.
       expect(r.headers['server-timing']).toMatch(/^pw;dur=\d+$/);
     }
-    // Попытки на существующие логины в журнале, неизвестные — нет.
+    // Неизвестный логин — в журнале без введённого текста (ТЗ 9.7, п. 6).
     const denied = ctx.store.log.filter((e) => e.result === 'denied');
-    expect(denied.map((e) => e.details['reason']).sort()).toEqual(['bad-password', 'inactive']);
+    expect(denied.map((e) => e.details['reason']).sort()).toEqual([
+      'bad-password',
+      'inactive',
+      'unknown-login',
+      'unknown-login',
+    ]);
+    const unknown = denied.filter((e) => e.details['reason'] === 'unknown-login');
+    for (const e of unknown) {
+      expect(e).toMatchObject({
+        userId: null,
+        entityId: null,
+        details: { reason: 'unknown-login' },
+      });
+      expect(JSON.stringify(e)).not.toMatch(/nobody|Не логін/u);
+    }
   });
 
   it('login is case-insensitive and trimmed', async () => {

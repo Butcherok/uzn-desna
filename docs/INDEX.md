@@ -31,3 +31,4 @@
 | Публикация: кнопка, `/export`               | `server/src/domain/publish.ts`, `publish-content.yml`, решение 041                                 |
 | Загрузка файлов: `/uploads`, `media/`       | `server/src/domain/uploads.ts`, `media-files.ts`, `shared/src/uploads.ts`, решение 042             |
 | Модерация ленты: `/feed`, `moderation.json` | `server/src/domain/feed.ts`, `gateway/feed-source.ts`, `admin/src/pages/FeedPage.tsx`, решение 043 |
+| Журнал действий: `/log`, «Журнал дій»       | `server/src/domain/action-log.ts`, `admin/src/domain/log.ts`, `LogPage.tsx`, решение 044           |

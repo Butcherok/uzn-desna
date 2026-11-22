@@ -46,6 +46,22 @@ export interface ActionLogEntry {
   details: Record<string, string | number | boolean | null>;
 }
 
+/** Запись журнала с идентификатором — для показа владельцу (ТЗ 9.7). */
+export interface ActionLogRecord extends ActionLogEntry {
+  id: string;
+}
+
+/** Выборка журнала: новые первыми; `userId: null` — записи без пользователя. */
+export interface LogQuery {
+  userId?: string | null;
+  /** Включительно. */
+  from?: Date;
+  /** Не включительно. */
+  to?: Date;
+  skip: number;
+  limit: number;
+}
+
 export interface UserPatch {
   passwordHash?: string;
   mustChangePassword?: boolean;
@@ -203,6 +219,10 @@ export interface Store {
   listUserSessions(userId: string, now: Date): Promise<Session[]>;
 
   appendLog(entry: ActionLogEntry): Promise<void>;
+  /** Страница журнала и число записей под фильтром. */
+  listLog(query: LogQuery): Promise<{ items: ActionLogRecord[]; total: number }>;
+  /** Все учётные записи — для фильтра журнала. */
+  listUsers(): Promise<User[]>;
 
   /** Все записи сущности, включая «Кошик»; порядок не гарантируется. */
   listContent(kind: ContentKind): Promise<ContentRecord[]>;

@@ -3,6 +3,8 @@ import {
   DuplicateKeyError,
   StoreUnavailableError,
   type ActionLogEntry,
+  type ActionLogRecord,
+  type LogQuery,
   type ContentKind,
   type ContentMeta,
   type PublishFinish,
@@ -276,6 +278,26 @@ export class MemoryStore implements Store {
     for (const r of this.content.values()) {
       if (r.kind === kind && r.key === key && r.id !== exceptId) throw new DuplicateKeyError();
     }
+  }
+
+  async listLog(q: LogQuery): Promise<{ items: ActionLogRecord[]; total: number }> {
+    this.check();
+    const matched = this.log
+      .map((e, i) => ({ ...e, details: { ...e.details }, id: String(i) }))
+      .filter(
+        (e) =>
+          (q.userId === undefined || e.userId === q.userId) &&
+          (q.from === undefined || e.at.getTime() >= q.from.getTime()) &&
+          (q.to === undefined || e.at.getTime() < q.to.getTime()),
+      )
+      // Новые первыми; при равном времени — позже добавленная.
+      .sort((a, b) => b.at.getTime() - a.at.getTime() || Number(b.id) - Number(a.id));
+    return { items: matched.slice(q.skip, q.skip + q.limit), total: matched.length };
+  }
+
+  async listUsers(): Promise<User[]> {
+    this.check();
+    return [...this.users.values()].map((u) => ({ ...u }));
   }
 
   async listModeration(): Promise<ModerationRecord[]> {
