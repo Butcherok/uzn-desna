@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-11-22T11:02:46.370Z",
+  "generatedAt": "2026-11-22T11:04:23.336Z",
   "source": "admin-export",
   "items": [
     {
@@ -161,16 +161,6 @@
       "externalUrl": "https://prozorro.gov.ua/uk/search/tender?buyer=04589645&sort=publication_date,desc",
       "featured": false,
       "order": 13
-    },
-    {
-      "slug": "perevirka-publikatsii",
-      "title": {
-        "uk": "Перевірка публікації"
-      },
-      "publishedWhere": "own",
-      "filePath": "media/public-docs/perevirka-publikatsii-c93c1669.pdf",
-      "featured": true,
-      "order": 14
     }
   ]
 }
