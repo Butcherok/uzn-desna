@@ -110,11 +110,28 @@ jobs:
             exit 1
           fi
           echo "Deploy: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$id"
-          # Номер из ответа запуска API отдаёт не сразу: `gh run watch` на нём
-          # получал 404 и ронял публикацию при живом `Deploy` (21.11.2026).
-          for i in $(seq 1 12); do
-            gh run view "$id" --repo "$GITHUB_REPOSITORY" --json status > /dev/null 2>&1 && break
-            [ "$i" = 12 ] && { echo "::error title=DEPLOY::прогон Deploy $id не виден за минуту"; exit 1; }
-            sleep 5
+          # Свой опрос вместо `gh run watch`: тот падал от любого сбоя API —
+          # 404, пока прогон ещё не виден (21.11.2026), и 500 посреди
+          # слежения (22.11.2026), хотя `Deploy` проходил. Сбой API — повтор;
+          # подряд 12 сбоев (3 мин) или 25 мин без итога — неудача.
+          fails=0
+          for i in $(seq 1 100); do
+            if out=$(gh run view "$id" --repo "$GITHUB_REPOSITORY" --json status,conclusion \
+                --jq '.status + " " + (.conclusion // "")' 2> /dev/null); then
+              fails=0
+              case "$out" in
+                "completed success") echo "Deploy: успех"; exit 0 ;;
+                completed*) echo "::error title=DEPLOY::Deploy завершился: ${out#completed }"; exit 1 ;;
+              esac
+            else
+              fails=$((fails + 1))
+              echo "Deploy: GitHub не ответил (${fails} подряд)"
+              if [ "$fails" -ge 12 ]; then
+                echo "::error title=DEPLOY::GitHub не отвечает о прогоне $id"
+                exit 1
+              fi
+            fi
+            sleep 15
           done
-          gh run watch "$id" --repo "$GITHUB_REPOSITORY" --exit-status --interval 15 > /dev/null
+          echo "::error title=DEPLOY::Deploy $id без итога за 25 минут"
+          exit 1
