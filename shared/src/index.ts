@@ -81,3 +81,5 @@ export {
 } from './uploads.js';
 export type { UploadEntity, UploadClass, UploadMime } from './uploads.js';
 export { SLUG_MAX, slugify, transliterateUk, uniqueSlug } from './format/translit.js';
+export { moderationItemSchema, moderationFileSchema } from './schemas/moderation.js';
+export type { ModerationItem, ModerationFile } from './schemas/moderation.js';

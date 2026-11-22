@@ -17,6 +17,7 @@ export const EXPORT_FILES = [
   'enterprise.json',
   'feed-rules.json',
   'leaders.json',
+  'moderation.json',
   'public-docs.json',
   'scenarios.json',
   'services.json',

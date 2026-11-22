@@ -129,7 +129,10 @@ describe('GET /export (TZ 8.5)', () => {
   it('returns every data file in the 6.6 envelope, published records only', async () => {
     const ctx = await setup();
     const body = (await ctx.exportAs(EXPORT_TOKEN)).json();
-    expect(Object.keys(body.files).sort()).toEqual(KINDS.map((k) => `${k.kind}.json`).sort());
+    expect(Object.keys(body.files).sort()).toEqual(
+      [...KINDS.map((k) => `${k.kind}.json`), 'moderation.json'].sort(),
+    );
+    expect(body.files['moderation.json'].items).toEqual([]);
     for (const file of Object.values(body.files) as { source: string; schemaVersion: number }[]) {
       expect(file.source).toBe('admin-export');
       expect(file.schemaVersion).toBe(1);

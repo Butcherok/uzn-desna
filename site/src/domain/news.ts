@@ -42,9 +42,17 @@ export interface FeedCard {
  * Карточки по дате публикации, новые первыми. Ошибка источника ленту не
  * очищает: при `unknown` выводятся сохранённые карточки (ТЗ 4.8). Ни одной
  * карточки — блок скрывается целиком, пустого блока с заголовком нет.
+ *
+ * Скрытые в админке карточки (ТЗ 9.5; решение 043) отбрасываются до отбора
+ * последних: их место занимают следующие из сохранённых, блок не худеет.
  */
-export function feedCards(file: FeedFile, limit: number): FeedCard[] {
-  return [...file.items]
+export function feedCards(
+  file: FeedFile,
+  limit: number,
+  hidden: ReadonlySet<string> = new Set(),
+): FeedCard[] {
+  return file.items
+    .filter((item) => !hidden.has(item.urlKey))
     .sort((a, b) => b.publishedAt.localeCompare(a.publishedAt))
     .slice(0, limit)
     .map((item) => {

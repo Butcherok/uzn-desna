@@ -162,6 +162,21 @@ export interface UploadRecord {
 
 export type UploadMeta = Omit<UploadRecord, 'data'>;
 
+/**
+ * Решение по карточке ленты «Новини галузі» (ТЗ 6.3, 6.4, 9.5; решение 043).
+ * Сама карточка в БД не хранится: её пишет синхронизация в ветку `sync-data`.
+ * Возврат не удаляет запись, а снимает `hidden`: так возврат тоже попадает в
+ * счётчик неопубликованных правок.
+ */
+export interface ModerationRecord {
+  /** `FeedItem.urlKey` — естественный ключ записи ленты. */
+  urlKey: string;
+  hidden: boolean;
+  updatedAt: Date;
+  /** Кто принял решение: идентификатор пользователя. */
+  updatedBy: string;
+}
+
 export interface ContentOrderEntry {
   id: string;
   order: number;
@@ -237,6 +252,14 @@ export interface Store {
    * владельцем до выгрузки — исчезают.
    */
   settleUploads(snapshotAt: Date, exported: readonly string[]): Promise<void>;
+
+  /** Все решения модерации ленты, включая снятые. */
+  listModeration(): Promise<ModerationRecord[]>;
+  findModeration(urlKey: string): Promise<ModerationRecord | null>;
+  /** Записывает решение по ключу поверх прежнего. */
+  upsertModeration(record: ModerationRecord): Promise<void>;
+  /** Число решений с `updatedAt` позже `since`; `null` — все. */
+  countModerationChangedSince(since: Date | null): Promise<number>;
 }
 
 export class DuplicateKeyError extends Error {

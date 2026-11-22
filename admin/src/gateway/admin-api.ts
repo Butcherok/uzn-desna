@@ -2,6 +2,7 @@
  * Эндпоинты API, которыми пользуется админка (ТЗ 8.2, 8.3, 8.5).
  */
 import type { Kind, RecordView, User } from '../domain/kinds';
+import type { FeedList } from '../domain/feed';
 import type { PublishRunView, PublishStatus } from '../domain/publish';
 import { ADMIN_CONFIG } from '../config/admin';
 import { request, type ApiResponse, type RequestOptions } from './api';
@@ -125,6 +126,16 @@ export const api = {
         `/uploads/${path.split('/').map(encodeURIComponent).join('/')}`,
         { ...o, method: 'DELETE' },
       ),
+    ),
+  feed: (o: Slow = {}) => data(request<FeedList>('/feed', o)),
+  /** Повтор безопасен: то же решение ещё раз ничего не меняет (решение 043). */
+  setFeedHidden: (urlKey: string, hidden: boolean, o: Slow = {}) =>
+    data(
+      request<{ hidden: boolean; changed: boolean; pendingChanges: number }>('/feed/hidden', {
+        ...o,
+        method: 'POST',
+        body: { urlKey, hidden },
+      }),
     ),
   reorder: (kind: Kind, ids: string[], o: Slow = {}) =>
     data(request<ListResult>(`/${kind}/order`, { ...o, method: 'PATCH', body: { ids } })),

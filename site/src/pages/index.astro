@@ -15,7 +15,7 @@ import { getImage } from 'astro:assets';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import PhoneLink from '../components/PhoneLink.astro';
 import FeedCards from '../components/FeedCards.astro';
-import { contacts, enterprise, feed } from '../gateway/data';
+import { contacts, enterprise, feed, hiddenFeedKeys } from '../gateway/data';
 import { FEED_ITEMS_ON_HOME, feedCards } from '../domain/news';
 import { ASIDES, BANNER } from '../gateway/media';
 import { contactBySlug } from '../domain/contacts';
@@ -73,7 +73,7 @@ const BLANK = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'/%3E"
 
 const office = contactBySlug(contacts, 'pryimalnia');
 
-const news = feedCards(feed, FEED_ITEMS_ON_HOME);
+const news = feedCards(feed, FEED_ITEMS_ON_HOME, hiddenFeedKeys);
 
 /**
  * Карточки разделов (ТЗ 4.1). Пять карточек — в сетке на три колонки:
