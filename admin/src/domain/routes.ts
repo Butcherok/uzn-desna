@@ -12,6 +12,7 @@ export type Route =
   | { page: 'trash' }
   | { page: 'files' }
   | { page: 'feed' }
+  | { page: 'log' }
   | { page: 'list'; kind: Kind }
   | { page: 'edit'; kind: Kind; id: string | null }
   | { page: 'new'; kind: Kind }
@@ -36,7 +37,8 @@ export function parseRoute(pathname: string): Route {
       first === 'help' ||
       first === 'trash' ||
       first === 'files' ||
-      first === 'feed'
+      first === 'feed' ||
+      first === 'log'
     ) {
       return { page: first };
     }
@@ -64,6 +66,7 @@ export function pathOf(route: Route): string {
     case 'trash':
     case 'files':
     case 'feed':
+    case 'log':
       return `${BASE}/${route.page}`;
     case 'list':
       return `${BASE}/${route.kind}`;

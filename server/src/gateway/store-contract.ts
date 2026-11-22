@@ -305,5 +305,51 @@ export function storeContract(name: string, make: () => Promise<Store>): void {
       expect(await store.countModerationChangedSince(t0)).toBe(1);
       expect(await store.countModerationChangedSince(t1)).toBe(0);
     });
+
+    it('pages the action log newest first, filters by user and dates', async () => {
+      const a = await store.createUser(newUser('log-a'));
+      const b = await store.createUser(newUser('log-b'));
+      const at = (h: number) => new Date(Date.UTC(2026, 10, 22, h));
+      const entry = (h: number, userId: string | null, action: string) => ({
+        at: at(h),
+        userId,
+        action,
+        entity: null,
+        entityId: null,
+        result: 'ok' as const,
+        details: { n: h },
+      });
+      await store.appendLog(entry(1, a.id, 'x.one'));
+      await store.appendLog(entry(2, b.id, 'x.two'));
+      await store.appendLog(entry(3, null, 'x.three'));
+      await store.appendLog(entry(4, a.id, 'x.four'));
+      await store.appendLog(entry(4, a.id, 'x.four-later'));
+
+      const all = await store.listLog({ skip: 0, limit: 10 });
+      expect(all.total).toBe(5);
+      expect(all.items.map((i) => i.action)).toEqual([
+        'x.four-later',
+        'x.four',
+        'x.three',
+        'x.two',
+        'x.one',
+      ]);
+      expect(new Set(all.items.map((i) => i.id)).size).toBe(5);
+      expect(all.items[0]).toMatchObject({ userId: a.id, details: { n: 4 } });
+
+      const page2 = await store.listLog({ skip: 2, limit: 2 });
+      expect(page2).toMatchObject({ total: 5 });
+      expect(page2.items.map((i) => i.action)).toEqual(['x.three', 'x.two']);
+
+      expect((await store.listLog({ userId: a.id, skip: 0, limit: 10 })).total).toBe(3);
+      const none = await store.listLog({ userId: null, skip: 0, limit: 10 });
+      expect(none.items.map((i) => i.action)).toEqual(['x.three']);
+      expect((await store.listLog({ userId: 'nonsense', skip: 0, limit: 10 })).total).toBe(0);
+      const range = await store.listLog({ from: at(2), to: at(4), skip: 0, limit: 10 });
+      expect(range.items.map((i) => i.action)).toEqual(['x.three', 'x.two']);
+
+      const users = await store.listUsers();
+      expect(users.map((u) => u.login).sort()).toEqual(expect.arrayContaining(['log-a', 'log-b']));
+    });
   });
 }
