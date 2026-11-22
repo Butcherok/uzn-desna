@@ -65,3 +65,21 @@ export type {
   FeedRuleSource,
   FeedSourceId,
 } from './schemas/feed.js';
+export {
+  UPLOAD_TARGETS,
+  UPLOAD_ENTITIES,
+  UPLOAD_TYPES,
+  UPLOAD_PATH_RE,
+  IMAGE_MAX_BYTES,
+  DOCUMENT_MAX_BYTES,
+  ACCEPT_HINT,
+  ACCEPT_ATTR,
+  maxBytesOf,
+  provisionalSlug,
+  tooLargeMessage,
+  wrongTypeMessage,
+} from './uploads.js';
+export type { UploadEntity, UploadClass, UploadMime } from './uploads.js';
+export { SLUG_MAX, slugify, transliterateUk, uniqueSlug } from './format/translit.js';
+export { moderationItemSchema, moderationFileSchema } from './schemas/moderation.js';
+export type { ModerationItem, ModerationFile } from './schemas/moderation.js';

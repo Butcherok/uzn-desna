@@ -1,0 +1,107 @@
+name: Backup
+
+# Резервная копия БД (ТЗ 9.6; решение 045). `mongodump` базы `uzn` без
+# сессий пользователем Atlas только на чтение, сразу трубой в `age` на двух
+# получателей — ключ владельца и одноразовый ключ прогона, — проверка: копия
+# расшифровывается одноразовым ключом, поднимается в чистой MongoDB на
+# раннере и сверяется по числу документов. Нешифрованный дамп не покидает
+# раннер и удаляется в конце прогона. Артефакт — только зашифрованный файл.
+on:
+  workflow_dispatch:
+  # 1-е число, 00:43 UTC — 02:43 по Киеву зимой, 03:43 летом; не на круглую
+  # минуту и раньше публикации по расписанию (06:37).
+  schedule:
+    - cron: '43 0 1 * *'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: backup
+  cancel-in-progress: false
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      mongo:
+        image: mongo:8
+        ports:
+          - 27017:27017
+    steps:
+      # Контекст `runner` на уровне задачи недоступен: каталог задаётся шагом.
+      - name: Set work dir
+        run: echo "WORK=$RUNNER_TEMP/backup" >> "$GITHUB_ENV"
+
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install age
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq age
+          age --version
+
+      # Дамп сразу идёт в `age` через трубу: нешифрованный дамп на диск
+      # раннера не пишется вовсе.
+      - name: Dump and encrypt
+        id: enc
+        env:
+          BACKUP_MONGODB_URI: ${{ secrets.BACKUP_MONGODB_URI }}
+        run: |
+          set -euo pipefail
+          if [ -z "${BACKUP_MONGODB_URI}" ]; then
+            echo "::error title=BACKUP_NOT_CONFIGURED::нет секрета BACKUP_MONGODB_URI (docs/runbook-restore.md)"
+            exit 1
+          fi
+          umask 077
+          mkdir -p "$WORK/out"
+          age-keygen -o "$WORK/run.key" 2> /dev/null
+          RUN_RECIPIENT="$(age-keygen -y "$WORK/run.key")"
+          name="uzn-backup-$(date -u +%Y-%m-%d)-run${GITHUB_RUN_ID}.archive.gz.age"
+          # Утилиты MongoDB — из того же образа, что и служебная БД: ставить нечего.
+          docker run --rm --network host -e URI="$BACKUP_MONGODB_URI" mongo:8 \
+            sh -c 'mongodump --uri="$URI" --db=uzn --excludeCollection=sessions --gzip --archive' \
+            2> "$WORK/dump.log" \
+            | age -R .github/backup-recipients.txt -r "$RUN_RECIPIENT" -o "$WORK/out/$name" \
+            || { cat "$WORK/dump.log"; exit 1; }
+          grep 'done dumping' "$WORK/dump.log"
+          echo "name=$name" >> "$GITHUB_OUTPUT"
+          echo "bytes=$(stat -c %s "$WORK/out/$name")" >> "$GITHUB_OUTPUT"
+
+      # Проверяется именно зашифрованный файл: из него поднимается рабочая БД.
+      - name: Verify restore
+        run: |
+          set -euo pipefail
+          age -d -i "$WORK/run.key" "$WORK/out/${{ steps.enc.outputs.name }}" \
+            | docker run --rm -i --network host mongo:8 \
+              mongorestore --uri=mongodb://localhost:27017 --gzip --archive \
+              2> "$WORK/restore.log" || { cat "$WORK/restore.log"; exit 1; }
+          rm -f "$WORK/run.key"
+          tail -n 1 "$WORK/restore.log"
+          docker run --rm --network host mongo:8 mongosh --quiet mongodb://localhost:27017/uzn --eval \
+            'const o = {}; for (const c of db.getCollectionNames()) o[c] = db.getCollection(c).countDocuments({}); print(JSON.stringify(o))' \
+            > "$WORK/restored.json"
+          npx tsx scripts/bin/backup-verify.ts "$WORK/dump.log" "$WORK/restored.json" \
+            "${{ steps.enc.outputs.name }}" "${{ steps.enc.outputs.bytes }}"
+
+      - uses: actions/upload-artifact@v5
+        with:
+          name: ${{ steps.enc.outputs.name }}
+          path: ${{ env.WORK }}/out/${{ steps.enc.outputs.name }}
+          # Максимум для публичного репозитория (ТЗ 9.6, п. 4).
+          retention-days: 90
+          compression-level: 0
+          if-no-files-found: error
+
+      - name: Clean up
+        if: always()
+        run: sudo rm -rf "$WORK"

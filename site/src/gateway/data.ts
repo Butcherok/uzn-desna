@@ -10,6 +10,7 @@ import {
   enterpriseFileSchema,
   feedFileSchema,
   leadersFileSchema,
+  moderationFileSchema,
   publicDocsFileSchema,
   scenariosFileSchema,
   servicesFileSchema,
@@ -34,6 +35,7 @@ import type {
 import contactsRaw from '../../../data/contacts.json';
 import enterpriseRaw from '../../../data/enterprise.json';
 import leadersRaw from '../../../data/leaders.json';
+import moderationRaw from '../../../data/moderation.json';
 import publicDocsRaw from '../../../data/public-docs.json';
 import scenariosRaw from '../../../data/scenarios.json';
 import servicesRaw from '../../../data/services.json';
@@ -58,6 +60,7 @@ function parseFile<T>(name: string, schema: { parse: (input: unknown) => T }, ra
 const contactsFile = parseFile('contacts.json', contactsFileSchema, contactsRaw);
 const enterpriseFile = parseFile('enterprise.json', enterpriseFileSchema, enterpriseRaw);
 const leadersFile = parseFile('leaders.json', leadersFileSchema, leadersRaw);
+const moderationFile = parseFile('moderation.json', moderationFileSchema, moderationRaw);
 const publicDocsFile = parseFile('public-docs.json', publicDocsFileSchema, publicDocsRaw);
 const scenariosFile = parseFile('scenarios.json', scenariosFileSchema, scenariosRaw);
 const servicesFile = parseFile('services.json', servicesFileSchema, servicesRaw);
@@ -70,6 +73,7 @@ for (const [name, file] of [
   ['contacts.json', contactsFile],
   ['enterprise.json', enterpriseFile],
   ['leaders.json', leadersFile],
+  ['moderation.json', moderationFile],
   ['public-docs.json', publicDocsFile],
   ['scenarios.json', scenariosFile],
   ['services.json', servicesFile],
@@ -92,6 +96,13 @@ export const leaders: readonly Leader[] = leadersFile.items;
 export const services: readonly Service[] = servicesFile.items;
 export const tenders: TendersFile = tendersFile;
 export const feed: FeedFile = feedFile;
+/**
+ * Ключи карточек ленты, скрытых в админке (ТЗ 9.5; решение 043). Файл
+ * приходит из `content-data` вместе с остальной выгрузкой.
+ */
+export const hiddenFeedKeys: ReadonlySet<string> = new Set(
+  moderationFile.items.map((i) => i.urlKey),
+);
 export const vacancies: readonly Vacancy[] = vacanciesFile.items;
 
 /** `Enterprise` — синглтон (ТЗ 6.2): количество записей проверено схемой файла. */

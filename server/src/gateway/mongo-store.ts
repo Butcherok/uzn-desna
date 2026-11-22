@@ -6,24 +6,33 @@ import {
   MongoServerError,
   MongoServerSelectionError,
   MongoTopologyClosedError,
+  Binary,
   ObjectId,
   type Collection,
   type Db,
+  type Filter,
 } from 'mongodb';
 import {
   DuplicateKeyError,
   StoreUnavailableError,
   type ActionLogEntry,
+  type ActionLogRecord,
+  type LogQuery,
   type ContentKind,
   type ContentMeta,
+  type PublishFinish,
+  type PublishRun,
   type ContentOrderEntry,
   type ContentRecord,
+  type ModerationRecord,
   type NewContentRecord,
   type NewSession,
   type NewUser,
   type Session,
   type Store,
   type User,
+  type UploadMeta,
+  type UploadRecord,
   type UserPatch,
 } from '../domain/model.js';
 
@@ -34,12 +43,26 @@ export const ACTION_LOG_TTL_SECONDS = 180 * 24 * 60 * 60;
 
 type UserDoc = Omit<User, 'id'> & { _id: ObjectId };
 type SessionDoc = Omit<Session, 'id' | 'userId'> & { _id: ObjectId; userId: ObjectId };
-type LogDoc = Omit<ActionLogEntry, 'userId'> & { userId: ObjectId | null };
+type LogDoc = Omit<ActionLogEntry, 'userId'> & { _id?: ObjectId; userId: ObjectId | null };
 type ContentDoc = Omit<ContentRecord, 'id'> & { _id: ObjectId };
 /** Служебная запись контента — одна, с постоянным `_id`. */
 type MetaDoc = ContentMeta & { _id: 'content' };
 
 const META_ID = 'content' as const;
+
+/** Файл: `_id` — путь (ТЗ 8.4, п. 5). Содержимое — `Binary`, до публикации. */
+type UploadDoc = Omit<UploadRecord, 'path' | 'data'> & { _id: string; data: Binary | null };
+
+/** Решение модерации ленты: `_id` — ключ записи ленты (решение 043). */
+type ModerationDoc = Omit<ModerationRecord, 'urlKey'> & { _id: string };
+
+const UPLOAD_META_PROJECTION = { data: 0 } as const;
+
+function toUploadMeta(d: Omit<UploadDoc, 'data'> & { data?: unknown }): UploadMeta {
+  const { _id, ...rest } = d;
+  delete rest.data;
+  return { ...rest, path: _id };
+}
 
 function toUser(d: UserDoc): User {
   const { _id, ...rest } = d;
@@ -110,6 +133,8 @@ export class MongoStore implements Store {
   private readonly log: Collection<LogDoc>;
   private readonly content: Collection<ContentDoc>;
   private readonly meta: Collection<MetaDoc>;
+  private readonly uploads: Collection<UploadDoc>;
+  private readonly moderation: Collection<ModerationDoc>;
 
   constructor(opts: MongoStoreOptions) {
     this.client = new MongoClient(opts.uri, {
@@ -124,6 +149,8 @@ export class MongoStore implements Store {
     this.log = this.db.collection<LogDoc>('action_log');
     this.content = this.db.collection<ContentDoc>('content');
     this.meta = this.db.collection<MetaDoc>('content_meta');
+    this.uploads = this.db.collection<UploadDoc>('uploads');
+    this.moderation = this.db.collection<ModerationDoc>('moderation');
   }
 
   /** Индексы создаются при каждом запуске: повторное создание того же индекса ничего не меняет. */
@@ -146,6 +173,7 @@ export class MongoStore implements Store {
       // Ключ уникален в пределах сущности, включая «Кошик» (решение 038).
       await this.content.createIndex({ kind: 1, key: 1 }, { unique: true, name: 'kind_key' });
       await this.content.createIndex({ updatedAt: 1 }, { name: 'content_updated' });
+      await this.moderation.createIndex({ updatedAt: 1 }, { name: 'moderation_updated' });
     });
   }
 
@@ -344,6 +372,7 @@ export class MongoStore implements Store {
         seededAt: d?.seededAt ?? null,
         lastPublishedAt: d?.lastPublishedAt ?? null,
         purgedPending: d?.purgedPending ?? 0,
+        lastRun: d?.lastRun ?? null,
       };
     });
   }
@@ -359,7 +388,7 @@ export class MongoStore implements Store {
           { _id: META_ID, seededAt: null },
           {
             $set: { seededAt: at, lastPublishedAt: at },
-            $setOnInsert: { purgedPending: 0 },
+            $setOnInsert: { purgedPending: 0, lastRun: null },
           },
           { upsert: true },
         );
@@ -378,10 +407,176 @@ export class MongoStore implements Store {
         { _id: META_ID },
         {
           $inc: { purgedPending: 1 },
-          $setOnInsert: { seededAt: null, lastPublishedAt: null },
+          $setOnInsert: { seededAt: null, lastPublishedAt: null, lastRun: null },
         },
         { upsert: true },
       );
     });
+  }
+
+  setPublishRun(run: PublishRun): Promise<void> {
+    return guard(async () => {
+      await this.meta.updateOne(
+        { _id: META_ID },
+        {
+          $set: { lastRun: run },
+          $setOnInsert: { seededAt: null, lastPublishedAt: null, purgedPending: 0 },
+        },
+        { upsert: true },
+      );
+    });
+  }
+
+  patchPublishRun(runId: number, patch: Partial<Omit<PublishRun, 'runId'>>): Promise<boolean> {
+    return guard(async () => {
+      const set = Object.fromEntries(Object.entries(patch).map(([k, v]) => [`lastRun.${k}`, v]));
+      if (Object.keys(set).length === 0) {
+        return (await this.meta.countDocuments({ _id: META_ID, 'lastRun.runId': runId })) === 1;
+      }
+      const r = await this.meta.updateOne({ _id: META_ID, 'lastRun.runId': runId }, { $set: set });
+      return r.matchedCount === 1;
+    });
+  }
+
+  /**
+   * Одно условное обновление: два одновременных опроса состояния не
+   * завершат прогон дважды и не вычтут удалённые записи два раза.
+   */
+  finishPublishRun(runId: number, finish: PublishFinish): Promise<boolean> {
+    return guard(async () => {
+      const r = await this.meta.updateOne(
+        { _id: META_ID, 'lastRun.runId': runId, 'lastRun.result': 'in_progress' },
+        {
+          $set: {
+            'lastRun.result': finish.result,
+            'lastRun.finishedAt': finish.finishedAt,
+            ...(finish.publishedAt ? { lastPublishedAt: finish.publishedAt } : {}),
+          },
+          $inc: { purgedPending: -finish.purgedDelta },
+        },
+      );
+      return r.modifiedCount === 1;
+    });
+  }
+
+  insertUpload(upload: UploadRecord): Promise<void> {
+    const { path, data, ...rest } = upload;
+    return guard(async () => {
+      await this.uploads.insertOne({
+        _id: path,
+        ...rest,
+        data: data ? new Binary(data) : null,
+      });
+    });
+  }
+
+  listUploads(): Promise<UploadMeta[]> {
+    return guard(async () =>
+      (await this.uploads.find({}, { projection: UPLOAD_META_PROJECTION }).toArray()).map(
+        toUploadMeta,
+      ),
+    );
+  }
+
+  findUpload(path: string): Promise<UploadMeta | null> {
+    return guard(async () => {
+      const d = await this.uploads.findOne({ _id: path }, { projection: UPLOAD_META_PROJECTION });
+      return d ? toUploadMeta(d) : null;
+    });
+  }
+
+  readUploadData(path: string): Promise<Buffer | null> {
+    return guard(async () => {
+      const d = await this.uploads.findOne({ _id: path }, { projection: { data: 1 } });
+      return d?.data ? Buffer.from(d.data.buffer) : null;
+    });
+  }
+
+  setUploadDeleteRequested(path: string, at: Date | null): Promise<boolean> {
+    return guard(
+      async () =>
+        (await this.uploads.updateOne({ _id: path }, { $set: { deleteRequestedAt: at } }))
+          .matchedCount === 1,
+    );
+  }
+
+  deleteUpload(path: string): Promise<boolean> {
+    return guard(async () => (await this.uploads.deleteOne({ _id: path })).deletedCount === 1);
+  }
+
+  settleUploads(snapshotAt: Date, exported: readonly string[]): Promise<void> {
+    return guard(async () => {
+      await this.uploads.deleteMany({ deleteRequestedAt: { $ne: null, $lte: snapshotAt } });
+      await this.uploads.updateMany(
+        { _id: { $in: [...exported] }, publishedAt: null },
+        { $set: { publishedAt: snapshotAt, data: null } },
+      );
+    });
+  }
+
+  listLog(q: LogQuery): Promise<{ items: ActionLogRecord[]; total: number }> {
+    return guard(async () => {
+      const filter: Filter<LogDoc> = {};
+      if (q.userId !== undefined) {
+        if (q.userId === null) filter.userId = null;
+        else {
+          const id = oid(q.userId);
+          if (!id) return { items: [], total: 0 };
+          filter.userId = id;
+        }
+      }
+      if (q.action !== undefined) filter.action = q.action;
+      if (q.from !== undefined || q.to !== undefined) {
+        filter.at = {
+          ...(q.from !== undefined ? { $gte: q.from } : {}),
+          ...(q.to !== undefined ? { $lt: q.to } : {}),
+        };
+      }
+      const [docs, total] = await Promise.all([
+        this.log.find(filter).sort({ at: -1, _id: -1 }).skip(q.skip).limit(q.limit).toArray(),
+        this.log.countDocuments(filter),
+      ]);
+      const items = docs.map(({ _id, userId, ...rest }) => ({
+        ...rest,
+        id: _id?.toHexString() ?? '',
+        userId: userId?.toHexString() ?? null,
+      }));
+      return { items, total };
+    });
+  }
+
+  listUsers(): Promise<User[]> {
+    return guard(async () => (await this.users.find({}).toArray()).map(toUser));
+  }
+
+  listModeration(): Promise<ModerationRecord[]> {
+    return guard(async () =>
+      (await this.moderation.find({}).toArray()).map(({ _id, ...rest }) => ({
+        ...rest,
+        urlKey: _id,
+      })),
+    );
+  }
+
+  findModeration(urlKey: string): Promise<ModerationRecord | null> {
+    return guard(async () => {
+      const d = await this.moderation.findOne({ _id: urlKey });
+      if (!d) return null;
+      const { _id, ...rest } = d;
+      return { ...rest, urlKey: _id };
+    });
+  }
+
+  upsertModeration(record: ModerationRecord): Promise<void> {
+    return guard(async () => {
+      const { urlKey, ...fields } = record;
+      await this.moderation.replaceOne({ _id: urlKey }, fields, { upsert: true });
+    });
+  }
+
+  countModerationChangedSince(since: Date | null): Promise<number> {
+    return guard(() =>
+      this.moderation.countDocuments(since === null ? {} : { updatedAt: { $gt: since } }),
+    );
   }
 }

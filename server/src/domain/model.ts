@@ -46,6 +46,24 @@ export interface ActionLogEntry {
   details: Record<string, string | number | boolean | null>;
 }
 
+/** Запись журнала с идентификатором — для показа владельцу (ТЗ 9.7). */
+export interface ActionLogRecord extends ActionLogEntry {
+  id: string;
+}
+
+/** Выборка журнала: новые первыми; `userId: null` — записи без пользователя. */
+export interface LogQuery {
+  userId?: string | null;
+  /** Только это действие. */
+  action?: string;
+  /** Включительно. */
+  from?: Date;
+  /** Не включительно. */
+  to?: Date;
+  skip: number;
+  limit: number;
+}
+
 export interface UserPatch {
   passwordHash?: string;
   mustChangePassword?: boolean;
@@ -96,6 +114,85 @@ export interface ContentMeta {
   lastPublishedAt: Date | null;
   /** Окончательно удалённые записи, чьё удаление ещё не опубликовано. */
   purgedPending: number;
+  /** Последний прогон публикации (ТЗ 8.5; решение 041). */
+  lastRun: PublishRun | null;
+}
+
+export type PublishResult = 'in_progress' | 'success' | 'failure';
+
+/** Прогон рабочего процесса `publish-content` (ТЗ 8.5; решение 041). */
+export interface PublishRun {
+  /** Номер прогона GitHub Actions. */
+  runId: number;
+  runUrl: string;
+  startedAt: Date;
+  /** Имя того, кто нажал кнопку; `null` — запуск по расписанию. */
+  startedBy: string | null;
+  result: PublishResult;
+  finishedAt: Date | null;
+  /**
+   * Время выгрузки `GET /export`: правки до него уходят в эту публикацию.
+   * `null` — выгрузки ещё не было.
+   */
+  snapshotAt: Date | null;
+  /** Счётчик окончательно удалённых на момент выгрузки. */
+  purgedAtSnapshot: number;
+  /** Неопубликованные файлы, ушедшие в эту выгрузку (решение 042). */
+  uploadPaths?: string[];
+}
+
+/** Итог прогона: применяется, только если прогон всё ещё `in_progress`. */
+export interface PublishFinish {
+  result: 'success' | 'failure';
+  finishedAt: Date;
+  /** Успех с выгрузкой: новое время последней публикации. */
+  publishedAt: Date | null;
+  /** На сколько уменьшить счётчик окончательно удалённых. */
+  purgedDelta: number;
+}
+
+/**
+ * Загруженный файл (ТЗ 8.4; решение 042). Содержимое лежит в БД, только пока
+ * файл не опубликован: успешная публикация переносит его в ветку
+ * `content-data`, и `data` становится `null`.
+ */
+export interface UploadRecord {
+  /** `media/{entity}/{slug}-{hash}.{ext}` — уникален. */
+  path: string;
+  entity: string;
+  slug: string;
+  mime: string;
+  bytes: number;
+  width: number | null;
+  height: number | null;
+  /** SHA-256 содержимого, шестнадцатеричный: по нему выгрузка сверяет файл. */
+  sha256: string;
+  alt: string | null;
+  uploadedAt: Date;
+  uploadedBy: string;
+  /** Время выгрузки, с которой файл ушёл на сайт; `null` — ещё не опубликован. */
+  publishedAt: Date | null;
+  /** Владелец удалил опубликованный файл: уйдёт из ветки со следующей публикацией. */
+  deleteRequestedAt: Date | null;
+  /** Содержимое до публикации; после — `null`. */
+  data: Buffer | null;
+}
+
+export type UploadMeta = Omit<UploadRecord, 'data'>;
+
+/**
+ * Решение по карточке ленты «Новини галузі» (ТЗ 6.3, 6.4, 9.5; решение 043).
+ * Сама карточка в БД не хранится: её пишет синхронизация в ветку `sync-data`.
+ * Возврат не удаляет запись, а снимает `hidden`: так возврат тоже попадает в
+ * счётчик неопубликованных правок.
+ */
+export interface ModerationRecord {
+  /** `FeedItem.urlKey` — естественный ключ записи ленты. */
+  urlKey: string;
+  hidden: boolean;
+  updatedAt: Date;
+  /** Кто принял решение: идентификатор пользователя. */
+  updatedBy: string;
 }
 
 export interface ContentOrderEntry {
@@ -124,6 +221,10 @@ export interface Store {
   listUserSessions(userId: string, now: Date): Promise<Session[]>;
 
   appendLog(entry: ActionLogEntry): Promise<void>;
+  /** Страница журнала и число записей под фильтром. */
+  listLog(query: LogQuery): Promise<{ items: ActionLogRecord[]; total: number }>;
+  /** Все учётные записи — для фильтра журнала. */
+  listUsers(): Promise<User[]>;
 
   /** Все записи сущности, включая «Кошик»; порядок не гарантируется. */
   listContent(kind: ContentKind): Promise<ContentRecord[]>;
@@ -146,6 +247,41 @@ export interface Store {
   /** Отмечает загрузку начальных данных. `false` — отметка уже стояла. */
   markContentSeeded(at: Date): Promise<boolean>;
   incrementPurgedPending(): Promise<void>;
+  /** Записывает новый прогон публикации поверх прежнего. */
+  setPublishRun(run: PublishRun): Promise<void>;
+  /** Меняет поля прогона `runId`. `false` — последний прогон другой. */
+  patchPublishRun(runId: number, patch: Partial<Omit<PublishRun, 'runId'>>): Promise<boolean>;
+  /**
+   * Завершает прогон `runId`, если он ещё `in_progress`, и при успехе
+   * сдвигает время последней публикации. `false` — уже завершён или другой.
+   */
+  finishPublishRun(runId: number, finish: PublishFinish): Promise<boolean>;
+
+  /** Бросает `DuplicateKeyError`, если путь занят. */
+  insertUpload(upload: UploadRecord): Promise<void>;
+  /** Все файлы без содержимого. */
+  listUploads(): Promise<UploadMeta[]>;
+  findUpload(path: string): Promise<UploadMeta | null>;
+  /** Содержимое неопубликованного файла; `null` — нет файла или уже опубликован. */
+  readUploadData(path: string): Promise<Buffer | null>;
+  /** Ставит или снимает отметку удаления. `false` — файла нет. */
+  setUploadDeleteRequested(path: string, at: Date | null): Promise<boolean>;
+  /** Физическое удаление записи. `false` — файла не было. */
+  deleteUpload(path: string): Promise<boolean>;
+  /**
+   * Итог успешной публикации с выгрузкой `snapshotAt`: файлы `exported`
+   * становятся опубликованными (содержимое из БД убирается), а удалённые
+   * владельцем до выгрузки — исчезают.
+   */
+  settleUploads(snapshotAt: Date, exported: readonly string[]): Promise<void>;
+
+  /** Все решения модерации ленты, включая снятые. */
+  listModeration(): Promise<ModerationRecord[]>;
+  findModeration(urlKey: string): Promise<ModerationRecord | null>;
+  /** Записывает решение по ключу поверх прежнего. */
+  upsertModeration(record: ModerationRecord): Promise<void>;
+  /** Число решений с `updatedAt` позже `since`; `null` — все. */
+  countModerationChangedSince(since: Date | null): Promise<number>;
 }
 
 export class DuplicateKeyError extends Error {

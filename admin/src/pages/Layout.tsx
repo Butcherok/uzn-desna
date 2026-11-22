@@ -4,7 +4,6 @@
  * колонка слева. Заголовок страницы получает фокус после перехода.
  */
 import { useEffect, useRef, useState, type ReactNode } from 'react';
-import { PublishBar } from '../components/PublishBar';
 import { sectionsFor } from '../domain/kinds';
 import type { Route } from '../domain/routes';
 import { api } from '../gateway/admin-api';
@@ -15,15 +14,14 @@ interface Props {
   route: Route;
   wake: ReactNode;
   notice: Notice | null;
-  pending: number | null;
-  lastPublishedAt: string | null;
+  publishBar: ReactNode;
   children: ReactNode;
 }
 
 const isCurrent = (route: Route, kind: string) =>
   (route.page === 'list' || route.page === 'edit' || route.page === 'new') && route.kind === kind;
 
-export function Layout({ route, wake, notice, pending, lastPublishedAt, children }: Props) {
+export function Layout({ route, wake, notice, publishBar, children }: Props) {
   const { user } = useAdmin();
   const [menuOpen, setMenuOpen] = useState(false);
   const mainRef = useRef<HTMLElement>(null);
@@ -82,6 +80,8 @@ export function Layout({ route, wake, notice, pending, lastPublishedAt, children
           {content.map((s) =>
             item({ page: 'list', kind: s.kind }, s.label, isCurrent(route, s.kind)),
           )}
+          {item({ page: 'feed' }, 'Новини галузі', route.page === 'feed')}
+          {item({ page: 'files' }, 'Файли', route.page === 'files')}
           {item({ page: 'trash' }, 'Кошик', route.page === 'trash')}
         </ul>
         {service.length > 0 && (
@@ -91,6 +91,9 @@ export function Layout({ route, wake, notice, pending, lastPublishedAt, children
               {service.map((s) =>
                 item({ page: 'list', kind: s.kind }, s.label, isCurrent(route, s.kind)),
               )}
+              {user.role === 'owner' && item({ page: 'log' }, 'Журнал дій', route.page === 'log')}
+              {user.role === 'owner' &&
+                item({ page: 'backup' }, 'Резервні копії', route.page === 'backup')}
             </ul>
           </>
         )}
@@ -127,7 +130,7 @@ export function Layout({ route, wake, notice, pending, lastPublishedAt, children
         {children}
       </main>
 
-      <PublishBar pending={pending} lastPublishedAt={lastPublishedAt} />
+      {publishBar}
     </div>
   );
 }

@@ -1,5 +1,6 @@
 import cookie from '@fastify/cookie';
 import cors from '@fastify/cors';
+import multipart from '@fastify/multipart';
 import rateLimit from '@fastify/rate-limit';
 import Fastify, {
   type FastifyError,
@@ -12,7 +13,12 @@ import { hashSessionToken } from './domain/sessions.js';
 import { ADMIN_CSP, adminRoutes, isAdminPath } from './routes/admin.js';
 import { authRoutes } from './routes/auth.js';
 import { contentRoutes } from './routes/content.js';
+import { feedRoutes } from './routes/feed.js';
+import { actionLogRoutes } from './routes/action-log.js';
+import { backupRoutes } from './routes/backup.js';
+import { DOCUMENT_MAX_BYTES } from '@uzn/shared';
 import { publishRoutes } from './routes/publish.js';
+import { UPLOAD_FIELD_MAX, uploadRoutes } from './routes/uploads.js';
 import type { AppDeps } from './routes/http.js';
 
 export const API_PREFIX = '/api/v1';
@@ -71,6 +77,13 @@ export async function buildApp(deps: AppDeps, opts: BuildOptions = {}): Promise<
           : `Занадто багато спроб. Спробуйте за ${minutes} хв`,
       );
     },
+  });
+
+  // Файлы (ТЗ 8.4). Предел потока — самый большой допустимый файл; файл
+  // сверх него обрезается и отмечается `truncated`, отказ формулирует домен.
+  await app.register(multipart, {
+    throwFileSizeLimit: false,
+    limits: { fileSize: DOCUMENT_MAX_BYTES, files: 1, fields: 5, fieldSize: UPLOAD_FIELD_MAX },
   });
 
   // Защита от подделки запросов (ТЗ 8.2, п. 2): изменяющий запрос без нашего
@@ -152,6 +165,10 @@ export async function buildApp(deps: AppDeps, opts: BuildOptions = {}): Promise<
       authRoutes(api, deps);
       contentRoutes(api, deps);
       publishRoutes(api, deps);
+      uploadRoutes(api, deps);
+      feedRoutes(api, deps);
+      actionLogRoutes(api, deps);
+      backupRoutes(api, deps);
     },
     { prefix: API_PREFIX },
   );

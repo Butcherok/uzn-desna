@@ -26,7 +26,19 @@ export interface ErrorBody {
     code: ErrorCode;
     message: string;
     fields?: Record<string, string>;
+    /** Записи, из-за которых публикация не запущена (ТЗ 8.5, п. 2). */
+    problems?: PublishProblem[];
   };
+}
+
+export interface PublishProblem {
+  kind: string;
+  /** Раздел админки, как в меню (ТЗ 9.3). */
+  label: string;
+  /** `null` — записи нет совсем (синглтон не заполнен). */
+  id: string | null;
+  title: string;
+  message: string;
 }
 
 /** Текст по умолчанию для каждого кода. Конкретный текст можно передать явно. */
@@ -64,17 +76,23 @@ export class ApiError extends Error {
   readonly code: ErrorCode;
   readonly status: number;
   readonly fields: Record<string, string> | undefined;
+  readonly problems: PublishProblem[] | undefined;
 
   constructor(
     code: ErrorCode,
     message?: string,
-    options: { status?: number; fields?: Record<string, string> } = {},
+    options: {
+      status?: number;
+      fields?: Record<string, string>;
+      problems?: PublishProblem[];
+    } = {},
   ) {
     super(message ?? DEFAULT_MESSAGES[code]);
     this.name = 'ApiError';
     this.code = code;
     this.status = options.status ?? HTTP_STATUS[code];
     this.fields = options.fields;
+    this.problems = options.problems;
   }
 
   toBody(): ErrorBody {
@@ -83,6 +101,7 @@ export class ApiError extends Error {
         code: this.code,
         message: this.message,
         ...(this.fields ? { fields: this.fields } : {}),
+        ...(this.problems ? { problems: this.problems } : {}),
       },
     };
   }

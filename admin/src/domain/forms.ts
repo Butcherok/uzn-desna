@@ -5,9 +5,10 @@
  * сервер; здесь — ранняя подсказка с фокусом на поле.
  *
  * Служебные поля в формы не входят: `slug` (только владельцу, отдельным
- * блоком), `order` (кнопки в списке), `photoPath` (задача 5е), `status` и
+ * блоком), `order` (кнопки в списке), `status` и
  * `publishedAt` вакансии (пишет сервер), `blockKey` (выбирается при создании).
  */
+import type { UploadClass, UploadEntity } from '@uzn/shared';
 import type { Kind } from './kinds';
 import { BLOCK_LABELS, PLACE_LABELS } from './kinds';
 
@@ -36,6 +37,8 @@ export type Field =
   | (Base & { type: 'bool' })
   | (Base & { type: 'enum'; options: readonly Option[] })
   | (Base & { type: 'contact' })
+  /** Загруженный файл: путь `media/…` от сервера (ТЗ 8.4; решение 042). */
+  | (Base & { type: 'file'; entity: UploadEntity; accept: UploadClass })
   /** Отметка подтверждения карточки: `confirmedAt` и `confirmedBy` (ТЗ 5.4, п. 2). */
   | (Base & { type: 'confirm' })
   | (Base & { type: 'langList'; max: number; maxItems: number })
@@ -227,6 +230,14 @@ const FORMS: Record<Kind, readonly Field[]> = {
       hint: 'Розкривається на картці за кнопкою.',
     },
     {
+      name: 'photoPath',
+      type: 'file',
+      entity: 'leaders',
+      accept: 'image',
+      label: 'Фото',
+      hint: 'Квадратне фото обличчя, видно на картці. Лише власні знімки підприємства.',
+    },
+    {
       name: 'photoAlt',
       type: 'lang',
       max: 150,
@@ -372,13 +383,27 @@ const FORMS: Record<Kind, readonly Field[]> = {
       type: 'url',
       max: 500,
       label: 'Посилання',
-      hint: 'Повна адреса, що починається з https://. Для «за запитом» — порожньо.',
+      hint: 'Повна адреса, що починається з https://. Для «за запитом» і «на цьому сайті» — порожньо.',
+    },
+    {
+      name: 'filePath',
+      type: 'file',
+      entity: 'public-docs',
+      accept: 'document',
+      label: 'Файл документа',
+      hint: 'Лише для «На цьому сайті»: файл відкриється за посиланням на сторінці.',
+    },
+    {
+      name: 'docUpdatedAt',
+      type: 'date',
+      label: 'Дата оновлення документа',
+      hint: 'Необов’язково. Видно поруч із посиланням на файл.',
     },
     {
       name: 'featured',
       type: 'bool',
       label: 'У блоці документів',
-      hint: 'Документ з’явиться в окремому блоці вгорі сторінки. Потрібне посилання.',
+      hint: 'Документ з’явиться в окремому блоці вгорі сторінки. Потрібне посилання або файл.',
     },
   ],
 

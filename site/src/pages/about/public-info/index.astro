@@ -5,6 +5,7 @@
  * страницы ни одной ссылки и ни одного текста нет (ТЗ 4.3, «Риск»).
  */
 import BaseLayout from '../../../layouts/BaseLayout.astro';
+import DocLink from '../../../components/DocLink.astro';
 import { publicDocs, staticBlockText } from '../../../gateway/data';
 import {
   featuredDocs,
@@ -36,9 +37,7 @@ const description =
         {featured.map((doc) => (
           <li class="card">
             <h3 class="card__title">
-              <a class="ext" href={doc.externalUrl} target="_blank" rel="noopener noreferrer">
-                {doc.title.uk}
-              </a>
+              <DocLink doc={doc} label={doc.title.uk} />
             </h3>
             <p class="card__text">
               <span class="tag">{PLACE_TAGS[doc.publishedWhere]}</span>
@@ -56,9 +55,7 @@ const description =
         {procurement.map((doc) => (
           <li class="card">
             <h3 class="card__title">
-              <a class="ext" href={doc.externalUrl} target="_blank" rel="noopener noreferrer">
-                {doc.title.uk}
-              </a>
+              <DocLink doc={doc} label={doc.title.uk} />
             </h3>
             <p class="card__text">
               <span class="tag">{PLACE_TAGS[doc.publishedWhere]}</span>
@@ -78,10 +75,8 @@ const description =
             <tr>
               <th scope="row">{doc.normRef?.uk}</th>
               <td>
-                {doc.externalUrl ? (
-                  <a class="ext" href={doc.externalUrl} target="_blank" rel="noopener noreferrer">
-                    {PLACE_LABELS[doc.publishedWhere]}
-                  </a>
+                {doc.externalUrl || doc.filePath ? (
+                  <DocLink doc={doc} label={PLACE_LABELS[doc.publishedWhere]} />
                 ) : (
                   <>
                     {PLACE_LABELS[doc.publishedWhere]}:{' '}

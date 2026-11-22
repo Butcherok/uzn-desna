@@ -10,6 +10,10 @@ export type Route =
   | { page: 'password' }
   | { page: 'help' }
   | { page: 'trash' }
+  | { page: 'files' }
+  | { page: 'feed' }
+  | { page: 'log' }
+  | { page: 'backup' }
   | { page: 'list'; kind: Kind }
   | { page: 'edit'; kind: Kind; id: string | null }
   | { page: 'new'; kind: Kind }
@@ -28,7 +32,16 @@ export function parseRoute(pathname: string): Route {
   if (rest.length > 0) return { page: 'not-found' };
   if (first === undefined) return { page: 'home' };
   if (second === undefined) {
-    if (first === 'login' || first === 'password' || first === 'help' || first === 'trash') {
+    if (
+      first === 'login' ||
+      first === 'password' ||
+      first === 'help' ||
+      first === 'trash' ||
+      first === 'files' ||
+      first === 'feed' ||
+      first === 'log' ||
+      first === 'backup'
+    ) {
       return { page: first };
     }
   }
@@ -53,6 +66,10 @@ export function pathOf(route: Route): string {
     case 'password':
     case 'help':
     case 'trash':
+    case 'files':
+    case 'feed':
+    case 'log':
+    case 'backup':
       return `${BASE}/${route.page}`;
     case 'list':
       return `${BASE}/${route.kind}`;

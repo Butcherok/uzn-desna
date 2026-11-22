@@ -8,10 +8,10 @@
  */
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import FeedCards from '../../components/FeedCards.astro';
-import { feed, staticBlockText } from '../../gateway/data';
+import { feed, hiddenFeedKeys, staticBlockText } from '../../gateway/data';
 import { FEED_ITEMS_SHOWN, feedCards } from '../../domain/news';
 
-const cards = feedCards(feed, FEED_ITEMS_SHOWN);
+const cards = feedCards(feed, FEED_ITEMS_SHOWN, hiddenFeedKeys);
 const note = staticBlockText('news.feed.note');
 
 const description =

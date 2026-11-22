@@ -3,16 +3,23 @@ import {
   DuplicateKeyError,
   StoreUnavailableError,
   type ActionLogEntry,
+  type ActionLogRecord,
+  type LogQuery,
   type ContentKind,
   type ContentMeta,
+  type PublishFinish,
+  type PublishRun,
   type ContentOrderEntry,
   type ContentRecord,
+  type ModerationRecord,
   type NewContentRecord,
   type NewSession,
   type NewUser,
   type Session,
   type Store,
   type User,
+  type UploadMeta,
+  type UploadRecord,
   type UserPatch,
 } from '../domain/model.js';
 
@@ -26,7 +33,9 @@ export class MemoryStore implements Store {
   readonly sessions = new Map<string, Session>();
   readonly log: ActionLogEntry[] = [];
   readonly content = new Map<string, ContentRecord>();
-  meta: ContentMeta = { seededAt: null, lastPublishedAt: null, purgedPending: 0 };
+  readonly uploads = new Map<string, UploadRecord>();
+  readonly moderation = new Map<string, ModerationRecord>();
+  meta: ContentMeta = { seededAt: null, lastPublishedAt: null, purgedPending: 0, lastRun: null };
   available = true;
 
   private check(): void {
@@ -173,7 +182,7 @@ export class MemoryStore implements Store {
 
   async getContentMeta(): Promise<ContentMeta> {
     this.check();
-    return { ...this.meta };
+    return { ...this.meta, lastRun: this.meta.lastRun ? { ...this.meta.lastRun } : null };
   }
 
   async markContentSeeded(at: Date): Promise<boolean> {
@@ -188,14 +197,147 @@ export class MemoryStore implements Store {
     this.meta = { ...this.meta, purgedPending: this.meta.purgedPending + 1 };
   }
 
+  async setPublishRun(run: PublishRun): Promise<void> {
+    this.check();
+    this.meta = { ...this.meta, lastRun: { ...run } };
+  }
+
+  async patchPublishRun(
+    runId: number,
+    patch: Partial<Omit<PublishRun, 'runId'>>,
+  ): Promise<boolean> {
+    this.check();
+    if (this.meta.lastRun?.runId !== runId) return false;
+    this.meta = { ...this.meta, lastRun: { ...this.meta.lastRun, ...patch } };
+    return true;
+  }
+
+  async finishPublishRun(runId: number, finish: PublishFinish): Promise<boolean> {
+    this.check();
+    const run = this.meta.lastRun;
+    if (run?.runId !== runId || run.result !== 'in_progress') return false;
+    this.meta = {
+      ...this.meta,
+      lastRun: { ...run, result: finish.result, finishedAt: finish.finishedAt },
+      lastPublishedAt: finish.publishedAt ?? this.meta.lastPublishedAt,
+      purgedPending: Math.max(0, this.meta.purgedPending - finish.purgedDelta),
+    };
+    return true;
+  }
+
+  async insertUpload(upload: UploadRecord): Promise<void> {
+    this.check();
+    if (this.uploads.has(upload.path)) throw new DuplicateKeyError();
+    this.uploads.set(upload.path, copyUpload(upload));
+  }
+
+  async listUploads(): Promise<UploadMeta[]> {
+    this.check();
+    return [...this.uploads.values()].map(metaOf);
+  }
+
+  async findUpload(path: string): Promise<UploadMeta | null> {
+    this.check();
+    const u = this.uploads.get(path);
+    return u ? metaOf(u) : null;
+  }
+
+  async readUploadData(path: string): Promise<Buffer | null> {
+    this.check();
+    const data = this.uploads.get(path)?.data;
+    return data ? Buffer.from(data) : null;
+  }
+
+  async setUploadDeleteRequested(path: string, at: Date | null): Promise<boolean> {
+    this.check();
+    const u = this.uploads.get(path);
+    if (!u) return false;
+    this.uploads.set(path, { ...u, deleteRequestedAt: at });
+    return true;
+  }
+
+  async deleteUpload(path: string): Promise<boolean> {
+    this.check();
+    return this.uploads.delete(path);
+  }
+
+  async settleUploads(snapshotAt: Date, exported: readonly string[]): Promise<void> {
+    this.check();
+    const t = snapshotAt.getTime();
+    const sent = new Set(exported);
+    for (const [path, u] of this.uploads) {
+      if (u.deleteRequestedAt !== null && u.deleteRequestedAt.getTime() <= t) {
+        this.uploads.delete(path);
+      } else if (u.publishedAt === null && sent.has(path)) {
+        this.uploads.set(path, { ...u, publishedAt: snapshotAt, data: null });
+      }
+    }
+  }
+
   private assertKeyFree(kind: ContentKind, key: string, exceptId: string | null): void {
     for (const r of this.content.values()) {
       if (r.kind === kind && r.key === key && r.id !== exceptId) throw new DuplicateKeyError();
     }
+  }
+
+  async listLog(q: LogQuery): Promise<{ items: ActionLogRecord[]; total: number }> {
+    this.check();
+    const matched = this.log
+      .map((e, i) => ({ ...e, details: { ...e.details }, id: String(i) }))
+      .filter(
+        (e) =>
+          (q.userId === undefined || e.userId === q.userId) &&
+          (q.action === undefined || e.action === q.action) &&
+          (q.from === undefined || e.at.getTime() >= q.from.getTime()) &&
+          (q.to === undefined || e.at.getTime() < q.to.getTime()),
+      )
+      // Новые первыми; при равном времени — позже добавленная.
+      .sort((a, b) => b.at.getTime() - a.at.getTime() || Number(b.id) - Number(a.id));
+    return { items: matched.slice(q.skip, q.skip + q.limit), total: matched.length };
+  }
+
+  async listUsers(): Promise<User[]> {
+    this.check();
+    return [...this.users.values()].map((u) => ({ ...u }));
+  }
+
+  async listModeration(): Promise<ModerationRecord[]> {
+    this.check();
+    return [...this.moderation.values()].map((m) => ({ ...m }));
+  }
+
+  async findModeration(urlKey: string): Promise<ModerationRecord | null> {
+    this.check();
+    const m = this.moderation.get(urlKey);
+    return m ? { ...m } : null;
+  }
+
+  async upsertModeration(record: ModerationRecord): Promise<void> {
+    this.check();
+    this.moderation.set(record.urlKey, { ...record });
+  }
+
+  async countModerationChangedSince(since: Date | null): Promise<number> {
+    this.check();
+    let n = 0;
+    for (const m of this.moderation.values()) {
+      if (since === null || m.updatedAt.getTime() > since.getTime()) n += 1;
+    }
+    return n;
   }
 }
 
 /** Глубокая копия: `data` — вложенные объекты, наружу ссылки не уходят. */
 function copyRecord(r: ContentRecord): ContentRecord {
   return { ...r, data: structuredClone(r.data) };
+}
+
+function copyUpload(u: UploadRecord): UploadRecord {
+  return { ...u, data: u.data ? Buffer.from(u.data) : null };
+}
+
+function metaOf(u: UploadRecord): UploadMeta {
+  const meta: Partial<UploadRecord> = { ...u };
+  delete meta.data;
+  return meta as UploadMeta;
 }

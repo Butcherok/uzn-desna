@@ -7,11 +7,14 @@
 import { buildApp } from './app.js';
 import { ConfigError, loadConfig } from './config/env.js';
 import { BOOTSTRAP_MESSAGES, bootstrapOwner } from './domain/bootstrap.js';
-import { seedContent } from './domain/content-seed.js';
+import { mediaPathsIn, seedContent } from './domain/content-seed.js';
 import { INITIAL_DATA } from './gateway/initial-data.js';
 import { MongoStore } from './gateway/mongo-store.js';
 import { fileURLToPath } from 'node:url';
 import { loadAdminAssets } from './gateway/admin-assets.js';
+import { createRunner, looksLikeGitHubToken } from './gateway/github.js';
+import { GitHubFeedSource, feedUrlOf } from './gateway/feed-source.js';
+import { BACKUP_WORKFLOW } from './routes/backup.js';
 
 const RETRY_DELAYS_MS = [2_000, 5_000, 10_000, 30_000, 60_000];
 
@@ -33,8 +36,24 @@ async function main(): Promise<void> {
   const adminDir =
     config.adminDistDir ?? fileURLToPath(new URL('../../admin/dist/', import.meta.url));
   const adminAssets = await loadAdminAssets(adminDir);
+  // Журнал появляется вместе с приложением; клиент GitHub создаётся раньше.
+  let warn: (message: string) => void = (m) => console.warn(m);
   const app = await buildApp(
-    { config, store, now: () => new Date(), startedAt: new Date(), adminAssets },
+    {
+      config,
+      store,
+      now: () => new Date(),
+      startedAt: new Date(),
+      adminAssets,
+      runner: createRunner(config.publish, (m) => warn(m)),
+      // Тот же токен: право Actions покрывает все рабочие процессы репозитория.
+      backupRunner: createRunner({ ...config.publish, workflow: BACKUP_WORKFLOW }, (m) => warn(m)),
+      repoMedia: mediaPathsIn(INITIAL_DATA),
+      feedSource: new GitHubFeedSource({
+        url: feedUrlOf(config.publish.repository),
+        warn: (m) => warn(m),
+      }),
+    },
     {
       logger: {
         level: config.env === 'production' ? 'info' : 'debug',
@@ -72,6 +91,12 @@ async function main(): Promise<void> {
 
   await app.listen({ host: config.host, port: config.port });
   if (!adminAssets) app.log.warn({ adminDir }, 'admin interface is not built');
+  warn = (m) => app.log.warn({ github: m }, 'github request failed');
+  if (!config.publish.githubToken) app.log.warn('publishing is not configured: no GitHub token');
+  else if (!looksLikeGitHubToken(config.publish.githubToken)) {
+    app.log.warn('GITHUB_DISPATCH_TOKEN does not look like a GitHub token (github_pat_…)');
+  }
+  if (!config.publish.exportToken) app.log.warn('export is closed: no export token');
   void prepareDb();
 }
 

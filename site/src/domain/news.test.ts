@@ -68,4 +68,20 @@ describe('Новини галузі (ТЗ 4.8)', () => {
     expect(feedCards(file([item(1, '2026-10-18T00:00:00.000Z')], 'unknown'), 8)).toHaveLength(1);
     expect(feedCards(file([], 'unknown'), 8)).toEqual([]);
   });
+
+  it('скрытая карточка не выводится, её место занимает следующая (ТЗ 9.5; решение 043)', () => {
+    const items = Array.from({ length: 10 }, (_, i) =>
+      item(i, new Date(Date.UTC(2026, 0, 1 + i)).toISOString()),
+    );
+    const hidden = new Set(['example.com/9', 'example.com/7']);
+    const cards = feedCards(file(items), 8, hidden);
+    expect(cards).toHaveLength(8);
+    expect(cards.map((c) => c.title)).not.toContain('Новина 9');
+    expect(cards.map((c) => c.title)).not.toContain('Новина 7');
+    expect(cards[0]?.title).toBe('Новина 8');
+    expect(cards.at(-1)?.title).toBe('Новина 0');
+    // Скрыты все — карточек нет, блок скрывается.
+    const all = new Set(items.map((i) => i.urlKey));
+    expect(feedCards(file(items), 3, all)).toEqual([]);
+  });
 });

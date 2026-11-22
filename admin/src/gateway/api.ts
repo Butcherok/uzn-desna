@@ -4,6 +4,7 @@
  * Ответ об ошибке превращается в `ApiFailure` с готовым украинским текстом.
  */
 import { ADMIN_CONFIG } from '../config/admin';
+import type { PublishProblem } from '../domain/publish';
 import { CONNECT_FAILED, retryDecision, type Failure } from '../domain/retry';
 
 export interface ApiFailure {
@@ -12,6 +13,8 @@ export interface ApiFailure {
   status: number;
   message: string;
   fields: Record<string, string>;
+  /** Записи, из-за которых публикация не запущена (ТЗ 8.5, п. 2). */
+  problems: PublishProblem[];
 }
 
 export class ApiRequestError extends Error {
@@ -26,6 +29,8 @@ export class ApiRequestError extends Error {
 export interface RequestOptions {
   method?: 'GET' | 'POST' | 'PATCH' | 'DELETE';
   body?: unknown;
+  /** Файл формой `multipart/form-data` (ТЗ 8.4): заголовок типа ставит браузер. */
+  form?: FormData;
   query?: Record<string, string>;
   headers?: Record<string, string>;
   /** Создание записи: после таймаута не повторяется (domain/retry). */
@@ -55,7 +60,7 @@ async function attempt<T>(url: string, init: RequestInit): Promise<Attempt<T>> {
     return {
       ok: false,
       failure: { kind: timedOut ? 'timeout' : 'network' },
-      error: { code: 'NETWORK', status: 0, message: CONNECT_FAILED, fields: {} },
+      error: { code: 'NETWORK', status: 0, message: CONNECT_FAILED, fields: {}, problems: [] },
     };
   } finally {
     clearTimeout(timer);
@@ -70,8 +75,11 @@ async function attempt<T>(url: string, init: RequestInit): Promise<Attempt<T>> {
     }
   }
   if (res.ok) return { ok: true, value: { data: json as T, etag: res.headers.get('ETag') } };
-  const err = (json as { error?: { code?: unknown; message?: unknown; fields?: unknown } } | null)
-    ?.error;
+  const err = (
+    json as {
+      error?: { code?: unknown; message?: unknown; fields?: unknown; problems?: unknown };
+    } | null
+  )?.error;
   const code = typeof err?.code === 'string' ? err.code : null;
   return {
     ok: false,
@@ -85,6 +93,7 @@ async function attempt<T>(url: string, init: RequestInit): Promise<Attempt<T>> {
           : 'Щось пішло не так. Спробуйте ще раз',
       fields:
         err?.fields && typeof err.fields === 'object' ? (err.fields as Record<string, string>) : {},
+      problems: Array.isArray(err?.problems) ? (err.problems as PublishProblem[]) : [],
     },
   };
 }
@@ -100,6 +109,7 @@ export async function request<T>(path: string, opts: RequestOptions = {}): Promi
     headers,
     credentials: 'same-origin',
     ...(opts.body !== undefined ? { body: JSON.stringify(opts.body) } : {}),
+    ...(opts.form !== undefined ? { body: opts.form } : {}),
   };
   let slow = false;
   const slowTimer = setTimeout(() => {

@@ -56,3 +56,9 @@ services:
         sync: false
       - key: BOOTSTRAP_OWNER_DISPLAY_NAME
         sync: false
+      # Публикация (ТЗ 8.5, решение 041). Сервис уже создан: Render эти
+      # значения не спросит — они вносятся в кабинете, Environment.
+      - key: GITHUB_DISPATCH_TOKEN
+        sync: false
+      - key: EXPORT_TOKEN
+        sync: false

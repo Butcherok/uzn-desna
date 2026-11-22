@@ -13,7 +13,7 @@ import {
   type Store,
   type User,
 } from './model.js';
-import { slugify, uniqueSlug } from './translit.js';
+import { slugify, uniqueSlug } from '@uzn/shared';
 
 export interface ContentCtx {
   store: Store;
@@ -50,10 +50,17 @@ export function recordView(r: ContentRecord): RecordView {
   };
 }
 
-/** ТЗ 8.3, п. 8: изменённые после публикации записи и неопубликованные окончательные удаления. */
+/**
+ * ТЗ 8.3, п. 8: изменённые после публикации записи, неопубликованные
+ * окончательные удаления и решения модерации ленты (ТЗ 8.5; решение 043).
+ */
 export async function pendingChanges(store: Store): Promise<number> {
   const meta = await store.getContentMeta();
-  return (await store.countContentChangedSince(meta.lastPublishedAt)) + meta.purgedPending;
+  const [content, moderation] = await Promise.all([
+    store.countContentChangedSince(meta.lastPublishedAt),
+    store.countModerationChangedSince(meta.lastPublishedAt),
+  ]);
+  return content + moderation + meta.purgedPending;
 }
 
 // ---------------------------------------------------------------- чтение
@@ -141,7 +148,7 @@ export async function createRecord(
   } catch (err) {
     throw duplicateKey(def, err);
   }
-  await log(ctx, 'content.create', def, created.id, { fields: Object.keys(data).join(',') });
+  await log(ctx, 'content.create', def, created.id, { fields: Object.keys(data).join(',') }, data);
   return created;
 }
 
@@ -208,10 +215,17 @@ export async function patchRecord(
 
   const next: ContentRecord = { ...current, key: keyOf(def, data), data, updatedAt: ctx.now };
   await replaceOrConflict(ctx.store, def, next, current.updatedAt);
-  await log(ctx, 'content.update', def, current.id, {
-    fields: changed.join(','),
-    ...(slugChanged ? { slugFrom: current.key, slugTo: next.key } : {}),
-  });
+  await log(
+    ctx,
+    'content.update',
+    def,
+    current.id,
+    {
+      fields: changed.join(','),
+      ...(slugChanged ? { slugFrom: current.key, slugTo: next.key } : {}),
+    },
+    data,
+  );
   return next;
 }
 
@@ -248,7 +262,7 @@ export async function setStatus(
     updatedAt: ctx.now,
   };
   await replaceOrConflict(ctx.store, def, next, current.updatedAt);
-  await log(ctx, 'content.status', def, id, { status });
+  await log(ctx, 'content.status', def, id, { status }, next.data);
   return next;
 }
 
@@ -265,7 +279,7 @@ export async function softDelete(
   if (def.kind === 'contacts') await assertContactUnused(ctx.store, current.key);
   const next: ContentRecord = { ...current, deletedAt: ctx.now, updatedAt: ctx.now };
   await replaceOrConflict(ctx.store, def, next, current.updatedAt);
-  await log(ctx, 'content.delete', def, id, {});
+  await log(ctx, 'content.delete', def, id, {}, current.data);
   return next;
 }
 
@@ -282,7 +296,7 @@ export async function restore(
   await checkContactRef(ctx.store, def, current.data, 'restore');
   const next: ContentRecord = { ...current, deletedAt: null, updatedAt: ctx.now };
   await replaceOrConflict(ctx.store, def, next, current.updatedAt);
-  await log(ctx, 'content.restore', def, id, {});
+  await log(ctx, 'content.restore', def, id, {}, current.data);
   return next;
 }
 
@@ -303,7 +317,7 @@ export async function purge(ctx: ContentCtx, def: KindDef, id: string): Promise<
     throw new ApiError('NOT_FOUND', 'Запис не знайдено');
   }
   if (unpublished) await ctx.store.incrementPurgedPending();
-  await log(ctx, 'content.purge', def, id, { key: current.key });
+  await log(ctx, 'content.purge', def, id, { key: current.key }, current.data);
 }
 
 /** Новый порядок целиком: каждая запись вне «Кошика» ровно один раз, `order` с 1. */
@@ -500,7 +514,7 @@ async function createSingleton(
     if (err instanceof DuplicateKeyError) throw new ApiError('CONFLICT');
     throw err;
   }
-  await log(ctx, 'content.create', def, created.id, { fields: Object.keys(data).join(',') });
+  await log(ctx, 'content.create', def, created.id, { fields: Object.keys(data).join(',') }, data);
   return created;
 }
 
@@ -518,7 +532,7 @@ function orderOf(r: ContentRecord | undefined): number {
   return typeof o === 'number' ? o : Number.MAX_SAFE_INTEGER;
 }
 
-function ukText(v: unknown): string | undefined {
+export function ukText(v: unknown): string | undefined {
   if (typeof v !== 'object' || v === null) return undefined;
   const uk = (v as { uk?: unknown }).uk;
   return typeof uk === 'string' && uk.trim() !== '' ? uk : undefined;
@@ -537,7 +551,10 @@ async function log(
   def: KindDef,
   entityId: string | null,
   details: ActionLogEntry['details'],
+  data?: Record<string, unknown>,
 ): Promise<void> {
+  // Название записи — чтобы журнал читался без открытия записи (ТЗ 9.7, п. 2).
+  const title = data && def.titleField ? (ukText(data[def.titleField]) ?? null) : null;
   await ctx.store.appendLog({
     at: ctx.now,
     userId: ctx.actor.id,
@@ -545,7 +562,7 @@ async function log(
     entity: def.kind,
     entityId,
     result: 'ok',
-    details,
+    details: title === null ? details : { ...details, title: title.slice(0, 120) },
   });
 }
 

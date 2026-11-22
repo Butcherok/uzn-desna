@@ -627,3 +627,119 @@ textarea {
 .publish__muted {
   color: var(--c-deep);
 }
+.publish {
+  align-items: center;
+  max-height: 60vh;
+  overflow-y: auto;
+}
+.publish__state {
+  flex: 1 1 16rem;
+  min-width: 0;
+}
+.publish__button {
+  flex: 0 0 auto;
+  margin: var(--s-1) 0;
+}
+.publish--progress {
+  background: var(--c-pale);
+}
+.publish--error .publish__state > .publish__line:first-child {
+  color: var(--c-alert);
+  font-weight: 600;
+}
+/* Перечень записей, из-за которых публикация не запущена (ТЗ 8.5, п. 2). */
+.publish__problems {
+  flex: 1 1 100%;
+  padding: var(--s-2) 0;
+  border-bottom: var(--bw) solid var(--c-line);
+}
+.publish__problems strong {
+  color: var(--c-alert);
+}
+.publish__problems ul {
+  margin: var(--s-1) 0 var(--s-2);
+  padding-left: var(--s-5);
+}
+.publish__problems li + li {
+  margin-top: var(--s-2);
+}
+
+/* Поле файла (ТЗ 8.4; решение 042). Поле выбора скрыто, фокус виден на кнопке-подписи. */
+.file__preview {
+  display: block;
+  width: 88px;
+  height: 88px;
+  margin: var(--s-2) 0 0;
+  object-fit: cover;
+  border: var(--bw) solid var(--c-line);
+  border-radius: var(--r-sm);
+}
+.file__name {
+  margin: var(--s-2) 0 0;
+  overflow-wrap: anywhere;
+}
+.file__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+  margin-top: var(--s-2);
+}
+.file__pick {
+  cursor: pointer;
+}
+.file__pick:focus-within {
+  outline: var(--focus-w) solid var(--c-focus);
+  outline-offset: var(--focus-offset);
+}
+.file-row {
+  display: flex;
+  gap: var(--s-3);
+  align-items: flex-start;
+  min-width: 0;
+}
+.file-row .row__main {
+  min-width: 0;
+}
+.row__thumb {
+  flex: none;
+  width: 56px;
+  height: 56px;
+  object-fit: cover;
+  border-radius: var(--r-sm);
+}
+
+/* ---------------------------------------------------------- журнал дій */
+
+.log-filter {
+  display: grid;
+  gap: 0 var(--s-4);
+  margin: var(--s-4) 0;
+}
+.log-filter .field {
+  margin-bottom: var(--s-3);
+}
+.log-filter__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+  align-items: center;
+}
+@media (min-width: 768px) {
+  .log-filter {
+    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1fr);
+    align-items: end;
+  }
+  .log-filter__actions {
+    grid-column: 1 / -1;
+  }
+}
+.log__result {
+  margin-left: var(--s-2);
+}
+.pager {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s-3);
+  margin: var(--s-5) 0;
+}

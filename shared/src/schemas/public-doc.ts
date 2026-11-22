@@ -7,9 +7,9 @@ import { langText } from './lang-text.js';
  *
  * Схема описывает поля версии 1. Служебные поля записи БД (`_id`, `status`,
  * `createdAt`, `updatedAt`, `deletedAt`) в выгрузку для страниц не попадают
- * по ТЗ 6.1, пп. 2, 5, 7; поля загруженного файла (`filePath`, `docUpdatedAt`)
- * приходят с загрузкой файлов в версии 2, отдельной схемой записи в БД,
- * расширяющей эту (ТЗ 6.1, п. 8; `docs/decisions/007-public-docs-data-shape.md`).
+ * по ТЗ 6.1, пп. 2, 5, 7. Поля загруженного файла (`filePath`, `docUpdatedAt`)
+ * пришли с загрузкой файлов версии 2 (ТЗ 8.4; решение 042): у пункта `own`
+ * вместо адреса — файл на этом сайте.
  *
  * Где опубликован пункт. Перечень расширен против первой редакции ТЗ 13.1
  * проверкой адресов 15.11.2026: два из четырёх пунктов чинной страницы ведут
@@ -48,6 +48,17 @@ export const publicDocSchema = z
     normRef: langText(200).optional(),
     publishedWhere: publishedWhereSchema,
     externalUrl: z.url().max(500).optional(),
+    /** Загруженный файл: `media/public-docs/…` (ТЗ 13.1; 8.4, п. 5). Только у `own` */
+    filePath: z
+      .string()
+      .max(200)
+      .regex(
+        /^media\/public-docs\/[a-z0-9-]+\.(?:pdf|docx)$/u,
+        'Путь вида media/public-docs/имя.pdf',
+      )
+      .optional(),
+    /** Дата обновления документа (ТЗ 13.1) */
+    docUpdatedAt: z.iso.date().optional(),
     /** Выводить ли запись в блоке документов над перечнем */
     featured: z.boolean(),
     order: z.number().int().nonnegative(),
@@ -56,16 +67,34 @@ export const publicDocSchema = z
     message: 'У пункта «надаётся за запитом» не может быть адреса',
     path: ['externalUrl'],
   })
-  .refine((doc) => doc.publishedWhere === 'request' || doc.externalUrl !== undefined, {
-    message: 'У опубликованного пункта должен быть адрес',
+  .refine((doc) => doc.publishedWhere === 'own' || doc.filePath === undefined, {
+    message: 'Файл бывает только у пункта «на этом сайте»',
+    path: ['filePath'],
+  })
+  .refine((doc) => doc.publishedWhere !== 'own' || doc.filePath !== undefined, {
+    message: 'У пункта «на этом сайте» должен быть файл',
+    path: ['filePath'],
+  })
+  .refine((doc) => doc.publishedWhere !== 'own' || doc.externalUrl === undefined, {
+    message: 'У пункта «на этом сайте» вместо адреса — файл',
     path: ['externalUrl'],
   })
+  .refine(
+    (doc) =>
+      doc.publishedWhere === 'request' ||
+      doc.publishedWhere === 'own' ||
+      doc.externalUrl !== undefined,
+    {
+      message: 'У опубликованного пункта должен быть адрес',
+      path: ['externalUrl'],
+    },
+  )
   .refine((doc) => doc.externalUrl === undefined || doc.externalUrl.startsWith('https://'), {
     message: 'Адрес должен быть абсолютным https:// (ТЗ 6.1, п. 8)',
     path: ['externalUrl'],
   })
-  .refine((doc) => !doc.featured || doc.externalUrl !== undefined, {
-    message: 'В блок документов попадает только запись с адресом',
+  .refine((doc) => !doc.featured || doc.externalUrl !== undefined || doc.filePath !== undefined, {
+    message: 'В блок документов попадает только запись с адресом или файлом',
     path: ['featured'],
   });
 
