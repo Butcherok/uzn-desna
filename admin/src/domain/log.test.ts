@@ -36,6 +36,11 @@ describe('action log labels (TZ 9.7)', () => {
     );
     expect(subjectOf(e({ details: { title: 'Озеленювач' } }))).toBe('Озеленювач');
     expect(subjectOf(e({ entity: 'user', entityId: 'u1' }))).toBeNull();
+    expect(subjectOf(e({ action: 'publish.finish', entity: null, entityId: '45' }))).toBe(
+      'прогін 45',
+    );
+    expect(detailsText({ state: 'success' })).toBe('Підсумок: успіх');
+    expect(actionLabel(e({ action: 'backup.start' }))).toBe('Запуск резервної копії');
   });
 
   it('entity as the admin section; filter sends only what is set', () => {

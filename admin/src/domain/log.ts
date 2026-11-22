@@ -80,6 +80,15 @@ const REASONS: Record<string, string> = {
 
 const STATUS: Record<string, string> = { published: 'опубліковано', draft: 'чернетка' };
 
+const RUN_STATE: Record<string, string> = {
+  success: 'успіх',
+  failure: 'помилка',
+  missing: 'прогін не знайдено',
+};
+
+/** Действия, у которых идентификатор — номер прогона GitHub Actions. */
+const RUN_ACTIONS = new Set(['publish.start', 'publish.finish', 'backup.start']);
+
 const ENTITIES: Record<string, string> = {
   feed: 'Новини галузі',
   user: 'Обліковий запис',
@@ -114,6 +123,9 @@ export function detailsText(d: LogEntryView['details']): string {
       case 'source':
         out.push(`Джерело: ${String(v)}`);
         break;
+      case 'state':
+        out.push(`Підсумок: ${RUN_STATE[String(v)] ?? String(v)}`);
+        break;
       case 'moved':
         out.push(`Записів: ${String(v)}`);
         break;
@@ -135,6 +147,7 @@ export function subjectOf(e: LogEntryView): string | null {
   const title = e.details['title'];
   if (typeof title === 'string' && title !== '') return title;
   if (e.entity === 'user' || e.entityId === null) return null;
+  if (RUN_ACTIONS.has(e.action)) return `прогін ${e.entityId}`;
   return e.entityId;
 }
 

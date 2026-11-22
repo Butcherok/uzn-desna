@@ -10,6 +10,7 @@ describe('admin routes', () => {
       ['/admin/files', { page: 'files' }],
       ['/admin/feed', { page: 'feed' }],
       ['/admin/log', { page: 'log' }],
+      ['/admin/backup', { page: 'backup' }],
       ['/admin/contacts', { page: 'list', kind: 'contacts' }],
       ['/admin/contacts/new', { page: 'new', kind: 'contacts' }],
       ['/admin/contacts/abc123', { page: 'edit', kind: 'contacts', id: 'abc123' }],

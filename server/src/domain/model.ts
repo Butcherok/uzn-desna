@@ -54,6 +54,8 @@ export interface ActionLogRecord extends ActionLogEntry {
 /** Выборка журнала: новые первыми; `userId: null` — записи без пользователя. */
 export interface LogQuery {
   userId?: string | null;
+  /** Только это действие. */
+  action?: string;
   /** Включительно. */
   from?: Date;
   /** Не включительно. */

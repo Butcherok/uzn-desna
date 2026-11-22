@@ -14,6 +14,7 @@ import { fileURLToPath } from 'node:url';
 import { loadAdminAssets } from './gateway/admin-assets.js';
 import { createRunner, looksLikeGitHubToken } from './gateway/github.js';
 import { GitHubFeedSource, feedUrlOf } from './gateway/feed-source.js';
+import { BACKUP_WORKFLOW } from './routes/backup.js';
 
 const RETRY_DELAYS_MS = [2_000, 5_000, 10_000, 30_000, 60_000];
 
@@ -45,6 +46,8 @@ async function main(): Promise<void> {
       startedAt: new Date(),
       adminAssets,
       runner: createRunner(config.publish, (m) => warn(m)),
+      // Тот же токен: право Actions покрывает все рабочие процессы репозитория.
+      backupRunner: createRunner({ ...config.publish, workflow: BACKUP_WORKFLOW }, (m) => warn(m)),
       repoMedia: mediaPathsIn(INITIAL_DATA),
       feedSource: new GitHubFeedSource({
         url: feedUrlOf(config.publish.repository),
