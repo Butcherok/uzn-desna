@@ -32,9 +32,11 @@ jobs:
         image: mongo:8
         ports:
           - 27017:27017
-    env:
-      WORK: ${{ runner.temp }}/backup
     steps:
+      # Контекст `runner` на уровне задачи недоступен: каталог задаётся шагом.
+      - name: Set work dir
+        run: echo "WORK=$RUNNER_TEMP/backup" >> "$GITHUB_ENV"
+
       - uses: actions/checkout@v7
 
       - uses: actions/setup-node@v7
