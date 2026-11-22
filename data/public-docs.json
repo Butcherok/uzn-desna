@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-11-21T16:32:33.807Z",
+  "generatedAt": "2026-11-22T10:50:17.318Z",
   "source": "admin-export",
   "items": [
     {
@@ -161,16 +161,6 @@
       "externalUrl": "https://prozorro.gov.ua/uk/search/tender?buyer=04589645&sort=publication_date,desc",
       "featured": false,
       "order": 13
-    },
-    {
-      "slug": "testovyi-dokument-perevirky",
-      "title": {
-        "uk": "Тестовий документ перевірки"
-      },
-      "publishedWhere": "own",
-      "filePath": "media/public-docs/testovyi-dokument-perevirky-9d20baa8.pdf",
-      "featured": true,
-      "order": 14
     }
   ]
 }
