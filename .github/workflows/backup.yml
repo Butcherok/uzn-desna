@@ -1,7 +1,7 @@
 name: Backup
 
 # Резервная копия БД (ТЗ 9.6; решение 045). `mongodump` базы `uzn` без
-# сессий пользователем Atlas только на чтение, шифрование `age` на двух
+# сессий пользователем Atlas только на чтение, сразу трубой в `age` на двух
 # получателей — ключ владельца и одноразовый ключ прогона, — проверка: копия
 # расшифровывается одноразовым ключом, поднимается в чистой MongoDB на
 # раннере и сверяется по числу документов. Нешифрованный дамп не покидает
@@ -53,7 +53,10 @@ jobs:
           sudo apt-get install -y -qq age
           age --version
 
-      - name: Dump database
+      # Дамп сразу идёт в `age` через трубу: нешифрованный дамп на диск
+      # раннера не пишется вовсе.
+      - name: Dump and encrypt
+        id: enc
         env:
           BACKUP_MONGODB_URI: ${{ secrets.BACKUP_MONGODB_URI }}
         run: |
@@ -63,28 +66,17 @@ jobs:
             exit 1
           fi
           umask 077
-          mkdir -p "$WORK"
-          # TEMP: диагностика формы строки без значений; убирается до PR.
-          creds="${BACKUP_MONGODB_URI#mongodb+srv://}"; creds="${creds%%@*}"
-          u="${creds%%:*}"; p="${creds#*:}"
-          echo "diag: scheme_ok=$([[ "$BACKUP_MONGODB_URI" == mongodb+srv://* ]] && echo 1 || echo 0) user_is_uzn_backup=$([ "$u" = uzn-backup ] && echo 1 || echo 0) pw_len=${#p} pw_non_alnum=$(printf '%s' "$p" | LC_ALL=C grep -c '[^A-Za-z0-9]' || true) pw_has_placeholder=$(printf '%s' "$p" | grep -c 'ПАРОЛЬ\|<\|>' || true) host_ok=$([[ "$BACKUP_MONGODB_URI" == *@uzn-desna.oe5dy2k.mongodb.net/* ]] && echo 1 || echo 0) trailing_space=$([[ "$BACKUP_MONGODB_URI" =~ [[:space:]] ]] && echo 1 || echo 0)"
-          # Утилиты MongoDB — из того же образа, что и служебная БД: ставить нечего.
-          docker run --rm --network host -e URI="$BACKUP_MONGODB_URI" -v "$WORK:/w" mongo:8 \
-            sh -c 'mongodump --uri="$URI" --db=uzn --excludeCollection=sessions --gzip --archive=/w/dump.archive' \
-            2> "$WORK/dump.log" || { cat "$WORK/dump.log"; exit 1; }
-          grep 'done dumping' "$WORK/dump.log"
-
-      - name: Encrypt
-        id: enc
-        run: |
-          set -euo pipefail
-          umask 077
+          mkdir -p "$WORK/out"
           age-keygen -o "$WORK/run.key" 2> /dev/null
           RUN_RECIPIENT="$(age-keygen -y "$WORK/run.key")"
           name="uzn-backup-$(date -u +%Y-%m-%d)-run${GITHUB_RUN_ID}.archive.gz.age"
-          mkdir -p "$WORK/out"
-          age -R .github/backup-recipients.txt -r "$RUN_RECIPIENT" -o "$WORK/out/$name" "$WORK/dump.archive"
-          sudo rm -f "$WORK/dump.archive"
+          # Утилиты MongoDB — из того же образа, что и служебная БД: ставить нечего.
+          docker run --rm --network host -e URI="$BACKUP_MONGODB_URI" mongo:8 \
+            sh -c 'mongodump --uri="$URI" --db=uzn --excludeCollection=sessions --gzip --archive' \
+            2> "$WORK/dump.log" \
+            | age -R .github/backup-recipients.txt -r "$RUN_RECIPIENT" -o "$WORK/out/$name" \
+            || { cat "$WORK/dump.log"; exit 1; }
+          grep 'done dumping' "$WORK/dump.log"
           echo "name=$name" >> "$GITHUB_OUTPUT"
           echo "bytes=$(stat -c %s "$WORK/out/$name")" >> "$GITHUB_OUTPUT"
 
@@ -92,12 +84,11 @@ jobs:
       - name: Verify restore
         run: |
           set -euo pipefail
-          umask 077
-          age -d -i "$WORK/run.key" -o "$WORK/restored.archive" "$WORK/out/${{ steps.enc.outputs.name }}"
+          age -d -i "$WORK/run.key" "$WORK/out/${{ steps.enc.outputs.name }}" \
+            | docker run --rm -i --network host mongo:8 \
+              mongorestore --uri=mongodb://localhost:27017 --gzip --archive \
+              2> "$WORK/restore.log" || { cat "$WORK/restore.log"; exit 1; }
           rm -f "$WORK/run.key"
-          docker run --rm --network host -v "$WORK:/w" mongo:8 \
-            mongorestore --uri=mongodb://localhost:27017 --gzip --archive=/w/restored.archive \
-            2> "$WORK/restore.log" || { cat "$WORK/restore.log"; exit 1; }
           tail -n 1 "$WORK/restore.log"
           docker run --rm --network host mongo:8 mongosh --quiet mongodb://localhost:27017/uzn --eval \
             'const o = {}; for (const c of db.getCollectionNames()) o[c] = db.getCollection(c).countDocuments({}); print(JSON.stringify(o))' \

@@ -4,7 +4,8 @@
  * из копии. Чистые функции; ввод-вывод — `scripts/bin/backup-verify.ts`.
  */
 
-const DONE_RE = /done dumping [^.\s]+\.(\S+) \((\d+) documents?\)/gu;
+/** `mongodump` 100.x пишет имя в обратных кавычках: ``done dumping `uzn.users` (1 document)``. */
+const DONE_RE = /done dumping `?[^.\s`]+\.([^\s`]+)`? \((\d+) documents?\)/gu;
 
 /** Коллекция → число документов из журнала `mongodump`. */
 export function dumpCounts(log: string): Record<string, number> {

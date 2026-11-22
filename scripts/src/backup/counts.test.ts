@@ -6,7 +6,8 @@ const LOG = [
   '2026-11-22T12:00:00.200+0000\tdone dumping uzn.content (126 documents)',
   '2026-11-22T12:00:00.210+0000\tdone dumping uzn.users (1 document)',
   '2026-11-22T12:00:00.220+0000\tdone dumping uzn.moderation (0 documents)',
-  '2026-11-22T12:00:00.230+0000\tdone dumping uzn.action_log (412 documents)',
+  // Так пишет настоящий `mongodump` 100.x (прогон 22.11.2026): с обратными кавычками.
+  '2026-11-22T12:00:00.230+0000\tdone dumping `uzn.action_log` (412 documents)',
 ].join('\n');
 
 describe('backup counts (TZ 9.6, п. 8)', () => {
