@@ -95,6 +95,17 @@ function referencedFiles(byKind: Map<KindDef, ContentRecord[]>): Set<string> {
   return out;
 }
 
+/** Файл модерации ленты в `data/` (ТЗ 6.3, п. 4; решение 043). */
+export const MODERATION_FILE = 'moderation.json';
+
+/** Только скрытые карточки, по ключу: порядок не зависит от БД, и пустой дифф не коммитится. */
+async function moderationItems(store: Store): Promise<Record<string, unknown>[]> {
+  return (await store.listModeration())
+    .filter((m) => m.hidden)
+    .sort((a, b) => (a.urlKey < b.urlKey ? -1 : a.urlKey > b.urlKey ? 1 : 0))
+    .map((m) => ({ urlKey: m.urlKey, hiddenAt: m.updatedAt.toISOString() }));
+}
+
 /** Полный набор редактируемых данных — только `published`, без «Кошика» (ТЗ 8.5). */
 export async function buildExport(store: Store, now: Date): Promise<ExportResult> {
   const generatedAt = now.toISOString();
@@ -108,6 +119,12 @@ export async function buildExport(store: Store, now: Date): Promise<ExportResult
       items: records.map((r) => r.data),
     };
   }
+  files[MODERATION_FILE] = {
+    schemaVersion: SCHEMA_VERSION,
+    generatedAt,
+    source: 'admin-export',
+    items: await moderationItems(store),
+  };
   const uploads = await store.listUploads();
   const media = mediaManifest(uploads, referencedFiles(byKind));
   const listed = new Set(media.map((m) => m.path));

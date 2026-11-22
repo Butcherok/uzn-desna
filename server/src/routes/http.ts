@@ -7,6 +7,7 @@ import { SESSION_TTL_MS, resolveSession } from '../domain/sessions.js';
 import type { Role, Store, User } from '../domain/model.js';
 import type { AdminAssets } from '../gateway/admin-assets.js';
 import type { WorkflowRunner } from '../domain/publish.js';
+import type { FeedSource } from '../domain/feed.js';
 
 /** Зависимости приложения: всё внешнее передаётся сюда, а не импортируется. */
 export interface AppDeps {
@@ -20,6 +21,8 @@ export interface AppDeps {
   runner?: WorkflowRunner | null;
   /** Файлы `media/` из `main`, на которые ссылаются начальные данные (решение 042). */
   repoMedia?: ReadonlySet<string>;
+  /** Файл ленты для модерации (решение 043); `null` или нет — лента «невідома». */
+  feedSource?: FeedSource | null;
 }
 
 declare module 'fastify' {

@@ -50,10 +50,17 @@ export function recordView(r: ContentRecord): RecordView {
   };
 }
 
-/** ТЗ 8.3, п. 8: изменённые после публикации записи и неопубликованные окончательные удаления. */
+/**
+ * ТЗ 8.3, п. 8: изменённые после публикации записи, неопубликованные
+ * окончательные удаления и решения модерации ленты (ТЗ 8.5; решение 043).
+ */
 export async function pendingChanges(store: Store): Promise<number> {
   const meta = await store.getContentMeta();
-  return (await store.countContentChangedSince(meta.lastPublishedAt)) + meta.purgedPending;
+  const [content, moderation] = await Promise.all([
+    store.countContentChangedSince(meta.lastPublishedAt),
+    store.countModerationChangedSince(meta.lastPublishedAt),
+  ]);
+  return content + moderation + meta.purgedPending;
 }
 
 // ---------------------------------------------------------------- чтение

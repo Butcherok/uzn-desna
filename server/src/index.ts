@@ -13,6 +13,7 @@ import { MongoStore } from './gateway/mongo-store.js';
 import { fileURLToPath } from 'node:url';
 import { loadAdminAssets } from './gateway/admin-assets.js';
 import { createRunner, looksLikeGitHubToken } from './gateway/github.js';
+import { GitHubFeedSource, feedUrlOf } from './gateway/feed-source.js';
 
 const RETRY_DELAYS_MS = [2_000, 5_000, 10_000, 30_000, 60_000];
 
@@ -45,6 +46,10 @@ async function main(): Promise<void> {
       adminAssets,
       runner: createRunner(config.publish, (m) => warn(m)),
       repoMedia: mediaPathsIn(INITIAL_DATA),
+      feedSource: new GitHubFeedSource({
+        url: feedUrlOf(config.publish.repository),
+        warn: (m) => warn(m),
+      }),
     },
     {
       logger: {

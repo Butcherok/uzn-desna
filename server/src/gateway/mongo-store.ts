@@ -21,6 +21,7 @@ import {
   type PublishRun,
   type ContentOrderEntry,
   type ContentRecord,
+  type ModerationRecord,
   type NewContentRecord,
   type NewSession,
   type NewUser,
@@ -48,6 +49,9 @@ const META_ID = 'content' as const;
 
 /** Файл: `_id` — путь (ТЗ 8.4, п. 5). Содержимое — `Binary`, до публикации. */
 type UploadDoc = Omit<UploadRecord, 'path' | 'data'> & { _id: string; data: Binary | null };
+
+/** Решение модерации ленты: `_id` — ключ записи ленты (решение 043). */
+type ModerationDoc = Omit<ModerationRecord, 'urlKey'> & { _id: string };
 
 const UPLOAD_META_PROJECTION = { data: 0 } as const;
 
@@ -127,6 +131,7 @@ export class MongoStore implements Store {
   private readonly content: Collection<ContentDoc>;
   private readonly meta: Collection<MetaDoc>;
   private readonly uploads: Collection<UploadDoc>;
+  private readonly moderation: Collection<ModerationDoc>;
 
   constructor(opts: MongoStoreOptions) {
     this.client = new MongoClient(opts.uri, {
@@ -142,6 +147,7 @@ export class MongoStore implements Store {
     this.content = this.db.collection<ContentDoc>('content');
     this.meta = this.db.collection<MetaDoc>('content_meta');
     this.uploads = this.db.collection<UploadDoc>('uploads');
+    this.moderation = this.db.collection<ModerationDoc>('moderation');
   }
 
   /** Индексы создаются при каждом запуске: повторное создание того же индекса ничего не меняет. */
@@ -164,6 +170,7 @@ export class MongoStore implements Store {
       // Ключ уникален в пределах сущности, включая «Кошик» (решение 038).
       await this.content.createIndex({ kind: 1, key: 1 }, { unique: true, name: 'kind_key' });
       await this.content.createIndex({ updatedAt: 1 }, { name: 'content_updated' });
+      await this.moderation.createIndex({ updatedAt: 1 }, { name: 'moderation_updated' });
     });
   }
 
@@ -502,5 +509,36 @@ export class MongoStore implements Store {
         { $set: { publishedAt: snapshotAt, data: null } },
       );
     });
+  }
+
+  listModeration(): Promise<ModerationRecord[]> {
+    return guard(async () =>
+      (await this.moderation.find({}).toArray()).map(({ _id, ...rest }) => ({
+        ...rest,
+        urlKey: _id,
+      })),
+    );
+  }
+
+  findModeration(urlKey: string): Promise<ModerationRecord | null> {
+    return guard(async () => {
+      const d = await this.moderation.findOne({ _id: urlKey });
+      if (!d) return null;
+      const { _id, ...rest } = d;
+      return { ...rest, urlKey: _id };
+    });
+  }
+
+  upsertModeration(record: ModerationRecord): Promise<void> {
+    return guard(async () => {
+      const { urlKey, ...fields } = record;
+      await this.moderation.replaceOne({ _id: urlKey }, fields, { upsert: true });
+    });
+  }
+
+  countModerationChangedSince(since: Date | null): Promise<number> {
+    return guard(() =>
+      this.moderation.countDocuments(since === null ? {} : { updatedAt: { $gt: since } }),
+    );
   }
 }

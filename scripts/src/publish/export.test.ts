@@ -161,6 +161,12 @@ describe('mergeExport', () => {
     const check = readFileSync('scripts/bin/data-check.ts', 'utf8');
     for (const name of EXPORT_FILES) expect(check).toContain(`'${name}'`);
   });
+
+  it('publish-content copies every exported file to content-data (decision 043)', () => {
+    const wf = readFileSync('.github/workflows/publish-content.yml', 'utf8');
+    const loop = /for name in ([a-z -]+); do/u.exec(wf)?.[1]?.split(' ') ?? [];
+    expect(loop.map((n) => `${n}.json`).sort()).toEqual([...EXPORT_FILES].sort());
+  });
 });
 
 describe('media (decision 042)', () => {

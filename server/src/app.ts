@@ -13,6 +13,7 @@ import { hashSessionToken } from './domain/sessions.js';
 import { ADMIN_CSP, adminRoutes, isAdminPath } from './routes/admin.js';
 import { authRoutes } from './routes/auth.js';
 import { contentRoutes } from './routes/content.js';
+import { feedRoutes } from './routes/feed.js';
 import { DOCUMENT_MAX_BYTES } from '@uzn/shared';
 import { publishRoutes } from './routes/publish.js';
 import { UPLOAD_FIELD_MAX, uploadRoutes } from './routes/uploads.js';
@@ -163,6 +164,7 @@ export async function buildApp(deps: AppDeps, opts: BuildOptions = {}): Promise<
       contentRoutes(api, deps);
       publishRoutes(api, deps);
       uploadRoutes(api, deps);
+      feedRoutes(api, deps);
     },
     { prefix: API_PREFIX },
   );

@@ -283,5 +283,27 @@ export function storeContract(name: string, make: () => Promise<Store>): void {
       expect(byPath.has(gone)).toBe(false);
       expect(byPath.get(goneLater)?.deleteRequestedAt).not.toBeNull();
     });
+
+    it('stores feed moderation by urlKey and counts changes', async () => {
+      const t0 = new Date('2026-11-22T10:00:00Z');
+      const t1 = new Date('2026-11-22T11:00:00Z');
+      const key = 'kyivzelenbud.com/news/zymova-pidtrymka';
+      expect(await store.findModeration(key)).toBeNull();
+      await store.upsertModeration({ urlKey: key, hidden: true, updatedAt: t0, updatedBy: 'u1' });
+      await store.upsertModeration({
+        urlKey: 'b.com/x',
+        hidden: true,
+        updatedAt: t0,
+        updatedBy: 'u1',
+      });
+      await store.upsertModeration({ urlKey: key, hidden: false, updatedAt: t1, updatedBy: 'u2' });
+      const found = await store.findModeration(key);
+      expect(found).toEqual({ urlKey: key, hidden: false, updatedAt: t1, updatedBy: 'u2' });
+      const all = await store.listModeration();
+      expect(all.map((m) => m.urlKey).sort()).toEqual(['b.com/x', key]);
+      expect(await store.countModerationChangedSince(null)).toBe(2);
+      expect(await store.countModerationChangedSince(t0)).toBe(1);
+      expect(await store.countModerationChangedSince(t1)).toBe(0);
+    });
   });
 }

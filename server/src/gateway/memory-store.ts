@@ -9,6 +9,7 @@ import {
   type PublishRun,
   type ContentOrderEntry,
   type ContentRecord,
+  type ModerationRecord,
   type NewContentRecord,
   type NewSession,
   type NewUser,
@@ -31,6 +32,7 @@ export class MemoryStore implements Store {
   readonly log: ActionLogEntry[] = [];
   readonly content = new Map<string, ContentRecord>();
   readonly uploads = new Map<string, UploadRecord>();
+  readonly moderation = new Map<string, ModerationRecord>();
   meta: ContentMeta = { seededAt: null, lastPublishedAt: null, purgedPending: 0, lastRun: null };
   available = true;
 
@@ -274,6 +276,31 @@ export class MemoryStore implements Store {
     for (const r of this.content.values()) {
       if (r.kind === kind && r.key === key && r.id !== exceptId) throw new DuplicateKeyError();
     }
+  }
+
+  async listModeration(): Promise<ModerationRecord[]> {
+    this.check();
+    return [...this.moderation.values()].map((m) => ({ ...m }));
+  }
+
+  async findModeration(urlKey: string): Promise<ModerationRecord | null> {
+    this.check();
+    const m = this.moderation.get(urlKey);
+    return m ? { ...m } : null;
+  }
+
+  async upsertModeration(record: ModerationRecord): Promise<void> {
+    this.check();
+    this.moderation.set(record.urlKey, { ...record });
+  }
+
+  async countModerationChangedSince(since: Date | null): Promise<number> {
+    this.check();
+    let n = 0;
+    for (const m of this.moderation.values()) {
+      if (since === null || m.updatedAt.getTime() > since.getTime()) n += 1;
+    }
+    return n;
   }
 }
 
