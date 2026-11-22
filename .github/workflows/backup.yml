@@ -93,7 +93,7 @@ jobs:
           npx tsx scripts/bin/backup-verify.ts "$WORK/dump.log" "$WORK/restored.json" \
             "${{ steps.enc.outputs.name }}" "${{ steps.enc.outputs.bytes }}"
 
-      - uses: actions/upload-artifact@v5
+      - uses: actions/upload-artifact@v7
         with:
           name: ${{ steps.enc.outputs.name }}
           path: ${{ env.WORK }}/out/${{ steps.enc.outputs.name }}
