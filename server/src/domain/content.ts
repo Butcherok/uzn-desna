@@ -188,10 +188,18 @@ export async function patchRecord(
 
   if (ctx.actor.role !== 'owner') {
     if (changed.includes('slug')) {
-      await deny(ctx, 'content.update', def, current.id, 'slug', SLUG_OWNER_ONLY);
+      await deny(ctx, 'content.update', def, current.id, 'slug', SLUG_OWNER_ONLY, current.data);
     }
     if (def.ownerOnlyFields.some((f) => changed.includes(f))) {
-      await deny(ctx, 'content.update', def, current.id, 'owner-only-field', CONFIRM_OWNER_ONLY);
+      await deny(
+        ctx,
+        'content.update',
+        def,
+        current.id,
+        'owner-only-field',
+        CONFIRM_OWNER_ONLY,
+        current.data,
+      );
     }
   }
   if (def.key === 'blockKey' && changed.includes('blockKey')) {
@@ -346,7 +354,7 @@ export async function reorder(
 
 // ---------------------------------------------------------------- проверки
 
-const SLUG_OWNER_ONLY = 'Адресу сторінки (slug) змінює лише власник';
+const SLUG_OWNER_ONLY = 'Адресу сторінки змінює лише власник';
 const CONFIRM_OWNER_ONLY = 'Позначку підтвердження картки ставить лише власник';
 
 function asObject(body: unknown): Record<string, unknown> {
@@ -489,7 +497,7 @@ function duplicateKey(def: KindDef, err: unknown): unknown {
   if (!(err instanceof DuplicateKeyError)) return err;
   return def.key === 'blockKey'
     ? new ApiError('CONFLICT', 'Такий блок уже є', { fields: { blockKey: 'Вже існує' } })
-    : new ApiError('CONFLICT', 'Запис з такою адресою (slug) уже є', {
+    : new ApiError('CONFLICT', 'Запис з такою адресою сторінки вже є', {
         fields: { slug: 'Вже існує' },
       });
 }
@@ -576,7 +584,10 @@ async function deny(
   entityId: string | null,
   reason: string,
   message?: string,
+  data?: Record<string, unknown>,
 ): Promise<never> {
+  // Название записи — как в успешных записях журнала (ТЗ 9.7, п. 2).
+  const title = data && def.titleField ? (ukText(data[def.titleField]) ?? null) : null;
   await ctx.store.appendLog({
     at: ctx.now,
     userId: ctx.actor.id,
@@ -584,7 +595,7 @@ async function deny(
     entity: def.kind,
     entityId,
     result: 'denied',
-    details: { reason },
+    details: title === null ? { reason } : { reason, title: title.slice(0, 120) },
   });
   throw new ApiError('FORBIDDEN', message);
 }

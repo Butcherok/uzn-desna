@@ -177,7 +177,7 @@ export function LogPage() {
             e.entityId !== null &&
             e.action !== 'content.purge' &&
             (section.singleton || /^[0-9a-f]{24}$/u.test(e.entityId));
-          const details = detailsText(e.details);
+          const details = detailsText(e.details, e.entity);
           return (
             <li key={e.id} className="row">
               <div className="row__main">
