@@ -82,10 +82,11 @@ jobs:
         with:
           path: site/dist
 
-  # Запасной путь синхронизации (решение 033): расписание `Sync external`
-  # с 19.11.2026 не срабатывало ни разу, а расписание `Deploy` срабатывает
-  # (с опозданием). Ежедневный прогон `Deploy` по расписанию сам запускает
-  # полную синхронизацию; она, если данные изменились, запустит `Deploy` ещё раз.
+  # Запасной путь синхронизации (решения 033, 048): ежедневный прогон `Deploy`
+  # по расписанию запускает `Sync external`; она, если данные изменились,
+  # запустит `Deploy` ещё раз. Prozorro — только когда расписание `Sync external`
+  # молчит: нет ни одного прогона `schedule` за 30 часов. Иначе Prozorro уже
+  # читается в прогоне 04:43 (ТЗ 7.3, п. 3), и запасной запуск берёт только ленту.
   kick-sync:
     if: github.event_name == 'schedule'
     runs-on: ubuntu-latest
@@ -95,7 +96,15 @@ jobs:
       - name: Start Sync external
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh workflow run sync-external.yml --repo "$GITHUB_REPOSITORY" --ref main -f steps="prozorro feed"
+        run: |
+          since=$(date -u -d '30 hours ago' +%Y-%m-%dT%H:%M:%SZ)
+          if ! recent=$(gh run list --repo "$GITHUB_REPOSITORY" --workflow sync-external.yml \
+            --event schedule --created ">=$since" --json databaseId --jq 'length'); then
+            recent=0
+          fi
+          if [ "$recent" -gt 0 ]; then steps="feed"; else steps="prozorro feed"; fi
+          echo "Прогонов Sync external по расписанию за 30 ч: $recent; шаги: $steps"
+          gh workflow run sync-external.yml --repo "$GITHUB_REPOSITORY" --ref main -f steps="$steps"
 
   deploy:
     needs: build
