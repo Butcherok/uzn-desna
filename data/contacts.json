@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-11-23T18:34:47.575Z",
+  "generatedAt": "2026-11-23T18:39:47.729Z",
   "source": "admin-export",
   "items": [
     {
@@ -25,7 +25,7 @@
         "uk": "Бухгалтерія",
         "en": "Accounts department"
       },
-      "phone": "+380443373509",
+      "phone": "+380443373502",
       "hours": {
         "uk": "Пн–Пт 08:00–17:00, обідня перерва 12:00–13:00",
         "en": "Mon–Fri 08:00–17:00, lunch break 12:00–13:00"
