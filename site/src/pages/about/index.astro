@@ -12,8 +12,14 @@
  * Биография раскрывается элементом `details` — без JavaScript
  * (ТЗ 11.7, п. 4; дизайн-система, раздел 7).
  */
-import { Image } from 'astro:assets';
+import { getImage } from 'astro:assets';
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import {
+  LeaderCard,
+  type LeaderCardProps,
+  type LeaderPhoto,
+} from '../../components/cards/LeaderCard';
+import { renderStatic } from '../../components/cards/render-static';
 import { formatDate } from '@uzn/shared';
 import { enterprise, leaders, staticBlockText } from '../../gateway/data';
 import { leaderPhoto } from '../../gateway/media';
@@ -24,7 +30,30 @@ import { withBase } from '../../config/site';
 const summary = enterprise.infoReference ? paragraphs(enterprise.infoReference.uk) : [];
 const historyBlock = staticBlockText('about.history');
 const history = historyBlock ? paragraphs(historyBlock.uk) : [];
-const cards = publishedLeaders(leaders);
+// Фото — WebP 88 px с плотностями 1 и 2, нарезанные сборкой (ТЗ 5.3); фото
+// без описания не выводится (ТЗ 11.3).
+const cards: LeaderCardProps[] = await Promise.all(
+  publishedLeaders(leaders).map(async (leader) => {
+    let photo: LeaderPhoto | undefined;
+    if (leader.photoPath && leader.photoAlt) {
+      const image = await getImage({
+        src: leaderPhoto(leader.photoPath),
+        width: 88,
+        height: 88,
+        densities: [1, 2],
+        format: 'webp',
+      });
+      photo = { src: image.src, srcSet: image.srcSet.attribute, alt: leader.photoAlt.uk };
+    }
+    return {
+      fullName: leader.fullName.uk,
+      position: leader.position.uk,
+      since: leader.since,
+      bio: leader.bio?.uk,
+      photo,
+    };
+  }),
+);
 
 const description =
   'КП УЗН Деснянського району: чим займається підприємство, реквізити, правова основа та керівництво підприємства.';
@@ -120,39 +149,8 @@ const description =
     <section class="section">
       <h2>Керівництво</h2>
       <div class="grid grid--2">
-        {cards.map((leader) => (
-          <article class="card leader">
-            <div class="leader__head">
-              {leader.photoPath && leader.photoAlt && (
-                <Image
-                  class="leader__photo"
-                  src={leaderPhoto(leader.photoPath)}
-                  alt={leader.photoAlt.uk}
-                  width={88}
-                  height={88}
-                  densities={[1, 2]}
-                  format="webp"
-                  loading="lazy"
-                />
-              )}
-              <div>
-                <h3 class="leader__name">{leader.fullName.uk}</h3>
-                <p class="leader__post">
-                  {leader.position.uk}
-                  {leader.since && <> · на посаді з {formatDate(leader.since)}</>}
-                </p>
-              </div>
-            </div>
-
-            {leader.bio && (
-              <details class="leader__bio">
-                <summary>Біографія</summary>
-                {paragraphs(leader.bio.uk).map((paragraph) => (
-                  <p>{paragraph}</p>
-                ))}
-              </details>
-            )}
-          </article>
+        {cards.map((card) => (
+          <Fragment set:html={renderStatic(LeaderCard, card)} />
         ))}
       </div>
     </section>

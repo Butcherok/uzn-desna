@@ -11,7 +11,8 @@
  * Встроенной карты нет, блока приёма граждан нет, форм ввода нет (ТЗ 4.6, 1.2).
  */
 import BaseLayout from '../../layouts/BaseLayout.astro';
-import PhoneLink from '../../components/PhoneLink.astro';
+import { ContactRow } from '../../components/cards/ContactRow';
+import { renderStatic } from '../../components/cards/render-static';
 import { mailtoLinkHtml } from '@uzn/shared';
 import { contacts, enterprise } from '../../gateway/data';
 import { contactBySlug, publishedContacts } from '../../domain/contacts';
@@ -44,12 +45,13 @@ const description =
       <table class="specs">
         <tbody>
           {phones.map((contact) => (
-            <tr>
-              <th scope="row">{contact.purpose.uk}</th>
-              <td>
-                <PhoneLink phone={contact.phone} hint={contact.hours?.uk} />
-              </td>
-            </tr>
+            <Fragment
+              set:html={renderStatic(ContactRow, {
+                purpose: contact.purpose.uk,
+                phone: contact.phone,
+                hours: contact.hours?.uk,
+              })}
+            />
           ))}
         </tbody>
       </table>
