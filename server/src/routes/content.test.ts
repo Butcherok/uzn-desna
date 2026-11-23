@@ -338,6 +338,9 @@ describe('patch', () => {
     const url = `/api/v1/services/${id}`;
     const denied = await ctx.as('editor')({ method: 'PATCH', url, payload: { slug: 'nove' } });
     expect(denied.statusCode).toBe(403);
+    // Отказ записан с названием записи и без слова slug в ответе (12.3, Д1)
+    expect(ctx.store.log.at(-1)?.details['title']).toEqual(expect.any(String));
+    expect(denied.json().error.message).toBe('Адресу сторінки змінює лише власник');
     const unconfirmed = await ctx.as('owner')({ method: 'PATCH', url, payload: { slug: 'nove' } });
     expect(unconfirmed.statusCode).toBe(409);
     expect(unconfirmed.json().error.fields).toEqual({ slug: 'Потрібне підтвердження' });
