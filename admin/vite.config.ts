@@ -8,6 +8,14 @@ import { defineConfig } from 'vite';
 export default defineConfig({
   base: '/admin/',
   plugins: [react()],
+  // Карточки сайта (`site/src/components/cards`, решение 046) лежат вне пакета:
+  // один экземпляр React на админку и карточки.
+  resolve: { dedupe: ['react', 'react-dom'] },
+  // Для всех файлов — настройки TypeScript админки. Иначе Vite берёт ближайший
+  // `tsconfig.json` к файлу, у карточек это `site/tsconfig.json`, а он
+  // ссылается на `astro/tsconfigs/strict` — Astro на Render не ставится
+  // (решение 037), и сборка падает (проверено 23.11.2026 командой из render.yaml).
+  tsconfig: 'tsconfig.json',
   server: {
     port: 5173,
     strictPort: true,

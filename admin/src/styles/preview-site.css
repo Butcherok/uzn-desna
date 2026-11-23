@@ -1,0 +1,23 @@
+/* Стили образца карточки (решение 046): подключаются только в теневой DOM
+   `components/Preview`, на саму админку не действуют. Слой компонентов сайта —
+   целиком, как на страницах; токены (переменные) приходят от документа
+   админки по наследованию. */
+@import '../../../site/src/styles/components.css';
+
+:host {
+  display: block;
+}
+
+/* Основа страницы сайта: в теневом DOM нет `body`, поэтому то же — на обёртке. */
+.preview-site {
+  background: var(--c-bg);
+  color: var(--c-ink);
+  font-family: var(--f-text);
+  font-size: var(--fs-body);
+  line-height: var(--lh-body);
+  font-variant-numeric: tabular-nums;
+}
+
+.preview-site > :last-child {
+  margin-bottom: 0;
+}

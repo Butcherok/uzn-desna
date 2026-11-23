@@ -27,6 +27,11 @@ services:
         # Токены и шрифты дизайн-системы, которые собирает админка.
         - site/src/styles/tokens.css
         - site/src/fonts/**
+        # Образец карточки в админке (решение 046): карточки сайта, их правила
+        # видимости и стили.
+        - site/src/components/cards/**
+        - site/src/domain/**
+        - site/src/styles/components.css
         - package.json
         - package-lock.json
         - .nvmrc

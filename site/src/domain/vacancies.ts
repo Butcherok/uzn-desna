@@ -20,11 +20,20 @@ export interface VacancyCard {
  * Видна ли карточка в день сборки `today` (`ГГГГ-ММ-ДД`, киевская дата):
  * переключатель включён и «Актуально до» ещё не наступило (решение 026).
  */
-export function isVisible(vacancy: Vacancy, today: string): boolean {
-  return (
-    vacancy.status === 'published' &&
-    (vacancy.validThrough === undefined || today < vacancy.validThrough)
-  );
+export function isVisible(
+  vacancy: Pick<Vacancy, 'status' | 'validThrough'>,
+  today: string,
+): boolean {
+  return vacancy.status === 'published' && !isExpired(vacancy.validThrough, today);
+}
+
+/**
+ * Наступило ли «Актуально до» на `today`: с этого дня включительно карточка не
+ * выводится (решение 026). Админка называет это причиной в предпросмотре
+ * (решение 046).
+ */
+export function isExpired(validThrough: string | undefined, today: string): boolean {
+  return validThrough !== undefined && today >= validThrough;
 }
 
 /** Киевская дата `ГГГГ-ММ-ДД` для момента `now`. */

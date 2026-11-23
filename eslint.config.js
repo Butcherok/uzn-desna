@@ -19,6 +19,26 @@ const layerRules = {
   ],
 };
 
+/**
+ * Слой components (ТЗ 10.2, п. 1): выводит переданные данные, ввода-вывода не
+ * делает — gateway не импортирует. Компоненты из других компонентов собирать
+ * можно: образец админки рисует карточки сайта (решение 046).
+ */
+const componentRules = {
+  'no-restricted-imports': [
+    'error',
+    {
+      patterns: [
+        {
+          group: ['**/gateway/*', '**/gateway'],
+          message:
+            'Слой components не импортирует gateway (ТЗ 10.2, п. 1). Передавайте данные параметром.',
+        },
+      ],
+    },
+  ],
+};
+
 export default [
   { ignores: ['**/dist/**', '**/.astro/**', 'node_modules/**', 'docs/design/**'] },
   js.configs.recommended,
@@ -44,7 +64,7 @@ export default [
   },
   {
     files: ['site/src/components/**/*.{ts,tsx}'],
-    rules: layerRules,
+    rules: componentRules,
   },
   // Админка (решение 040): код исполняется в браузере; слои — как у сайта.
   {
@@ -52,7 +72,11 @@ export default [
     languageOptions: { globals: { ...globals.browser } },
   },
   {
-    files: ['admin/src/domain/**/*.ts', 'admin/src/components/**/*.{ts,tsx}'],
+    files: ['admin/src/domain/**/*.ts'],
     rules: layerRules,
+  },
+  {
+    files: ['admin/src/components/**/*.{ts,tsx}'],
+    rules: componentRules,
   },
 ];

@@ -275,6 +275,82 @@ a:hover {
   max-width: 24rem;
 }
 
+/* Форма с образцом карточки (решение 046): на телефоне и планшете образец —
+   под полями, перед кнопками; на широком экране — справа, не уезжает при
+   прокрутке. */
+.form--preview {
+  max-width: 40rem;
+}
+.main:has(.form--preview) {
+  max-width: 76rem;
+}
+@media (min-width: 1280px) {
+  .form--preview {
+    max-width: none;
+    grid-template-columns: minmax(0, 40rem) minmax(20rem, 26rem);
+    column-gap: var(--s-8);
+    align-items: start;
+  }
+  .form--preview > * {
+    grid-column: 1;
+  }
+  .form--preview > .preview {
+    grid-column: 2;
+    grid-row: 1 / span 12;
+    position: sticky;
+    top: var(--s-4);
+  }
+}
+
+.preview {
+  margin: var(--s-2) 0 var(--s-4);
+  padding: var(--s-4);
+  border: var(--bw) solid var(--c-line);
+  border-radius: var(--r-md);
+  background: var(--c-pale);
+}
+.preview__title {
+  margin: 0 0 var(--s-1);
+  font-size: var(--fs-h4);
+}
+.preview__hint {
+  margin: 0 0 var(--s-3);
+  font-size: var(--fs-caption);
+  color: var(--c-deep);
+}
+.preview__notes {
+  margin: var(--s-3) 0;
+  padding-left: var(--s-5);
+  font-size: var(--fs-caption);
+}
+.preview__notes li + li {
+  margin-top: var(--s-1);
+}
+.preview__notes--hidden {
+  padding: var(--s-2) var(--s-3) var(--s-2) var(--s-6);
+  border-left: var(--bw-mark) solid var(--c-alert);
+  background: var(--c-surface);
+}
+.preview__frame {
+  border-radius: var(--r-md);
+}
+/* Карточки на сайте нет: пунктирная рамка вокруг образца и подпись над ним. */
+.preview__frame--off {
+  outline: var(--bw-mark) dashed var(--c-border);
+  outline-offset: var(--s-1);
+}
+.preview__off {
+  margin: 0 0 var(--s-2);
+  font-weight: 600;
+}
+.preview__empty {
+  margin: 0;
+  padding: var(--s-4);
+  border: var(--bw) dashed var(--c-border);
+  border-radius: var(--r-md);
+  background: var(--c-surface);
+}
+
 .field {
   margin-bottom: var(--s-5);
 }

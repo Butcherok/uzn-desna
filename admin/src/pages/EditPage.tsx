@@ -8,6 +8,7 @@ import { useEffect, useMemo, useRef, useState, type FormEvent, type KeyboardEven
 import { UPLOAD_TARGETS, provisionalSlug } from '@uzn/shared';
 import { FieldView, fieldId, hasLang, type Tab } from '../components/FieldView';
 import type { FileApi } from '../components/FileField';
+import { Preview } from '../components/Preview';
 import { ErrorBox, StatusBadge } from '../components/Status';
 import { formFields, freeBlockKeys, type Option } from '../domain/forms';
 import {
@@ -23,6 +24,8 @@ import {
   type Lang,
 } from '../domain/form-values';
 import { formatDateTime, sectionOf, titleOf, type Kind, type RecordView } from '../domain/kinds';
+import { hasPreview, previewOf, type ContactInfo } from '../domain/preview';
+import { kyivDate } from '../../../site/src/domain/vacancies';
 import { api, uploadUrl } from '../gateway/admin-api';
 import { ApiRequestError } from '../gateway/api';
 import { navigate, setDirty } from '../gateway/router';
@@ -69,6 +72,7 @@ export function EditPage({ kind, id, isNew }: Props) {
   const [blockKey, setBlockKey] = useState('');
   const [blockOptions, setBlockOptions] = useState<Option[]>([]);
   const [contacts, setContacts] = useState<Option[]>([]);
+  const [contactInfo, setContactInfo] = useState<ContactInfo[]>([]);
   const [tab, setTab] = useState<Tab>('uk');
   const [errors, setErrors] = useState<FieldErrors>({});
   const [saveError, setSaveError] = useState<string | null>(null);
@@ -106,6 +110,16 @@ export function EditPage({ kind, id, isNew }: Props) {
             r.items.map((c) => ({
               value: String(c.data['slug']),
               label: titleOf('contacts', c.data),
+            })),
+          );
+          // Телефон вакансии в образце и причина, если номер не подтверждён (решение 046).
+          setContactInfo(
+            r.items.map((c) => ({
+              slug: String(c.data['slug']),
+              label: titleOf('contacts', c.data),
+              phone: typeof c.data['phone'] === 'string' ? c.data['phone'] : '',
+              confirmed: c.data['confirmed'] === true,
+              published: c.status === 'published',
             })),
           );
         }),
@@ -155,6 +169,19 @@ export function EditPage({ kind, id, isNew }: Props) {
       formRef.current?.querySelector<HTMLElement>('[aria-invalid="true"]');
     el?.focus();
   });
+
+  const withPreview = hasPreview(kind);
+  const preview = useMemo(
+    () =>
+      previewOf(kind, form, {
+        lang: tab,
+        status: isNew ? null : (record?.status ?? null),
+        today: kyivDate(new Date()),
+        contacts: contactInfo,
+        fileUrl: uploadUrl,
+      }),
+    [kind, form, tab, isNew, record, contactInfo],
+  );
 
   if (!section) return null;
 
@@ -362,7 +389,12 @@ export function EditPage({ kind, id, isNew }: Props) {
       {!loaded && !loadError && <p>Завантажуємо…</p>}
 
       {loaded && (
-        <form ref={formRef} className="form" onSubmit={submit} noValidate>
+        <form
+          ref={formRef}
+          className={withPreview ? 'form form--preview' : 'form'}
+          onSubmit={submit}
+          noValidate
+        >
           {saveError && <ErrorBox text={saveError} />}
 
           {isNew && kind === 'static-blocks' && (
@@ -466,6 +498,8 @@ export function EditPage({ kind, id, isNew }: Props) {
               </details>
             )}
           </div>
+
+          {preview && <Preview result={preview} />}
 
           <div className="actions">
             <button type="submit" className="btn btn--inline" disabled={busy}>
