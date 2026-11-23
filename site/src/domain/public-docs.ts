@@ -44,10 +44,13 @@ export function featuredDocs(docs: readonly PublicDoc[]): PublicDoc[] {
 }
 
 /** Закупівлі та договори: Prozorro и Є-data (ТЗ 4.3, блоки 3 и 4). */
+/** Документ блока «Закупівлі та договори»: место публикации — Prozorro или Є-data. */
+export function isProcurement(where: PublishedWhere): boolean {
+  return where === 'prozorro' || where === 'edata';
+}
+
 export function procurementDocs(docs: readonly PublicDoc[]): PublicDoc[] {
-  return docs
-    .filter((doc) => doc.publishedWhere === 'prozorro' || doc.publishedWhere === 'edata')
-    .sort(byOrder);
+  return docs.filter((doc) => isProcurement(doc.publishedWhere)).sort(byOrder);
 }
 
 /**
