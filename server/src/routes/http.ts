@@ -8,6 +8,7 @@ import type { Role, Store, User } from '../domain/model.js';
 import type { AdminAssets } from '../gateway/admin-assets.js';
 import type { WorkflowRunner } from '../domain/publish.js';
 import type { FeedSource } from '../domain/feed.js';
+import type { SyncStatusSource } from '../domain/system.js';
 
 /** Зависимости приложения: всё внешнее передаётся сюда, а не импортируется. */
 export interface AppDeps {
@@ -25,6 +26,8 @@ export interface AppDeps {
   feedSource?: FeedSource | null;
   /** Запуск рабочего процесса `backup` (решение 045); `null` или нет — не настроено. */
   backupRunner?: WorkflowRunner | null;
+  /** «Стан системи» (решение 049); `null` или нет — состояние синхронизаций неизвестно. */
+  syncStatus?: SyncStatusSource | null;
 }
 
 declare module 'fastify' {

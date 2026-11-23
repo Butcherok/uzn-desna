@@ -15,6 +15,7 @@ import { loadAdminAssets } from './gateway/admin-assets.js';
 import { createRunner, looksLikeGitHubToken } from './gateway/github.js';
 import { GitHubFeedSource, feedUrlOf } from './gateway/feed-source.js';
 import { BACKUP_WORKFLOW } from './routes/backup.js';
+import { GitHubSyncStatus } from './gateway/sync-status.js';
 
 const RETRY_DELAYS_MS = [2_000, 5_000, 10_000, 30_000, 60_000];
 
@@ -51,6 +52,11 @@ async function main(): Promise<void> {
       repoMedia: mediaPathsIn(INITIAL_DATA),
       feedSource: new GitHubFeedSource({
         url: feedUrlOf(config.publish.repository),
+        warn: (m) => warn(m),
+      }),
+      syncStatus: new GitHubSyncStatus({
+        repository: config.publish.repository,
+        token: config.publish.githubToken ?? null,
         warn: (m) => warn(m),
       }),
     },

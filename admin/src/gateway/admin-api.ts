@@ -5,6 +5,7 @@ import type { Kind, RecordView, User } from '../domain/kinds';
 import type { FeedList } from '../domain/feed';
 import type { LogPage } from '../domain/log';
 import type { BackupRun, BackupStatus } from '../domain/backup';
+import type { SyncStatus, SystemInfo } from '../domain/system';
 import type { PublishRunView, PublishStatus } from '../domain/publish';
 import { ADMIN_CONFIG } from '../config/admin';
 import { request, type ApiResponse, type RequestOptions } from './api';
@@ -142,6 +143,8 @@ export const api = {
   log: (query: Record<string, string>, o: Slow = {}) =>
     data(request<LogPage>('/log', { ...o, query })),
   backupStatus: (o: Slow = {}) => data(request<BackupStatus>('/backup', o)),
+  systemInfo: (o: Slow = {}) => data(request<SystemInfo>('/system/info', o)),
+  systemSync: (o: Slow = {}) => data(request<SyncStatus>('/system/sync', o)),
   /** Не повторяется после таймаута: второй запуск получил бы 409. */
   backup: (o: Slow = {}) =>
     data(request<BackupRun>('/backup', { ...o, method: 'POST', idempotent: false })),

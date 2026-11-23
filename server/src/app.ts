@@ -20,6 +20,7 @@ import { DOCUMENT_MAX_BYTES } from '@uzn/shared';
 import { publishRoutes } from './routes/publish.js';
 import { UPLOAD_FIELD_MAX, uploadRoutes } from './routes/uploads.js';
 import type { AppDeps } from './routes/http.js';
+import { systemRoutes } from './routes/system.js';
 
 export const API_PREFIX = '/api/v1';
 /** ТЗ 8.1, п. 7: тело JSON — до 1 МБ. */
@@ -169,6 +170,7 @@ export async function buildApp(deps: AppDeps, opts: BuildOptions = {}): Promise<
       feedRoutes(api, deps);
       actionLogRoutes(api, deps);
       backupRoutes(api, deps);
+      systemRoutes(api, deps);
     },
     { prefix: API_PREFIX },
   );

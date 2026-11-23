@@ -14,6 +14,7 @@ export type Route =
   | { page: 'feed' }
   | { page: 'log' }
   | { page: 'backup' }
+  | { page: 'system' }
   | { page: 'list'; kind: Kind }
   | { page: 'edit'; kind: Kind; id: string | null }
   | { page: 'new'; kind: Kind }
@@ -40,7 +41,8 @@ export function parseRoute(pathname: string): Route {
       first === 'files' ||
       first === 'feed' ||
       first === 'log' ||
-      first === 'backup'
+      first === 'backup' ||
+      first === 'system'
     ) {
       return { page: first };
     }
@@ -70,6 +72,7 @@ export function pathOf(route: Route): string {
     case 'feed':
     case 'log':
     case 'backup':
+    case 'system':
       return `${BASE}/${route.page}`;
     case 'list':
       return `${BASE}/${route.kind}`;

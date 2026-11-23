@@ -94,6 +94,8 @@ export function Layout({ route, wake, notice, publishBar, children }: Props) {
               {user.role === 'owner' && item({ page: 'log' }, 'Журнал дій', route.page === 'log')}
               {user.role === 'owner' &&
                 item({ page: 'backup' }, 'Резервні копії', route.page === 'backup')}
+              {user.role === 'owner' &&
+                item({ page: 'system' }, 'Стан системи', route.page === 'system')}
             </ul>
           </>
         )}
