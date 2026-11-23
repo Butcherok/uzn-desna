@@ -851,3 +851,44 @@ textarea {
   font-size: var(--fs-caption);
   font-weight: 600;
 }
+
+/* ---------------------------------------------------- стан системи */
+
+/* Решение 049: тревожное — тем же цветом, что ошибки формы, плюс слово, не цвет. */
+.sys__bad {
+  color: var(--c-alert);
+  font-weight: 600;
+}
+.sys__warn {
+  margin: var(--s-2) 0;
+  padding: var(--s-2) var(--s-3);
+  border-left: var(--bw-mark) solid var(--c-alert);
+  background: var(--c-surface);
+}
+.sys__facts {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: var(--s-1) var(--s-4);
+  margin: 0 0 var(--s-4);
+}
+.sys__facts dt {
+  font-weight: 600;
+}
+.sys__facts dd {
+  margin: 0;
+}
+.sys__table {
+  border-collapse: collapse;
+  width: 100%;
+  max-width: 32rem;
+}
+.sys__table th,
+.sys__table td {
+  padding: var(--s-1) var(--s-2);
+  border-bottom: var(--bw) solid var(--c-line);
+  text-align: left;
+}
+.sys__table td {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}

@@ -29,6 +29,7 @@ import { PasswordPage } from './PasswordPage';
 import { FeedPage } from './FeedPage';
 import { LogPage } from './LogPage';
 import { BackupPage } from './BackupPage';
+import { SystemPage } from './SystemPage';
 import { FilesPage } from './FilesPage';
 import { TrashPage } from './TrashPage';
 
@@ -204,6 +205,9 @@ export function App() {
       break;
     case 'backup':
       page = user.role === 'owner' ? <BackupPage /> : <HomePage />;
+      break;
+    case 'system':
+      page = user.role === 'owner' ? <SystemPage /> : <HomePage />;
       break;
     case 'log':
       page = user.role === 'owner' ? <LogPage /> : <HomePage />;
