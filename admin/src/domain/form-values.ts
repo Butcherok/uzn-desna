@@ -6,7 +6,7 @@
  * данных и собирает ошибки по полям; `buildPatch` строит JSON Merge Patch
  * (RFC 7386, решение 038): изменённые поля, `null` — очищенное поле.
  */
-import { parseStoredPhone } from '@uzn/shared';
+import { parseStoredPhone, richTextProblems } from '@uzn/shared';
 import type { Field } from './forms';
 
 export type Lang = { uk: string; en: string };
@@ -135,6 +135,12 @@ function convert(f: Field, raw: FormValue | undefined, key: string, now: () => D
         return { value: undefined, errors };
       }
       if (length(uk) > f.max || length(en) > f.max) return fail(tooLong(f.max));
+      if (f.rich) {
+        const [ukProblem] = richTextProblems(uk);
+        if (ukProblem) return fail(ukProblem);
+        const [enProblem] = richTextProblems(en);
+        if (enProblem) return fail(`Англійською: ${enProblem}`);
+      }
       return { value: en ? { uk, en } : { uk }, errors };
     }
     case 'text':

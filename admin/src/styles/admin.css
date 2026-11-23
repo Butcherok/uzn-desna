@@ -819,3 +819,35 @@ textarea {
   gap: var(--s-3);
   margin: var(--s-5) 0;
 }
+
+/* ---------------------------------------------------- разметка в полях */
+
+/* Кнопки над полем с разметкой (решение 047): подписи словами, тач-цель 44 px. */
+.rich__bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+  margin: 0 0 var(--s-2);
+}
+.rich__btn {
+  padding-inline: var(--s-3);
+}
+.rich__btn--bold {
+  font-weight: 700;
+}
+.rich__btn--link {
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+.rich__preview {
+  margin: var(--s-3) 0 0;
+  padding: var(--s-3);
+  border: var(--bw) solid var(--c-line);
+  border-radius: var(--r-md);
+  background: var(--c-pale);
+}
+.rich__preview-title {
+  margin: 0 0 var(--s-2);
+  font-size: var(--fs-caption);
+  font-weight: 600;
+}

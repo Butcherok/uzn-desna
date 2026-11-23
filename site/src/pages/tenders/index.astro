@@ -20,6 +20,8 @@
  */
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { publicDocs, staticBlockText, tenders } from '../../gateway/data';
+import { RichText } from '../../components/cards/RichText';
+import { renderStatic } from '../../components/cards/render-static';
 import { tenderLinks, PLACE_TAGS } from '../../domain/public-docs';
 import { tendersView } from '../../domain/tenders';
 import { withBase } from '../../config/site';
@@ -35,7 +37,7 @@ const description =
 <BaseLayout section="Наші закупівлі" path="/tenders/" description={description}>
   <h1>Наші закупівлі</h1>
 
-  {note && <p class="lead">{note.uk}</p>}
+  {note && <Fragment set:html={renderStatic(RichText, { text: note.uk, className: 'lead' })} />}
 
   <section class="section" aria-labelledby="tenders-latest">
     <h2 id="tenders-latest">Останні закупівлі</h2>

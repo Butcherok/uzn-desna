@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { envelopeSchema } from './envelope.js';
-import { langText } from './lang-text.js';
+import { langText, richLangText } from './lang-text.js';
 
 /**
  * Текстовый блок страницы — сущность `StaticBlock` (ТЗ 6.2, 13.1).
@@ -20,7 +20,7 @@ export type BlockKey = z.infer<typeof blockKeySchema>;
 
 export const staticBlockSchema = z.object({
   blockKey: blockKeySchema,
-  text: langText(1000).optional(),
+  text: richLangText(1000).optional(),
   numbers: z
     .array(z.object({ value: langText(20), label: langText(120) }))
     .max(4)

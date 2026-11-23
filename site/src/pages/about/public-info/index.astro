@@ -8,6 +8,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
 import DocLink from '../../../components/DocLink.astro';
 import { DocCard } from '../../../components/cards/DocCard';
 import { renderStatic } from '../../../components/cards/render-static';
+import { RichText } from '../../../components/cards/RichText';
 import { publicDocs, staticBlockText } from '../../../gateway/data';
 import { docTarget } from '../../../gateway/media';
 import {
@@ -31,7 +32,7 @@ const description =
 <BaseLayout section="Публічна інформація" path="/about/public-info/" description={description}>
   <h1>Публічна інформація</h1>
 
-  {note && <p>{note.uk}</p>}
+  {note && <Fragment set:html={renderStatic(RichText, { text: note.uk })} />}
 
   {featured.length > 0 && (
     <section class="section">

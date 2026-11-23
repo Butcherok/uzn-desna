@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { envelopeSchema } from './envelope.js';
-import { langText } from './lang-text.js';
+import { langText, richLangText } from './lang-text.js';
 
 /**
  * Реквизиты предприятия — сущность `Enterprise` (ТЗ 6.2, 13.1), синглтон.
@@ -37,7 +37,7 @@ export const enterpriseSchema = z.object({
     .optional(),
   legalBasis: z.array(langText(300)).max(10).optional(),
   /** «Інформаційна довідка» — до 1500 знаков (ТЗ 5.2, п. 6) */
-  infoReference: langText(1500).optional(),
+  infoReference: richLangText(1500).optional(),
 });
 
 export type Enterprise = z.infer<typeof enterpriseSchema>;

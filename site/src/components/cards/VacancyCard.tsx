@@ -4,6 +4,7 @@
  * перечнем `ul`.
  */
 import { PhoneInline } from './PhoneInline';
+import { RichText } from './RichText';
 
 export interface VacancyCardProps {
   position: string;
@@ -21,7 +22,7 @@ export function VacancyCard({ position, unit, requirements, phone }: VacancyCard
           <span className="tag">{unit}</span>
         </p>
       )}
-      <p className="card__text">{requirements}</p>
+      <RichText text={requirements} className="card__text" />
       <p className="card__text">
         Телефон: <PhoneInline phone={phone} />
       </p>

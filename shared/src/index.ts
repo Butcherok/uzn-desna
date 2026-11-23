@@ -1,6 +1,6 @@
 export { envelopeSchema, dataStateSchema, SCHEMA_VERSION } from './schemas/envelope.js';
 export type { Envelope, DataState } from './schemas/envelope.js';
-export { langText } from './schemas/lang-text.js';
+export { langText, richLangText } from './schemas/lang-text.js';
 export type { LangText } from './schemas/lang-text.js';
 export {
   publicDocSchema,
@@ -27,6 +27,13 @@ export type { Leader } from './schemas/leader.js';
 export { truncateAtWord, TRUNCATE_EXCERPT, TRUNCATE_TITLE } from './format/truncate.js';
 export { parseStoredPhone, formatPhone, storedPhoneSchema } from './format/phone.js';
 export { encodeHtmlEntities, mailtoLinkHtml } from './format/email.js';
+export {
+  parseRichText,
+  richTextProblems,
+  richPlainText,
+  isAllowedHref,
+} from './format/rich-text.js';
+export type { Block as RichBlock, Inline as RichInline } from './format/rich-text.js';
 export { formatDate } from './format/date.js';
 export {
   tenderSchema,

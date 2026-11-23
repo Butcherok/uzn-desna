@@ -8,6 +8,8 @@
  */
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import FeedCards from '../../components/FeedCards.astro';
+import { RichText } from '../../components/cards/RichText';
+import { renderStatic } from '../../components/cards/render-static';
 import { feed, hiddenFeedKeys, staticBlockText } from '../../gateway/data';
 import { FEED_ITEMS_SHOWN, feedCards } from '../../domain/news';
 
@@ -27,7 +29,7 @@ const description =
   {cards.length > 0 && (
     <section class="section" aria-labelledby="news-feed">
       <h2 id="news-feed">Новини галузі</h2>
-      {note && <p>{note.uk}</p>}
+      {note && <Fragment set:html={renderStatic(RichText, { text: note.uk })} />}
       <FeedCards cards={cards} />
     </section>
   )}

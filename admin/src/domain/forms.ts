@@ -28,7 +28,13 @@ interface Base {
 }
 
 export type Field =
-  | (Base & { type: 'lang'; max: number; multiline?: boolean })
+  | (Base & {
+      type: 'lang';
+      max: number;
+      multiline?: boolean;
+      /** Разметка 9.8, п. 1 (решение 047); `field` — образец под полем: карточки у раздела нет. */
+      rich?: 'card' | 'field';
+    })
   | (Base & { type: 'text'; max: number; pattern?: { re: RegExp; message: string } })
   | (Base & { type: 'email'; max: number })
   | (Base & { type: 'phone' })
@@ -161,6 +167,7 @@ const FORMS: Record<Kind, readonly Field[]> = {
       type: 'lang',
       max: 1500,
       multiline: true,
+      rich: 'field',
       label: 'Довідка про підприємство',
       hint: 'Короткий текст для сторінки «Про підприємство».',
     },
@@ -226,6 +233,7 @@ const FORMS: Record<Kind, readonly Field[]> = {
       type: 'lang',
       max: 2000,
       multiline: true,
+      rich: 'card',
       label: 'Біографія',
       hint: 'Розкривається на картці за кнопкою.',
     },
@@ -273,6 +281,7 @@ const FORMS: Record<Kind, readonly Field[]> = {
       type: 'lang',
       max: 300,
       multiline: true,
+      rich: 'card',
       required: true,
       label: 'Опис',
       hint: 'Одне-два речення: що робимо і для кого.',
@@ -335,6 +344,7 @@ const FORMS: Record<Kind, readonly Field[]> = {
       type: 'lang',
       max: 300,
       multiline: true,
+      rich: 'card',
       label: 'Що ми робимо',
       hint: 'Коротко: що буде після дзвінка.',
     },
@@ -428,6 +438,7 @@ const FORMS: Record<Kind, readonly Field[]> = {
       type: 'lang',
       max: 400,
       multiline: true,
+      rich: 'card',
       required: true,
       label: 'Вимоги',
       hint: 'Освіта, досвід, умови.',
@@ -453,6 +464,7 @@ const FORMS: Record<Kind, readonly Field[]> = {
       type: 'lang',
       max: 1000,
       multiline: true,
+      rich: 'field',
       label: 'Текст',
       hint: 'Порожньо — блок на сайті не показується.',
     },
