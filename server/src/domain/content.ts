@@ -388,6 +388,8 @@ function validate(
 }
 
 function fieldMessage(issue: z.core.$ZodIssue, value: unknown): string {
+  // Проверка ссылок разметки (решение 047): текст уже для формы.
+  if (issue.code === 'custom' && issue.params?.['ui'] === true) return issue.message;
   switch (issue.code) {
     case 'invalid_type':
       return value === undefined ? "Обов'язкове поле" : 'Невірне значення';

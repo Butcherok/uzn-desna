@@ -272,7 +272,8 @@ a,
 .leader__bio > summary::-webkit-details-marker { display: none; }
 .leader__bio > summary::after { content: "▾"; font-size: 0.8em; }
 .leader__bio[open] > summary::after { content: "▴"; }
-.leader__bio p { margin: var(--s-3) 0 0; }
+.leader__bio p,
+.leader__bio ul { margin: var(--s-3) 0 0; }
 
 /* ---------- Карточка услуги (ТЗ 4.4) ---------- */
 .service__foot { margin-top: auto; }

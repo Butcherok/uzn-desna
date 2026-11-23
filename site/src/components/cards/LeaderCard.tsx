@@ -6,7 +6,7 @@
  * (ТЗ 5.3), админка — загруженный файл (решение 046).
  */
 import { formatDate } from '@uzn/shared';
-import { paragraphs } from '../../domain/text';
+import { RichText } from './RichText';
 
 export interface LeaderPhoto {
   src: string;
@@ -53,9 +53,7 @@ export function LeaderCard({ fullName, position, since, bio, photo, bioOpen }: L
       {bio && (
         <details className="leader__bio" open={bioOpen || undefined}>
           <summary>Біографія</summary>
-          {paragraphs(bio).map((paragraph, index) => (
-            <p key={index}>{paragraph}</p>
-          ))}
+          <RichText text={bio} />
         </details>
       )}
     </article>

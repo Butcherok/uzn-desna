@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { envelopeSchema } from './envelope.js';
-import { langText } from './lang-text.js';
+import { langText, richLangText } from './lang-text.js';
 
 /**
  * Вакансия — сущность `Vacancy` (ТЗ 6.2, 13.1, страница 4.10).
@@ -24,7 +24,7 @@ export const vacancySchema = z.object({
   /** Подразделение или дільниця */
   unit: langText(150).optional(),
   /** Две-три строки */
-  requirements: langText(400),
+  requirements: richLangText(400),
   contactId: z.string().min(1).max(80),
   status: z.enum(['draft', 'published']),
   /** «Актуально до», `ГГГГ-ММ-ДД`: с этого дня карточка скрыта */

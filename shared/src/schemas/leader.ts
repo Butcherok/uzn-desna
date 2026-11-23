@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { envelopeSchema } from './envelope.js';
-import { langText } from './lang-text.js';
+import { langText, richLangText } from './lang-text.js';
 import { storedPhoneSchema } from '../format/phone.js';
 
 /**
@@ -29,7 +29,7 @@ export const leaderSchema = z
     fullName: langText(120),
     position: langText(150),
     phone: storedPhoneSchema.optional(),
-    bio: langText(2000).optional(),
+    bio: richLangText(2000).optional(),
     /** Путь в репозитории: `media/leaders/…` (ТЗ 6.1, п. 9; 8.4, п. 5) */
     photoPath: z
       .string()

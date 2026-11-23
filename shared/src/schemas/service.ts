@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { envelopeSchema } from './envelope.js';
-import { langText } from './lang-text.js';
+import { langText, richLangText } from './lang-text.js';
 import { storedPhoneSchema } from '../format/phone.js';
 
 /**
@@ -22,7 +22,7 @@ export const serviceSchema = z.object({
     .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/u, 'Слаг: латиница, цифры и дефис'),
   title: langText(150),
   /** До двух предложений (ТЗ 5.2, п. 6) */
-  summary: langText(300),
+  summary: richLangText(300),
   /** Группа услуг. Порядок групп — по первому появлению в порядке `order` */
   group: langText(120),
   /** Ссылка на `Contact`. Версия 1 не выводит */

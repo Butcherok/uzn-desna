@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { envelopeSchema } from './envelope.js';
-import { langText } from './lang-text.js';
+import { langText, richLangText } from './lang-text.js';
 import { storedPhoneSchema } from '../format/phone.js';
 
 /**
@@ -20,7 +20,7 @@ export const scenarioSchema = z.object({
   /** Ситуация словами жителя (ТЗ 5.2, п. 5) */
   situation: langText(150),
   /** Одно предложение, что делает предприятие. Версия 1 его не выводит */
-  whatWeDo: langText(300).optional(),
+  whatWeDo: richLangText(300).optional(),
   /** Телефон сценария. Пусто — выводится номер первого блока страницы */
   phone: storedPhoneSchema.optional(),
   hours: langText(120).optional(),

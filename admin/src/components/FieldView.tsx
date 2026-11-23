@@ -5,6 +5,7 @@
  */
 import type { ReactNode } from 'react';
 import { FileField, type FileApi } from './FileField';
+import { RICH_HINT, RichField, RichPreview } from './RichField';
 import type { Field, Option } from '../domain/forms';
 import type { Confirm, FieldErrors, FormGroupItem, FormValue, Lang } from '../domain/form-values';
 import { formatDateTime } from '../domain/kinds';
@@ -93,8 +94,30 @@ function LangInput(p: Props & { field: Extract<Field, { type: 'lang' }> }) {
       {p.tab === 'en' && (
         <p className="field__source">Українською: {v.uk ? v.uk : <em>ще не заповнено</em>}</p>
       )}
-      {p.field.multiline ? <textarea rows={4} {...common} /> : <input type="text" {...common} />}
+      {p.field.rich ? (
+        <RichField
+          id={id}
+          value={common.value}
+          onChange={(text) => p.onChange({ ...v, [p.tab]: text })}
+          maxLength={p.field.max}
+          lang={p.tab}
+          fieldLabel={p.field.label}
+          ariaInvalid={common['aria-invalid']}
+          ariaDescribedBy={[common['aria-describedby'], `${id}-rich`].filter(Boolean).join(' ')}
+          ariaRequired={common['aria-required']}
+        />
+      ) : p.field.multiline ? (
+        <textarea rows={4} {...common} />
+      ) : (
+        <input type="text" {...common} />
+      )}
       <Describe id={id} hint={p.tab === 'uk' ? p.field.hint : ''} error={error} />
+      {p.field.rich && (
+        <p className="field__hint" id={`${id}-rich`}>
+          {RICH_HINT}
+        </p>
+      )}
+      {p.field.rich === 'field' && <RichPreview text={common.value} lang={p.tab} />}
     </div>
   );
 }

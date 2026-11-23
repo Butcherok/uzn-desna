@@ -20,7 +20,7 @@ import { VacancyCard } from '../../../site/src/components/cards/VacancyCard';
 import type { PreviewCard, PreviewResult } from '../domain/preview';
 import siteCss from '../styles/preview-site.css?url';
 
-function SiteFrame({ children, off }: { children: ReactNode; off: boolean }) {
+export function SiteFrame({ children, off }: { children: ReactNode; off: boolean }) {
   const host = useRef<HTMLDivElement>(null);
   const [root, setRoot] = useState<ShadowRoot | null>(null);
   useLayoutEffect(() => {
