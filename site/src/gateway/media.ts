@@ -8,6 +8,8 @@
  * ошибка сборки, а не молча пустая карточка (ТЗ 6.6, п. 3).
  */
 import type { ImageMetadata } from 'astro';
+import type { PublicDoc } from '@uzn/shared';
+import type { DocTarget } from '../components/cards/DocLink';
 import bannerDayFile from '../../../media/banner/banner-day.png';
 import bannerNightFile from '../../../media/banner/banner-night.png';
 import asideBinFile from '../../../media/aside/aside-bin.png';
@@ -73,6 +75,13 @@ export function publicDocFile(filePath: string): DocFile {
     throw new Error(`Нет файла ${filePath}: путь из data/public-docs.json не найден в media/`);
   }
   return { href: entry[1], kind: name.endsWith('.pdf') ? 'PDF' : 'Word' };
+}
+
+/** Куда ведёт ссылка документа: файл сборки или внешний адрес (ТЗ 4.3). */
+export function docTarget(doc: PublicDoc): DocTarget {
+  if (!doc.filePath) return { kind: 'external', href: doc.externalUrl };
+  const file = publicDocFile(doc.filePath);
+  return { kind: 'file', href: file.href, fileKind: file.kind, updatedAt: doc.docUpdatedAt };
 }
 
 /**

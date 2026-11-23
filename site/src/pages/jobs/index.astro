@@ -16,7 +16,8 @@
  */
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import PhoneLink from '../../components/PhoneLink.astro';
-import PhoneInline from '../../components/PhoneInline.astro';
+import { VacancyCard } from '../../components/cards/VacancyCard';
+import { renderStatic } from '../../components/cards/render-static';
 import { contacts, vacancies } from '../../gateway/data';
 import { contactBySlug } from '../../domain/contacts';
 import { HR_CONTACT_SLUG, kyivDate, vacancyCards } from '../../domain/vacancies';
@@ -49,18 +50,7 @@ const description =
       <h2 id="jobs-open">Відкриті вакансії</h2>
       <ul class="grid grid--2 list-bare">
         {cards.map((card) => (
-          <li class="card">
-            <h3 class="card__title">{card.position}</h3>
-            {card.unit && (
-              <p class="card__text">
-                <span class="tag">{card.unit}</span>
-              </p>
-            )}
-            <p class="card__text">{card.requirements}</p>
-            <p class="card__text">
-              Телефон: <PhoneInline phone={card.phone} />
-            </p>
-          </li>
+          <Fragment set:html={renderStatic(VacancyCard, card)} />
         ))}
       </ul>
     </section>

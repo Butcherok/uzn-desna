@@ -1,11 +1,13 @@
 ---
 /**
- * Ссылка на документ «Публічної інформації» (ТЗ 4.3). Внешний адрес
- * открывается в новой вкладке со значком выхода; файл на этом сайте
- * (`own`, решение 042) — обычной ссылкой с типом файла и датой обновления.
+ * Ссылка на документ «Публічної інформації» (ТЗ 4.3) для страниц Astro.
+ * Адрес файла сборки находит слой gateway; разметку даёт React-компонент
+ * `cards/DocLink`, общий с админкой (решение 046).
  */
-import { formatDate, type PublicDoc } from '@uzn/shared';
-import { publicDocFile } from '../gateway/media';
+import type { PublicDoc } from '@uzn/shared';
+import { DocLink } from './cards/DocLink';
+import { renderStatic } from './cards/render-static';
+import { docTarget } from '../gateway/media';
 
 interface Props {
   doc: PublicDoc;
@@ -13,21 +15,6 @@ interface Props {
 }
 
 const { doc, label } = Astro.props;
-const file = doc.filePath ? publicDocFile(doc.filePath) : null;
 ---
 
-{file ? (
-  <>
-    <a href={file.href} type={file.kind === 'PDF' ? 'application/pdf' : undefined}>
-      {label}
-    </a>{' '}
-    <span>
-      ({file.kind}
-      {doc.docUpdatedAt && <>, оновлено {formatDate(doc.docUpdatedAt)}</>})
-    </span>
-  </>
-) : (
-  <a class="ext" href={doc.externalUrl} target="_blank" rel="noopener noreferrer">
-    {label}
-  </a>
-)}
+<Fragment set:html={renderStatic(DocLink, { label, target: docTarget(doc) })} />

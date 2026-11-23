@@ -12,6 +12,8 @@
  * той же страницы 17.11.2026 — в объёме, уже оприлюдненому органом управління
  * (прецедент решения 011). Придуманных услуг в перечне нет.
  */
+import { ServiceCard } from '../../components/cards/ServiceCard';
+import { renderStatic } from '../../components/cards/render-static';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import PhoneLink from '../../components/PhoneLink.astro';
 import { contacts, services } from '../../gateway/data';
@@ -43,10 +45,12 @@ const description =
       <h2>{group.name}</h2>
       <div class="grid grid--2">
         {group.services.map((service) => (
-          <article class="card">
-            <h3 class="card__title">{service.title.uk}</h3>
-            <p class="card__text mt-2">{service.summary.uk}</p>
-          </article>
+          <Fragment
+            set:html={renderStatic(ServiceCard, {
+              title: service.title.uk,
+              summary: service.summary.uk,
+            })}
+          />
         ))}
       </div>
     </section>
