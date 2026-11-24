@@ -1,9 +1,20 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-11-23T18:29:34.360Z",
+  "generatedAt": "2026-11-24T15:19:35.229Z",
   "source": "sync",
   "state": "data",
   "items": [
+    {
+      "tenderID": "UA-2026-11-24-012602-a",
+      "title": "Бензин А-95 (у формі облікових карток–талонів)",
+      "status": "active.tendering",
+      "amount": 369000,
+      "currency": "UAH",
+      "vatIncluded": false,
+      "datePublished": "2026-11-24",
+      "tenderEndDate": "2026-11-27T11:00:00+02:00",
+      "url": "https://prozorro.gov.ua/tender/UA-2026-11-24-012602-a"
+    },
     {
       "tenderID": "UA-2026-11-23-012498-a",
       "title": "Послуги із декларування продукції (розроблення технічного файлу)",
@@ -212,20 +223,9 @@
       "datePublished": "2026-11-03",
       "tenderEndDate": null,
       "url": "https://prozorro.gov.ua/tender/UA-2026-11-03-011374-a"
-    },
-    {
-      "tenderID": "UA-2026-11-03-011169-a",
-      "title": "Електроінструменти",
-      "status": "complete",
-      "amount": 32124,
-      "currency": "UAH",
-      "vatIncluded": true,
-      "datePublished": "2026-11-03",
-      "tenderEndDate": null,
-      "url": "https://prozorro.gov.ua/tender/UA-2026-11-03-011169-a"
     }
   ],
-  "fetchedAt": "2026-11-23T18:29:34.360Z",
-  "lastSuccessAt": "2026-11-23T18:29:34.360Z",
+  "fetchedAt": "2026-11-24T15:19:35.229Z",
+  "lastSuccessAt": "2026-11-24T15:19:35.229Z",
   "sourceErrors": []
 }
