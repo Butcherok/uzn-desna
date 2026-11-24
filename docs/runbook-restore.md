@@ -31,7 +31,20 @@ age --version
 mongorestore --version
 ```
 
-Должны напечататься номера версий. Нет — перезапустить Windows и повторить.
+Должны напечататься номера версий. `mongorestore` не найден, а winget пишет
+«Найден существующий установленный пакет» — папка утилит не попала в `PATH`
+(24.11.2026, у владельца). Найти её и добавить в `PATH` пользователя:
+
+```
+$dir = (Get-ChildItem "C:\Program Files\MongoDB" -Recurse -Filter mongorestore.exe | Select-Object -First 1).DirectoryName
+```
+
+```
+[Environment]::SetEnvironmentVariable("Path", [Environment]::GetEnvironmentVariable("Path","User") + ";" + $dir, "User")
+```
+
+Закрыть PowerShell, открыть новое окно, повторить проверку. Для шагов 1–2
+`mongorestore` не нужен — только для шага 3.
 
 ## 1. Скачать копию
 
@@ -60,7 +73,8 @@ age -d -i key.txt -o uzn.archive (Get-ChildItem *.age).Name
 ```
 
 Должно: команда завершилась без сообщений, появился файл `uzn.archive`
-размером в сотни килобайт. Сообщение `no identity matched any of the
+размером в десятки килобайт (24.11.2026 — 14 379 байт: архив сжат). Размер:
+`(Get-Item uzn.archive).Length`. Сообщение `no identity matched any of the
 recipients` — ключ не тот: копия зашифрована другим открытым ключом.
 
 Записать в журнал решений ТЗ (13.3, «Прогоны восстановления»): дата, «ключ
