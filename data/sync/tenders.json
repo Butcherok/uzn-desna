@@ -1,9 +1,20 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-11-24T15:19:35.229Z",
+  "generatedAt": "2026-11-25T14:59:36.186Z",
   "source": "sync",
   "state": "data",
   "items": [
+    {
+      "tenderID": "UA-2026-11-25-006174-a",
+      "title": "Поповнення транспортних квитків  для оплати проїзду у транспорті загального користування)",
+      "status": "complete",
+      "amount": 1250,
+      "currency": "UAH",
+      "vatIncluded": false,
+      "datePublished": "2026-11-25",
+      "tenderEndDate": null,
+      "url": "https://prozorro.gov.ua/tender/UA-2026-11-25-006174-a"
+    },
     {
       "tenderID": "UA-2026-11-24-012602-a",
       "title": "Бензин А-95 (у формі облікових карток–талонів)",
@@ -194,7 +205,7 @@
     {
       "tenderID": "UA-2026-11-06-003076-a",
       "title": "Складові частини зрошувального обладнання",
-      "status": "active.qualification",
+      "status": "active.awarded",
       "amount": 295940.02,
       "currency": "UAH",
       "vatIncluded": false,
@@ -212,20 +223,9 @@
       "datePublished": "2026-11-03",
       "tenderEndDate": null,
       "url": "https://prozorro.gov.ua/tender/UA-2026-11-03-011526-a"
-    },
-    {
-      "tenderID": "UA-2026-11-03-011374-a",
-      "title": "Обладнання для паяння",
-      "status": "complete",
-      "amount": 10398.37,
-      "currency": "UAH",
-      "vatIncluded": true,
-      "datePublished": "2026-11-03",
-      "tenderEndDate": null,
-      "url": "https://prozorro.gov.ua/tender/UA-2026-11-03-011374-a"
     }
   ],
-  "fetchedAt": "2026-11-24T15:19:35.229Z",
-  "lastSuccessAt": "2026-11-24T15:19:35.229Z",
+  "fetchedAt": "2026-11-25T14:59:36.186Z",
+  "lastSuccessAt": "2026-11-25T14:59:36.186Z",
   "sourceErrors": []
 }
