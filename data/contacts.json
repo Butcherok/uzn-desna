@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-11-26T17:18:41.637Z",
+  "generatedAt": "2026-11-26T18:31:19.658Z",
   "source": "admin-export",
   "items": [
     {
@@ -62,9 +62,12 @@
         "uk": "Цілодобово, щодня",
         "en": "Around the clock, every day"
       },
+      "role": {
+        "uk": "Координує роботу підприємства в неробочий час, у вихідні та святкові дні."
+      },
       "roundClock": true,
       "confirmed": true,
-      "showInFooter": true,
+      "showInFooter": false,
       "order": 4
     }
   ]
