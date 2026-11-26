@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-11-23T18:39:47.729Z",
+  "generatedAt": "2026-11-26T17:18:41.637Z",
   "source": "admin-export",
   "items": [
     {
@@ -11,8 +11,8 @@
       },
       "phone": "+380443373501",
       "hours": {
-        "uk": "Пн–Пт 08:00–17:00, обідня перерва 12:00–13:00",
-        "en": "Mon–Fri 08:00–17:00, lunch break 12:00–13:00"
+        "uk": "Пн–Пт 08:00–17:00\nПерерва 12:00–13:00\nСб, Нд — вихідні",
+        "en": "Mon–Fri 08:00–17:00\nBreak 12:00–13:00\nSat, Sun — closed"
       },
       "roundClock": false,
       "confirmed": true,
@@ -27,8 +27,8 @@
       },
       "phone": "+380443373502",
       "hours": {
-        "uk": "Пн–Пт 08:00–17:00, обідня перерва 12:00–13:00",
-        "en": "Mon–Fri 08:00–17:00, lunch break 12:00–13:00"
+        "uk": "Пн–Пт 08:00–17:00\nПерерва 12:00–13:00\nСб, Нд — вихідні",
+        "en": "Mon–Fri 08:00–17:00\nBreak 12:00–13:00\nSat, Sun — closed"
       },
       "roundClock": false,
       "confirmed": true,
@@ -43,8 +43,8 @@
       },
       "phone": "+380443373503",
       "hours": {
-        "uk": "Пн–Пт 08:00–17:00, обідня перерва 12:00–13:00",
-        "en": "Mon–Fri 08:00–17:00, lunch break 12:00–13:00"
+        "uk": "Пн–Пт 08:00–17:00\nПерерва 12:00–13:00\nСб, Нд — вихідні",
+        "en": "Mon–Fri 08:00–17:00\nBreak 12:00–13:00\nSat, Sun — closed"
       },
       "roundClock": false,
       "confirmed": true,
