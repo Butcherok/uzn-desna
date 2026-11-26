@@ -6,7 +6,7 @@
  */
 import SiteHeader from '../components/SiteHeader.astro';
 import SiteFooter from '../components/SiteFooter.astro';
-import { contacts, enterprise } from '../gateway/data';
+import { contacts, contentUpdatedAt, enterprise } from '../gateway/data';
 import { footerContacts } from '../domain/contacts';
 import { ENTERPRISE, INDEXING_ENABLED, SITE_NAME, withBase } from '../config/site';
 import headFontUrl from '../fonts/fixel-display-cyrlat-var.woff2?url';
@@ -124,6 +124,6 @@ const csp = [
     <main id="main" class="container section">
       <slot />
     </main>
-    <SiteFooter contacts={footer} email={enterprise.email} />
+    <SiteFooter contacts={footer} email={enterprise.email} updatedAt={contentUpdatedAt} />
   </body>
 </html>

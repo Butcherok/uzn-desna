@@ -1,14 +1,15 @@
 /**
  * Ссылка-телефон — главный элемент сайта (ТЗ 2.1, дизайн-система 1.0, раздел 7).
- * Цель на всю ширину, подпись-часы — `.tel__hint`. Выводит переданные данные,
+ * Ширина по содержимому, на телефоне — во всю колонку (решение 050);
+ * подпись-часы — `.tel__hint`, по строке на строку данных. Выводит переданные данные,
  * ввода-вывода не делает (ТЗ 10.2).
  */
-import { formatPhone } from '@uzn/shared';
+import { formatPhone, textLines } from '@uzn/shared';
 
 export interface PhoneLinkProps {
   /** Телефон в виде хранения +380XXXXXXXXX */
   phone: string;
-  /** Часы ответа или другая подпись под номером */
+  /** Часы ответа или другая подпись под номером; строка данных — строка подписи */
   hint?: string | undefined;
 }
 
@@ -33,7 +34,11 @@ export function PhoneLink({ phone, hint }: PhoneLinkProps) {
       </svg>
       <span>
         <span className="tel__num">{formatPhone(phone)}</span>
-        {hint && <span className="tel__hint">{hint}</span>}
+        {textLines(hint).map((line) => (
+          <span className="tel__hint" key={line}>
+            {line}
+          </span>
+        ))}
       </span>
     </a>
   );

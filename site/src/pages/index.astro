@@ -21,6 +21,7 @@ import { ASIDES, BANNER } from '../gateway/media';
 import { contactBySlug } from '../domain/contacts';
 import { organizationJsonLd } from '../domain/organization';
 import { ENTERPRISE, NETWORK_LINKS, SITE_NAME, withBase } from '../config/site';
+import { textLines } from '@uzn/shared';
 
 /**
  * Ступени `srcset` баннера. Потолок 1600 — ТЗ 5.3, п. 2. Набор подобран под
@@ -228,8 +229,9 @@ const description =
     <div class="card">
       <ul class="list-bare">
         <li>{ENTERPRISE.address}</li>
-        {office?.hours && <li>{office.hours.uk}</li>}
-        <li>Сб, Нд — вихідні</li>
+        {textLines(office?.hours?.uk).map((line) => (
+          <li>{line}</li>
+        ))}
       </ul>
       {office && <PhoneLink phone={office.phone} hint={office.purpose.uk} />}
       <p class="mt-2">

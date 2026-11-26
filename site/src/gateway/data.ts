@@ -89,6 +89,26 @@ for (const [name, file] of [
   }
 }
 
+/**
+ * Дата последней правки содержимого для подвала (решение 050): самая поздняя
+ * `generatedAt` среди файлов, которые выгружает админка. Файлы синхронизации
+ * (лента, закупки) не считаются: они обновляются сами по расписанию, и дата
+ * менялась бы каждый день без правок предприятия.
+ */
+export const contentUpdatedAt: string = [
+  contactsFile,
+  enterpriseFile,
+  leadersFile,
+  moderationFile,
+  publicDocsFile,
+  scenariosFile,
+  servicesFile,
+  staticBlocksFile,
+  vacanciesFile,
+]
+  .map((file) => file.generatedAt)
+  .reduce((latest, date) => (Date.parse(date) > Date.parse(latest) ? date : latest));
+
 export const publicDocs: readonly PublicDoc[] = publicDocsFile.items;
 export const contacts: readonly Contact[] = contactsFile.items;
 export const scenarios: readonly Scenario[] = scenariosFile.items;

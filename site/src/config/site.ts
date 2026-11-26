@@ -64,12 +64,6 @@ export const NETWORK_LINKS = [
   { label: 'Чинна сторінка підприємства', href: 'https://desna.kyivzelenbud.com/' },
 ] as const;
 
-/**
- * Дата последней правки контента для строки подвала (ТЗ 3.1, подвал, п. 5).
- * До появления `data/` правится вручную в этом файле.
- */
-export const CONTENT_UPDATED_AT = '2026-11-17';
-
 export type NavItem = {
   readonly label: string;
   readonly path: string;
