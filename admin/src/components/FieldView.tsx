@@ -169,6 +169,19 @@ function SimpleInput(p: Props) {
     case 'date':
       control = <input id={id} type="date" value={value} onChange={set} {...aria} />;
       break;
+    case 'number':
+      control = (
+        <input
+          id={id}
+          type="text"
+          inputMode={f.digits === 0 ? 'numeric' : 'decimal'}
+          maxLength={24}
+          value={value}
+          onChange={set}
+          {...aria}
+        />
+      );
+      break;
     case 'text':
       control = (
         <input id={id} type="text" maxLength={f.max} value={value} onChange={set} {...aria} />

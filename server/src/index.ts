@@ -7,6 +7,7 @@
 import { buildApp } from './app.js';
 import { ConfigError, loadConfig } from './config/env.js';
 import { BOOTSTRAP_MESSAGES, bootstrapOwner } from './domain/bootstrap.js';
+import { backfillContent } from './domain/content-backfill.js';
 import { purgeRetiredContent } from './domain/content-retired.js';
 import { mediaPathsIn, seedContent } from './domain/content-seed.js';
 import { INITIAL_DATA } from './gateway/initial-data.js';
@@ -82,6 +83,8 @@ async function main(): Promise<void> {
       app.log.info({ seed }, 'initial content');
       const retired = await purgeRetiredContent(store, new Date());
       if (Object.keys(retired).length > 0) app.log.info({ retired }, 'retired content purged');
+      const backfilled = await backfillContent(store, INITIAL_DATA, new Date());
+      if (Object.keys(backfilled).length > 0) app.log.info({ backfilled }, 'content backfilled');
     } catch (err) {
       const delay = RETRY_DELAYS_MS[Math.min(attempt, RETRY_DELAYS_MS.length - 1)] ?? 60_000;
       app.log.warn({ err, retryInMs: delay }, 'database preparation failed, will retry');

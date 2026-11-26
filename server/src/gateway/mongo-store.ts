@@ -46,7 +46,8 @@ type SessionDoc = Omit<Session, 'id' | 'userId'> & { _id: ObjectId; userId: Obje
 type LogDoc = Omit<ActionLogEntry, 'userId'> & { _id?: ObjectId; userId: ObjectId | null };
 type ContentDoc = Omit<ContentRecord, 'id'> & { _id: ObjectId };
 /** Служебная запись контента — одна, с постоянным `_id`. */
-type MetaDoc = ContentMeta & { _id: 'content' };
+/** `backfills` — отметки дозаполнений (решение 053); в `ContentMeta` не входят. */
+type MetaDoc = ContentMeta & { _id: 'content'; backfills?: string[] };
 
 const META_ID = 'content' as const;
 
@@ -363,6 +364,23 @@ export class MongoStore implements Store {
     // Тип поля сужен до действующих сущностей, а удаляется как раз выбывшая.
     const filter = { kind: kind as ContentKind };
     return guard(async () => (await this.content.deleteMany(filter)).deletedCount);
+  }
+
+  listBackfills(): Promise<string[]> {
+    return guard(async () => (await this.meta.findOne({ _id: META_ID }))?.backfills ?? []);
+  }
+
+  markBackfillApplied(id: string): Promise<void> {
+    return guard(async () => {
+      await this.meta.updateOne(
+        { _id: META_ID },
+        {
+          $addToSet: { backfills: id },
+          $setOnInsert: { seededAt: null, lastPublishedAt: null, purgedPending: 0, lastRun: null },
+        },
+        { upsert: true },
+      );
+    });
   }
 
   countContentChangedSince(since: Date | null): Promise<number> {

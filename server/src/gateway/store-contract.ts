@@ -199,6 +199,17 @@ export function storeContract(name: string, make: () => Promise<Store>): void {
       expect((await store.listContent('contacts')).map((r) => r.id)).toEqual([kept.id]);
     });
 
+    it('keeps backfill marks without touching the content meta', async () => {
+      expect(await store.listBackfills()).toEqual([]);
+      await store.markBackfillApplied('a');
+      await store.markBackfillApplied('a');
+      await store.markBackfillApplied('b');
+      expect((await store.listBackfills()).sort()).toEqual(['a', 'b']);
+      expect(await store.markContentSeeded(t0)).toBe(true);
+      expect((await store.getContentMeta()).seededAt?.toISOString()).toBe(t0.toISOString());
+      expect((await store.listBackfills()).sort()).toEqual(['a', 'b']);
+    });
+
     it('marks seeding once and counts purged records', async () => {
       expect(await store.getContentMeta()).toEqual({
         seededAt: null,

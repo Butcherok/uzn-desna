@@ -180,6 +180,18 @@ export class MemoryStore implements Store {
     return n;
   }
 
+  private backfills = new Set<string>();
+
+  async listBackfills(): Promise<string[]> {
+    this.check();
+    return [...this.backfills];
+  }
+
+  async markBackfillApplied(id: string): Promise<void> {
+    this.check();
+    this.backfills.add(id);
+  }
+
   async countContentChangedSince(since: Date | null): Promise<number> {
     this.check();
     let n = 0;

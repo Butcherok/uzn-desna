@@ -18,8 +18,8 @@ export { contactSchema, contactsFileSchema } from './schemas/contact.js';
 export type { Contact } from './schemas/contact.js';
 export { serviceSchema, servicesFileSchema } from './schemas/service.js';
 export type { Service } from './schemas/service.js';
-export { enterpriseSchema, enterpriseFileSchema } from './schemas/enterprise.js';
-export type { Enterprise } from './schemas/enterprise.js';
+export { areaSchema, enterpriseSchema, enterpriseFileSchema } from './schemas/enterprise.js';
+export type { Enterprise, EnterpriseArea } from './schemas/enterprise.js';
 export { leaderSchema, leadersFileSchema } from './schemas/leader.js';
 export type { Leader } from './schemas/leader.js';
 export { truncateAtWord, TRUNCATE_EXCERPT, TRUNCATE_TITLE } from './format/truncate.js';
@@ -34,6 +34,12 @@ export {
 export type { Block as RichBlock, Inline as RichInline } from './format/rich-text.js';
 export { formatDate } from './format/date.js';
 export { textLines } from './format/lines.js';
+export {
+  formatCount,
+  formatHectaresExact,
+  formatHectaresShort,
+  totalHectares,
+} from './format/area.js';
 export {
   tenderSchema,
   tendersFileSchema,

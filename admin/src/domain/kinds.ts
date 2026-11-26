@@ -60,7 +60,7 @@ export const SECTIONS: readonly Section[] = [
   {
     kind: 'enterprise',
     label: 'Підприємство',
-    where: 'Назва, реквізити й довідка — сторінка «Про підприємство» і підвал сайту.',
+    where: 'Назва, реквізити, довідка й цифри — сторінка «Про підприємство» і підвал сайту.',
     addLabel: '',
     singleton: true,
     ordered: false,

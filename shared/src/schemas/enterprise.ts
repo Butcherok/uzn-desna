@@ -20,6 +20,27 @@ import { langText, richLangText } from './lang-text.js';
  * выводится (решение Заказчика 17.11.2026, решение 011), а поле без вывода
  * было бы данными, которые никто не проверяет.
  */
+/** До шести знаков после запятой — так площади даны в источнике (решение 018). */
+const hectares = z
+  .number()
+  .positive()
+  .max(100_000)
+  .refine(
+    (v) => Math.abs(v * 1e6 - Math.round(v * 1e6)) < 1e-6,
+    'Площа: до шести знаків після коми',
+  );
+
+/** Категория насаждений: название, число объектов (не у всех есть), гектары. */
+export const areaSchema = z.object({
+  name: langText(100),
+  count: z.number().int().min(1).max(10_000).optional(),
+  hectares,
+  /** Показать число объектов в карточке «У цифрах». */
+  inSummary: z.boolean().optional(),
+});
+
+export type EnterpriseArea = z.infer<typeof areaSchema>;
+
 export const enterpriseSchema = z.object({
   nameFull: langText(300),
   nameShort: langText(120).optional(),
@@ -38,6 +59,14 @@ export const enterpriseSchema = z.object({
   legalBasis: z.array(langText(300)).max(10).optional(),
   /** «Інформаційна довідка» — до 1500 знаков (ТЗ 5.2, п. 6) */
   infoReference: richLangText(1500).optional(),
+  /** Численность работников — карточка «У цифрах» (решение 053). */
+  staffCount: z.number().int().min(1).max(100_000).optional(),
+  /**
+   * «Що доглядаємо»: площадь по категориям (решение 053). Итог не хранится —
+   * это сумма `hectares`, поэтому арифметика на странице сходится всегда
+   * (решение 018).
+   */
+  areas: z.array(areaSchema).max(20).optional(),
 });
 
 export type Enterprise = z.infer<typeof enterpriseSchema>;
