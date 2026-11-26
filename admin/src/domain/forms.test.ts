@@ -124,6 +124,35 @@ describe('form values', () => {
     expect(checked).toBeGreaterThan(30);
   });
 
+  it('reads numbers with a comma or a dot and checks digits and limits', () => {
+    const fields = ALL_FORMS.enterprise;
+    const state = toForm(fields, enterprise.items[0] as Record<string, unknown>);
+    expect(state['staffCount']).toBe('223');
+    const rows = state['areas'] as Record<string, unknown>[];
+    expect(rows[0]?.['hectares']).toBe('513,5552');
+    expect(rows[1]?.['count']).toBe('');
+
+    const edit = (staff: string, ha: string) =>
+      fromForm(fields, {
+        ...state,
+        staffCount: staff,
+        areas: [{ ...rows[0], hectares: ha }],
+      });
+    const ok = edit('1 250', '513.5552');
+    expect(ok.errors).toEqual({});
+    expect(ok.data['staffCount']).toBe(1250);
+    expect((ok.data['areas'] as { hectares: number }[])[0]?.hectares).toBe(513.5552);
+
+    expect(edit('22,5', '1').errors['staffCount']).toBe('Введіть ціле число');
+    expect(edit('223', 'багато').errors['areas.0.hectares']).toMatch(/Введіть число/u);
+    expect(edit('223', '1,1234567').errors['areas.0.hectares']).toBe(
+      'Не більше 6 знаків після коми',
+    );
+    expect(edit('223', '0').errors['areas.0.hectares']).toBe('Має бути більше нуля');
+    expect(edit('0', '1').errors['staffCount']).toBe('Не менше 1');
+    expect(edit('223', '').errors['areas.0.hectares']).toBe('Заповніть це поле');
+  });
+
   it('normalizes a phone typed in any form and shows it back readable', () => {
     const fields = ALL_FORMS.contacts;
     const state = toForm(fields, contacts.items[0] as Record<string, unknown>);

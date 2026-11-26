@@ -11,6 +11,11 @@
  *
  * Биография раскрывается элементом `details` — без JavaScript
  * (ТЗ 11.7, п. 4; дизайн-система, раздел 7).
+ *
+ * «У цифрах» и «Що доглядаємо» (решение 053): численность и площади —
+ * поля `staffCount` и `areas`. Итог площади — сумма строк таблицы, в данных
+ * его нет, поэтому строки и итог на странице сходятся всегда (решение 018).
+ * От 1024 px текст и «У цифрах» стоят рядом; ниже — друг под другом.
  */
 import { getImage } from 'astro:assets';
 import BaseLayout from '../../layouts/BaseLayout.astro';
@@ -20,7 +25,13 @@ import {
   type LeaderPhoto,
 } from '../../components/cards/LeaderCard';
 import { renderStatic } from '../../components/cards/render-static';
-import { formatDate } from '@uzn/shared';
+import {
+  formatCount,
+  formatDate,
+  formatHectaresExact,
+  formatHectaresShort,
+  totalHectares,
+} from '@uzn/shared';
 import { enterprise, leaders, staticBlockText } from '../../gateway/data';
 import { leaderPhoto } from '../../gateway/media';
 import { publishedLeaders } from '../../domain/leaders';
@@ -28,6 +39,19 @@ import { RichText } from '../../components/cards/RichText';
 import { withBase } from '../../config/site';
 
 const summary = enterprise.infoReference?.uk.trim() ?? '';
+const areas = enterprise.areas ?? [];
+const total = totalHectares(areas);
+const facts: { value: string; label: string }[] = [
+  ...(enterprise.staffCount
+    ? [{ value: formatCount(enterprise.staffCount), label: 'Працівники' }]
+    : []),
+  ...(areas.length > 0
+    ? [{ value: formatHectaresShort(total), label: 'Площа під доглядом, га' }]
+    : []),
+  ...areas
+    .filter((a) => a.inSummary && a.count)
+    .map((a) => ({ value: formatCount(a.count ?? 0), label: a.name.uk })),
+];
 const historyBlock = staticBlockText('about.history');
 const history = historyBlock?.uk.trim() ?? '';
 // Фото — WebP 88 px с плотностями 1 и 2, нарезанные сборкой (ТЗ 5.3); фото
@@ -62,10 +86,76 @@ const description =
 <BaseLayout section="Про підприємство" path="/about/" description={description}>
   <h1>Про підприємство</h1>
 
-  {summary && (
-    <section class="section">
-      <h2>Чим займається підприємство</h2>
-      <Fragment set:html={renderStatic(RichText, { text: summary, firstClassName: 'lead' })} />
+  {(summary || facts.length > 0 || areas.length > 0) && (
+    <section class="section" aria-labelledby="about-what">
+      <h2 id="about-what">Чим займається підприємство</h2>
+      <div class={summary && facts.length > 0 ? 'about-split' : undefined}>
+        {summary && (
+          <div>
+            <Fragment
+              set:html={renderStatic(RichText, { text: summary, firstClassName: 'lead' })}
+            />
+          </div>
+        )}
+        {facts.length > 0 && (
+          <aside class="card facts" aria-labelledby="about-facts">
+            <h3 id="about-facts" class="facts__title">
+              У цифрах
+            </h3>
+            <ul class="nums nums--2 list-bare">
+              {facts.map((f) => (
+                <li class="num">
+                  <span class="num__v">{f.value}</span>
+                  <span class="num__l">{f.label}</span>
+                </li>
+              ))}
+            </ul>
+          </aside>
+        )}
+      </div>
+      {areas.length > 0 && (
+        <>
+          <h3 id="about-areas">Що доглядаємо</h3>
+          <table class="figures" aria-labelledby="about-areas">
+            <thead>
+              <tr>
+                <th scope="col">Категорія</th>
+                <th scope="col" class="figures__n">
+                  Кількість
+                </th>
+                <th scope="col" class="figures__n">
+                  Площа, га
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {areas.map((a) => (
+                <tr>
+                  <th scope="row">{a.name.uk}</th>
+                  <td class="figures__n">
+                    {a.count ? (
+                      formatCount(a.count)
+                    ) : (
+                      <>
+                        <span aria-hidden="true">—</span>
+                        <span class="vh">немає даних</span>
+                      </>
+                    )}
+                  </td>
+                  <td class="figures__n">{formatHectaresExact(a.hectares)}</td>
+                </tr>
+              ))}
+            </tbody>
+            <tfoot>
+              <tr>
+                <th scope="row">Разом</th>
+                <td class="figures__n" />
+                <td class="figures__n">{formatHectaresExact(total)}</td>
+              </tr>
+            </tfoot>
+          </table>
+        </>
+      )}
     </section>
   )}
 

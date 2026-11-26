@@ -245,6 +245,10 @@ export interface Store {
    * (решение 052), включая «Кошик». Возвращает число удалённых.
    */
   purgeRetiredKind(kind: string): Promise<number>;
+  /** Отметки выполненных дозаполнений (решение 053). */
+  listBackfills(): Promise<string[]>;
+  /** Ставит отметку дозаполнения; повтор ничего не меняет. */
+  markBackfillApplied(id: string): Promise<void>;
   /** Число записей с `updatedAt` позже `since`; `null` — все записи. */
   countContentChangedSince(since: Date | null): Promise<number>;
   getContentMeta(): Promise<ContentMeta>;

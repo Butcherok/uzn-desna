@@ -87,6 +87,8 @@ function fieldToForm(f: Field, data: unknown): FormValue {
             return out;
           })
         : [];
+    case 'number':
+      return typeof v === 'number' ? numberToForm(v) : '';
     case 'words':
       return Array.isArray(v) ? v.map(String).join('\n') : '';
     case 'pairs':
@@ -96,6 +98,21 @@ function fieldToForm(f: Field, data: unknown): FormValue {
     default:
       return str(v);
   }
+}
+
+/** 513.5552 → «513,5552»: в форме число с комой, как его пишут по-українськи. */
+export function numberToForm(v: number): string {
+  return String(v).replace('.', ',');
+}
+
+/**
+ * Разбор числа из формы: кома или точка, пробелы между разрядами допустимы.
+ * `null` — не число.
+ */
+export function parseFormNumber(s: string): number | null {
+  const t = s.replace(/[\s\u00a0\u202f]/gu, '').replace(',', '.');
+  if (!/^\d+(\.\d+)?$/u.test(t)) return null;
+  return Number(t);
 }
 
 export function toForm(fields: readonly Field[], data: Data): FormState {
@@ -157,6 +174,23 @@ function convert(f: Field, raw: FormValue | undefined, key: string, now: () => D
         return fail('Адреса має починатися з https://');
       }
       return { value: s, errors };
+    }
+    case 'number': {
+      const s = str(raw).trim();
+      if (!s) return f.required ? fail(REQUIRED) : { value: undefined, errors };
+      const n = parseFormNumber(s);
+      if (n === null) {
+        return fail(f.digits === 0 ? 'Введіть ціле число' : 'Введіть число, наприклад 10,25');
+      }
+      const frac = s.replace(/[\s\u00a0\u202f]/gu, '').split(/[.,]/u)[1] ?? '';
+      if (frac.length > f.digits) {
+        return fail(
+          f.digits === 0 ? 'Введіть ціле число' : `Не більше ${f.digits} знаків після коми`,
+        );
+      }
+      if (n < f.min) return fail(f.min < 1 ? 'Має бути більше нуля' : `Не менше ${f.min}`);
+      if (n > f.max) return fail(`Не більше ${f.max}`);
+      return { value: n, errors };
     }
     case 'phone': {
       const s = str(raw).trim();

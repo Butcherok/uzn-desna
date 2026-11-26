@@ -37,6 +37,8 @@ export type Field =
     })
   | (Base & { type: 'text'; max: number; pattern?: { re: RegExp; message: string } })
   | (Base & { type: 'email'; max: number })
+  /** Число: вводится с комою або крапкою (решение 053). `digits` — знаков после запятой. */
+  | (Base & { type: 'number'; min: number; max: number; digits: number; unit?: string })
   | (Base & { type: 'phone' })
   | (Base & { type: 'url'; max: number })
   | (Base & { type: 'date' })
@@ -170,6 +172,59 @@ const FORMS: Record<Kind, readonly Field[]> = {
       rich: 'field',
       label: 'Довідка про підприємство',
       hint: 'Короткий текст для сторінки «Про підприємство».',
+    },
+    {
+      name: 'staffCount',
+      type: 'number',
+      min: 1,
+      max: 100_000,
+      digits: 0,
+      label: 'Кількість працівників',
+      hint: 'Показується в блоці «У цифрах» на сторінці «Про підприємство».',
+    },
+    {
+      name: 'areas',
+      type: 'group',
+      maxItems: 20,
+      itemLabel: 'Категорія',
+      label: 'Що доглядаємо',
+      hint: 'Таблиця на сторінці «Про підприємство». Загальну площу сайт рахує сам — це сума рядків.',
+      fields: [
+        {
+          name: 'name',
+          type: 'lang',
+          max: 100,
+          required: true,
+          label: 'Назва категорії',
+          hint: 'Наприклад, Парки.',
+        },
+        {
+          name: 'count',
+          type: 'number',
+          min: 1,
+          max: 10_000,
+          digits: 0,
+          label: 'Кількість об’єктів',
+          hint: 'Необов’язково. Без числа в таблиці буде прочерк.',
+        },
+        {
+          name: 'hectares',
+          type: 'number',
+          min: 0.000001,
+          max: 100_000,
+          digits: 6,
+          unit: 'га',
+          required: true,
+          label: 'Площа, га',
+          hint: 'Як у документі, до шести знаків після коми: 513,5552.',
+        },
+        {
+          name: 'inSummary',
+          type: 'bool',
+          label: 'Показати кількість у блоці «У цифрах»',
+          hint: '',
+        },
+      ],
     },
   ],
 
