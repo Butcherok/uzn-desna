@@ -1,9 +1,20 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-11-25T14:59:36.186Z",
+  "generatedAt": "2026-11-26T14:30:37.886Z",
   "source": "sync",
   "state": "data",
   "items": [
+    {
+      "tenderID": "UA-2026-11-26-015434-a",
+      "title": "Дизельне пальне (у формі облікових карток–талонів)",
+      "status": "active.tendering",
+      "amount": 1838650,
+      "currency": "UAH",
+      "vatIncluded": false,
+      "datePublished": "2026-11-26",
+      "tenderEndDate": "2026-12-01T00:00:00+02:00",
+      "url": "https://prozorro.gov.ua/tender/UA-2026-11-26-015434-a"
+    },
     {
       "tenderID": "UA-2026-11-25-006174-a",
       "title": "Поповнення транспортних квитків  для оплати проїзду у транспорті загального користування)",
@@ -212,20 +223,9 @@
       "datePublished": "2026-11-06",
       "tenderEndDate": "2026-11-23T10:00:00+02:00",
       "url": "https://prozorro.gov.ua/tender/UA-2026-11-06-003076-a"
-    },
-    {
-      "tenderID": "UA-2026-11-03-011526-a",
-      "title": "Стрічка шліфувальна",
-      "status": "complete",
-      "amount": 1317.6,
-      "currency": "UAH",
-      "vatIncluded": true,
-      "datePublished": "2026-11-03",
-      "tenderEndDate": null,
-      "url": "https://prozorro.gov.ua/tender/UA-2026-11-03-011526-a"
     }
   ],
-  "fetchedAt": "2026-11-25T14:59:36.186Z",
-  "lastSuccessAt": "2026-11-25T14:59:36.186Z",
+  "fetchedAt": "2026-11-26T14:30:37.886Z",
+  "lastSuccessAt": "2026-11-26T14:30:37.886Z",
   "sourceErrors": []
 }
