@@ -1,0 +1,21 @@
+{
+  "name": "КП УЗН Деснянського району",
+  "short_name": "УЗН Деснянський",
+  "description": "Утримання зелених насаджень Деснянського району м. Києва: послуги, контакти, новини.",
+  "lang": "uk",
+  "start_url": "./",
+  "scope": "./",
+  "display": "browser",
+  "background_color": "#F5F1E4",
+  "theme_color": "#2F583F",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    {
+      "src": "icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
