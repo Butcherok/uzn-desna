@@ -12,7 +12,7 @@ const office = contactBySlug(contacts, 'pryimalnia');
 <BaseLayout
   section="Сторінку не знайдено"
   path="/404.html"
-  description="Такої сторінки немає. Посилання на головну, «Куди звертатися», «Контакти» і телефон приймальні."
+  description="Такої сторінки немає. Посилання на головну, «Контакти» і телефон приймальні."
   indexable={false}
   errorPage
 >
@@ -22,9 +22,6 @@ const office = contactBySlug(contacts, 'pryimalnia');
   <ul class="list-bare mt-6">
     <li>
       <a href={withBase('/')}>Головна</a>
-    </li>
-    <li>
-      <a href={withBase('/where-to-ask/')}>Куди звертатися</a>
     </li>
     <li>
       <a href={withBase('/contacts/')}>Контакти</a>

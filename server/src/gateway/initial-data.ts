@@ -8,7 +8,6 @@ import enterprise from '../../../data/enterprise.json';
 import feedRules from '../../../data/feed-rules.json';
 import leaders from '../../../data/leaders.json';
 import publicDocs from '../../../data/public-docs.json';
-import scenarios from '../../../data/scenarios.json';
 import services from '../../../data/services.json';
 import staticBlocks from '../../../data/static-blocks.json';
 import vacancies from '../../../data/vacancies.json';
@@ -20,7 +19,6 @@ export const INITIAL_DATA: InitialData = {
   'feed-rules': feedRules,
   leaders,
   'public-docs': publicDocs,
-  scenarios,
   services,
   'static-blocks': staticBlocks,
   vacancies,

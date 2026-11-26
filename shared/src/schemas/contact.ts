@@ -24,9 +24,15 @@ export const contactSchema = z.object({
   phone: storedPhoneSchema,
   /** Часы ответа. Нет часов — выводится один номер без подписи */
   hours: langText(120).optional(),
+  /**
+   * Что делает этот номер — строками, строка данных = строка на сайте.
+   * Выводится на «Контактах» под номером; нет текста — строки нет
+   * (ТЗ 4.6, 13.1; решение 052: роль оперативного чергового).
+   */
+  role: langText(300).optional(),
   roundClock: z.boolean(),
   confirmed: z.boolean(),
-  /** Выводить ли точку в подвале (ТЗ 3.1, подвал, пп. 1–2) */
+  /** Выводить ли точку в подвале (ТЗ 3.1, подвал, п. 1) */
   showInFooter: z.boolean(),
   order: z.number().int().nonnegative(),
 });

@@ -7,6 +7,7 @@
 import { buildApp } from './app.js';
 import { ConfigError, loadConfig } from './config/env.js';
 import { BOOTSTRAP_MESSAGES, bootstrapOwner } from './domain/bootstrap.js';
+import { purgeRetiredContent } from './domain/content-retired.js';
 import { mediaPathsIn, seedContent } from './domain/content-seed.js';
 import { INITIAL_DATA } from './gateway/initial-data.js';
 import { MongoStore } from './gateway/mongo-store.js';
@@ -79,6 +80,8 @@ async function main(): Promise<void> {
       app.log[level]({ bootstrap: outcome }, BOOTSTRAP_MESSAGES[outcome]);
       const seed = await seedContent(store, INITIAL_DATA, new Date());
       app.log.info({ seed }, 'initial content');
+      const retired = await purgeRetiredContent(store, new Date());
+      if (Object.keys(retired).length > 0) app.log.info({ retired }, 'retired content purged');
     } catch (err) {
       const delay = RETRY_DELAYS_MS[Math.min(attempt, RETRY_DELAYS_MS.length - 1)] ?? 60_000;
       app.log.warn({ err, retryInMs: delay }, 'database preparation failed, will retry');

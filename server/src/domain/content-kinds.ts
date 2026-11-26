@@ -4,7 +4,6 @@ import {
   feedRulesSchema,
   leaderSchema,
   publicDocSchema,
-  scenarioSchema,
   serviceSchema,
   staticBlockSchema,
   vacancySchema,
@@ -80,12 +79,6 @@ export const KINDS: readonly KindDef[] = [
     schema: asRecord(serviceSchema),
     titleField: 'title',
     refersToContact: true,
-  }),
-  list({
-    kind: 'scenarios',
-    label: 'Куди звертатися',
-    schema: asRecord(scenarioSchema),
-    titleField: 'situation',
   }),
   list({
     kind: 'vacancies',

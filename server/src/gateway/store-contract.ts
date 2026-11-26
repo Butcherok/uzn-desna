@@ -7,6 +7,7 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import {
   DuplicateKeyError,
+  type ContentKind,
   type NewContentRecord,
   type NewUser,
   type Store,
@@ -185,6 +186,17 @@ export function storeContract(name: string, make: () => Promise<Store>): void {
       expect(await store.deleteContent('contacts', a.id)).toBe(true);
       expect(await store.deleteContent('contacts', a.id)).toBe(false);
       expect((await store.listContent('contacts')).map((r) => r.key)).toEqual(['b']);
+    });
+
+    it('purges every record of a retired kind, trash included, and nothing else', async () => {
+      const retired = 'scenarios' as ContentKind;
+      await store.insertContent(newContent('x', { kind: retired }));
+      await store.insertContent(newContent('y', { kind: retired, deletedAt: later(5) }));
+      const kept = await store.insertContent(newContent('x'));
+      expect(await store.purgeRetiredKind('scenarios')).toBe(2);
+      expect(await store.purgeRetiredKind('scenarios')).toBe(0);
+      expect(await store.listContent(retired)).toEqual([]);
+      expect((await store.listContent('contacts')).map((r) => r.id)).toEqual([kept.id]);
     });
 
     it('marks seeding once and counts purged records', async () => {

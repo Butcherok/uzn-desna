@@ -171,6 +171,15 @@ export class MemoryStore implements Store {
     return this.content.delete(id);
   }
 
+  async purgeRetiredKind(kind: string): Promise<number> {
+    this.check();
+    let n = 0;
+    for (const [id, r] of this.content) {
+      if (r.kind === kind && this.content.delete(id)) n += 1;
+    }
+    return n;
+  }
+
   async countContentChangedSince(since: Date | null): Promise<number> {
     this.check();
     let n = 0;

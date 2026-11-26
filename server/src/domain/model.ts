@@ -79,7 +79,6 @@ export const CONTENT_KINDS = [
   'contacts',
   'leaders',
   'services',
-  'scenarios',
   'vacancies',
   'public-docs',
   'static-blocks',
@@ -241,6 +240,11 @@ export interface Store {
   updateContentOrder(kind: ContentKind, entries: ContentOrderEntry[], at: Date): Promise<void>;
   /** Физическое удаление. `false` — записи не было. */
   deleteContent(kind: ContentKind, id: string): Promise<boolean>;
+  /**
+   * Физически удаляет все записи сущности, которой больше нет в `CONTENT_KINDS`
+   * (решение 052), включая «Кошик». Возвращает число удалённых.
+   */
+  purgeRetiredKind(kind: string): Promise<number>;
   /** Число записей с `updatedAt` позже `since`; `null` — все записи. */
   countContentChangedSince(since: Date | null): Promise<number>;
   getContentMeta(): Promise<ContentMeta>;

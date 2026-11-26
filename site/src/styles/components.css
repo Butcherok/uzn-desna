@@ -304,16 +304,8 @@ main > :last-child { margin-bottom: 0; }
 /* ---------- Карточка услуги (ТЗ 4.4) ---------- */
 .service__foot { margin-top: auto; }
 
-/* ---------- Карточка сценария (ТЗ 4.5) ---------- */
-.scenario { gap: var(--s-4); }
-.scenario__q { margin: 0; font-family: var(--f-head); font-size: var(--fs-h3); font-weight: 700; }
-.scenario__hours { margin: 0; font-size: var(--fs-caption); color: var(--c-deep); }
-.scenario--alert { border-color: var(--c-alert); border-width: 2px; }
-.scenario--alert .scenario__badge {
-  display: inline-block; padding: 2px var(--s-2); border-radius: var(--r-pill);
-  background: var(--c-alert); color: var(--c-surface);
-  font-size: var(--fs-caption); font-weight: 600;
-}
+/* ---------- Роль номера на «Контактах» (ТЗ 4.6; решение 052) ---------- */
+.contact__role { margin: var(--s-2) 0 0; max-width: 60ch; }
 
 /* ---------- Блок цифр (ТЗ 4.1) ---------- */
 .nums { display: grid; gap: var(--s-2); grid-template-columns: repeat(3, 1fr); }
@@ -436,10 +428,6 @@ main > :last-child { margin-bottom: 0; }
 .site-footer a { color: var(--c-bg); }
 .site-footer a:hover { color: var(--c-mint); }
 .site-footer h2 { font-size: var(--fs-h4); color: var(--c-bg); }
-/* Заголовок-ссылка «Куди звертатися» в подвале стоит отдельно, а не внутри
-   предложения, поэтому подпадает под 44×44 px (ТЗ 11.1, п. 4): без этого
-   её высота равнялась высоте строки — 27 px. */
-.site-footer h2 a { display: inline-flex; align-items: center; min-height: var(--tap); }
 .site-footer .tel {
   background: transparent; border-color: var(--c-mint); color: var(--c-bg);
 }
@@ -462,7 +450,7 @@ main > :last-child { margin-bottom: 0; }
 }
 .ext::after { content: "↗"; margin-left: 0.25em; font-size: 0.9em; }
 @media (min-width: 600px) { .site-footer__grid { grid-template-columns: repeat(2, 1fr); } }
-@media (min-width: 1024px) { .site-footer__grid { grid-template-columns: repeat(4, 1fr); } }
+@media (min-width: 1024px) { .site-footer__grid { grid-template-columns: repeat(3, 1fr); } }
 
 /* ---------- Первый экран главной (ТЗ 4.1, дизайн-система 7а) ---------- */
 /* Правка 26.11.2026 (решение 051): название и девиз — над рисунком, на фоне

@@ -11,7 +11,7 @@ export function publishedContacts(contacts: readonly Contact[]): Contact[] {
   return contacts.filter((contact) => contact.confirmed).sort(byOrder);
 }
 
-/** Точки подвала: приймальня и оперативний черговий (ТЗ 3.1, подвал, пп. 1–2). */
+/** Точки подвала — с признаком `showInFooter`; в данных это приймальня (ТЗ 3.1, подвал, п. 1). */
 export function footerContacts(contacts: readonly Contact[]): Contact[] {
   return publishedContacts(contacts).filter((contact) => contact.showInFooter);
 }

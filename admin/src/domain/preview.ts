@@ -39,7 +39,13 @@ export type PreviewCard =
       phone: string;
     }
   | { type: 'doc'; title: string; target: PreviewDocTarget; place: string }
-  | { type: 'contact'; purpose: string; phone: string; hours?: string | undefined };
+  | {
+      type: 'contact';
+      purpose: string;
+      phone: string;
+      hours?: string | undefined;
+      role?: string | undefined;
+    };
 
 export interface PreviewResult {
   /** Карточка; `null` — не хватает обязательного, вместо неё `prompt`. */
@@ -256,7 +262,7 @@ export function previewOf(kind: Kind, form: FormState, ctx: PreviewContext): Pre
     }
 
     case 'contacts': {
-      langNames = ['purpose', 'hours'];
+      langNames = ['purpose', 'hours', 'role'];
       const purpose = need('purpose', text('purpose'));
       const raw = str(form['phone']);
       const phone = phoneOf(raw);
@@ -269,7 +275,13 @@ export function previewOf(kind: Kind, form: FormState, ctx: PreviewContext): Pre
       } else if (bool(form['showInFooter'])) {
         info.push('Номер показується також унизу кожної сторінки сайту (у підвалі).');
       }
-      card = { type: 'contact', purpose, phone: phone ?? '', hours: text('hours') || undefined };
+      card = {
+        type: 'contact',
+        purpose,
+        phone: phone ?? '',
+        hours: text('hours') || undefined,
+        role: text('role') || undefined,
+      };
       break;
     }
   }

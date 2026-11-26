@@ -16,8 +16,6 @@ export {
 export type { StaticBlock, BlockKey } from './schemas/static-block.js';
 export { contactSchema, contactsFileSchema } from './schemas/contact.js';
 export type { Contact } from './schemas/contact.js';
-export { scenarioSchema, scenariosFileSchema } from './schemas/scenario.js';
-export type { Scenario } from './schemas/scenario.js';
 export { serviceSchema, servicesFileSchema } from './schemas/service.js';
 export type { Service } from './schemas/service.js';
 export { enterpriseSchema, enterpriseFileSchema } from './schemas/enterprise.js';

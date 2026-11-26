@@ -72,7 +72,10 @@ jobs:
         if: steps.export.outputs.changed == 'true'
         run: |
           mkdir -p ../content-data/data
-          for name in contacts enterprise feed-rules leaders moderation public-docs scenarios services static-blocks vacancies; do
+          # Ветка повторяет выгрузку целиком: файл выбывшей сущности
+          # (scenarios.json, решение 052) уходит из неё этим же коммитом.
+          rm -f ../content-data/data/*.json
+          for name in contacts enterprise feed-rules leaders moderation public-docs services static-blocks vacancies; do
             cp "data/$name.json" ../content-data/data/
           done
           cd ../content-data

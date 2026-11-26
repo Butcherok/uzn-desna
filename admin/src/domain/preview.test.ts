@@ -33,7 +33,7 @@ describe('previewOf', () => {
         hasPreview(k as Kind),
       ),
     ).toBe(true);
-    for (const k of ['scenarios', 'static-blocks', 'enterprise', 'feed-rules'] as Kind[]) {
+    for (const k of ['static-blocks', 'enterprise', 'feed-rules'] as Kind[]) {
       expect(hasPreview(k)).toBe(false);
       expect(previewOf(k, {}, ctx())).toBeNull();
     }
@@ -227,8 +227,22 @@ describe('previewOf', () => {
       purpose: 'Приймальня',
       phone: '+380443373501',
       hours: undefined,
+      role: undefined,
     });
     expect(ok.info[0]).toMatch(/у підвалі/u);
+    const duty = previewOf(
+      'contacts',
+      {
+        ...form('contacts', {
+          purpose: t('Оперативний черговий'),
+          role: t('Координує роботу підприємства в неробочий час.'),
+          confirmed: true,
+        }),
+        phone: '067 448 05 11',
+      },
+      ctx(),
+    )!;
+    expect(duty.card).toMatchObject({ role: 'Координує роботу підприємства в неробочий час.' });
     const partial = previewOf(
       'contacts',
       { ...form('contacts', { purpose: t('Приймальня') }), phone: '044 33' },

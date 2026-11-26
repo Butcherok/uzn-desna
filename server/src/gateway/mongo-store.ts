@@ -359,6 +359,12 @@ export class MongoStore implements Store {
     return guard(async () => (await this.content.deleteOne({ _id, kind })).deletedCount === 1);
   }
 
+  purgeRetiredKind(kind: string): Promise<number> {
+    // Тип поля сужен до действующих сущностей, а удаляется как раз выбывшая.
+    const filter = { kind: kind as ContentKind };
+    return guard(async () => (await this.content.deleteMany(filter)).deletedCount);
+  }
+
   countContentChangedSince(since: Date | null): Promise<number> {
     return guard(() =>
       this.content.countDocuments(since === null ? {} : { updatedAt: { $gt: since } }),
