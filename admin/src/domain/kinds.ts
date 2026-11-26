@@ -15,7 +15,7 @@ export interface User {
 }
 
 export type ListKind =
-  'contacts' | 'leaders' | 'services' | 'scenarios' | 'public-docs' | 'vacancies' | 'static-blocks';
+  'contacts' | 'leaders' | 'services' | 'public-docs' | 'vacancies' | 'static-blocks';
 
 export type SingletonKind = 'enterprise' | 'feed-rules';
 
@@ -75,12 +75,6 @@ export const SECTIONS: readonly Section[] = [
     'Картки керівників — сторінка «Про підприємство».',
   ),
   list('services', 'Послуги', 'Додати послугу', 'Картки послуг — сторінка «Послуги».'),
-  list(
-    'scenarios',
-    'Куди звертатися',
-    'Додати ситуацію',
-    'Ситуації й номери — сторінка «Куди звертатися».',
-  ),
   list(
     'public-docs',
     'Публічна інформація',
@@ -176,8 +170,6 @@ export function titleOf(kind: Kind, data: Record<string, unknown>): string {
     case 'services':
     case 'public-docs':
       return uk(data['title']);
-    case 'scenarios':
-      return uk(data['situation']);
     case 'vacancies':
       return uk(data['position']);
     case 'static-blocks': {

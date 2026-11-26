@@ -302,32 +302,32 @@ describe('patch', () => {
 
   it('If-Match: stale version is 409, current passes', async () => {
     const ctx = await setup();
-    const id = await firstId(ctx, 'scenarios');
-    const before = await ctx.as('owner')({ method: 'GET', url: `/api/v1/scenarios/${id}` });
+    const id = await firstId(ctx, 'contacts');
+    const before = await ctx.as('owner')({ method: 'GET', url: `/api/v1/contacts/${id}` });
     const seen = before.headers.etag as string;
-    const emergency = before.json().data.emergency as boolean;
+    const roundClock = before.json().data.roundClock as boolean;
     tick(ctx);
     const changed = await ctx.as('owner')({
       method: 'PATCH',
-      url: `/api/v1/scenarios/${id}`,
-      payload: { emergency: !emergency },
+      url: `/api/v1/contacts/${id}`,
+      payload: { roundClock: !roundClock },
     });
     expect(changed.json().item.updatedAt).not.toBe(before.json().updatedAt);
     const stale = await ctx.as('owner')({
       method: 'PATCH',
-      url: `/api/v1/scenarios/${id}`,
+      url: `/api/v1/contacts/${id}`,
       headers: { 'if-match': seen },
-      payload: { emergency },
+      payload: { roundClock },
     });
     expect(stale.statusCode).toBe(409);
     expect(stale.json().error.message).toBe('Запис змінився або вже існує. Оновіть сторінку');
-    const fresh = (await ctx.as('owner')({ method: 'GET', url: `/api/v1/scenarios/${id}` })).headers
+    const fresh = (await ctx.as('owner')({ method: 'GET', url: `/api/v1/contacts/${id}` })).headers
       .etag as string;
     const ok = await ctx.as('owner')({
       method: 'PATCH',
-      url: `/api/v1/scenarios/${id}`,
+      url: `/api/v1/contacts/${id}`,
       headers: { 'if-match': fresh },
-      payload: { emergency },
+      payload: { roundClock },
     });
     expect(ok.statusCode).toBe(200);
   });
@@ -407,11 +407,10 @@ describe('status', () => {
     expect(bad.statusCode).toBe(422);
   });
 
-  it('a leader without confirmedAt and a scenario without phone can be published (ТЗ 3.29)', async () => {
+  it('a leader without confirmedAt can be published (ТЗ 3.29)', async () => {
     const ctx = await setup();
     for (const [kind, payload] of [
       ['leaders', { fullName: { uk: 'Тестовий Т. Т.' }, position: { uk: 'Інженер' } }],
-      ['scenarios', { situation: { uk: 'Впало дерево' }, emergency: true }],
     ] as const) {
       const id = (await ctx.as('owner')({ method: 'POST', url: `/api/v1/${kind}`, payload })).json()
         .item.id;
@@ -496,8 +495,8 @@ describe('trash', () => {
 
   it('permanent delete: owner only, only from the trash, still counted until published', async () => {
     const ctx = await setup();
-    const id = await firstId(ctx, 'scenarios');
-    const url = `/api/v1/scenarios/${id}`;
+    const id = await firstId(ctx, 'services');
+    const url = `/api/v1/services/${id}`;
     const notTrashed = await ctx.as('owner')({ method: 'DELETE', url: `${url}?permanent=1` });
     expect(notTrashed.statusCode).toBe(409);
     tick(ctx);

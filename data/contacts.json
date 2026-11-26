@@ -62,9 +62,12 @@
         "uk": "Цілодобово, щодня",
         "en": "Around the clock, every day"
       },
+      "role": {
+        "uk": "Координує роботу підприємства в неробочий час, у вихідні та святкові дні."
+      },
       "roundClock": true,
       "confirmed": true,
-      "showInFooter": true,
+      "showInFooter": false,
       "order": 4
     }
   ]

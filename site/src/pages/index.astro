@@ -92,15 +92,10 @@ const office = contactBySlug(contacts, 'pryimalnia');
 const news = feedCards(feed, FEED_ITEMS_ON_HOME, hiddenFeedKeys);
 
 /**
- * Карточки разделов (ТЗ 4.1). Пять карточек — в сетке на три колонки:
- * в четыре колонки пятая осталась бы одна во втором ряду.
+ * Карточки разделов (ТЗ 4.1). Четыре карточки: одна колонка, с 600 px —
+ * две, с 1024 px — четыре в ряд (решение 052).
  */
 const SECTIONS = [
-  {
-    path: '/where-to-ask/',
-    title: 'Куди звертатися',
-    text: 'Впало дерево, не политі насадження, зламана лавка — хто приймає звернення і за яким номером.',
-  },
   {
     path: '/services/',
     title: 'Послуги',
@@ -109,7 +104,7 @@ const SECTIONS = [
   {
     path: '/contacts/',
     title: 'Контакти',
-    text: 'Адреса, телефони підрозділів, графік роботи та оперативний черговий.',
+    text: 'Адреса, графік роботи й телефони підрозділів підприємства.',
   },
   {
     path: '/about/',
@@ -140,7 +135,7 @@ const organization = organizationJsonLd({
 });
 
 const description =
-  'КП УЗН Деснянського району: озеленення й догляд за зеленими насадженнями району. Куди звертатися, послуги, контакти.';
+  'КП УЗН Деснянського району: озеленення й догляд за зеленими насадженнями району. Послуги, контакти, новини.';
 ---
 
 <BaseLayout
@@ -219,7 +214,7 @@ const description =
       добавлял бы к названиям карточек. Название блока получает сам раздел —
       им пользуется навигация с экранного диктора (ТЗ 11.3) */}
   <section class="section" aria-label="Розділи сайту">
-    <div class="grid grid--3">
+    <div class="grid grid--4">
       {SECTIONS.map((item) => (
         <a class="card card--link" href={withBase(item.path)}>
           <span class="card__title">{item.title}</span>

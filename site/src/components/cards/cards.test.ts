@@ -46,6 +46,16 @@ describe('cards', () => {
   it('ContactRow', () => {
     const html = renderStatic(ContactRow, { purpose: 'Приймальня', phone: '+380443373501' });
     expect(html).toMatch(/^<tr><th scope="row">Приймальня<\/th><td><a class="tel"/u);
+    expect(html).not.toContain('contact__role');
+    const duty = renderStatic(ContactRow, {
+      purpose: 'Оперативний черговий',
+      phone: '+380674480511',
+      role: 'Координує роботу.\nЦілодобово.',
+    });
+    // Роль — після посилання, не всередині нього; рядок даних — абзац.
+    expect(duty).toContain(
+      '</a><p class="contact__role">Координує роботу.</p><p class="contact__role">Цілодобово.</p></td>',
+    );
   });
 
   it('LeaderCard: дата, абзаци біографії, фото й відкрита біографія', () => {

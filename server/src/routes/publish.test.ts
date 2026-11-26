@@ -150,10 +150,10 @@ describe('GET /export (TZ 8.5)', () => {
 
   it('leaves trashed records out', async () => {
     const ctx = await setup();
-    const list = (await ctx.as('owner')({ method: 'GET', url: '/api/v1/scenarios' })).json();
-    await ctx.as('owner')({ method: 'DELETE', url: `/api/v1/scenarios/${list.items[0].id}` });
+    const list = (await ctx.as('owner')({ method: 'GET', url: '/api/v1/services' })).json();
+    await ctx.as('owner')({ method: 'DELETE', url: `/api/v1/services/${list.items[0].id}` });
     const body = (await ctx.exportAs(EXPORT_TOKEN)).json();
-    expect(body.files['scenarios.json'].items).toHaveLength(list.items.length - 1);
+    expect(body.files['services.json'].items).toHaveLength(list.items.length - 1);
   });
 
   it('rejects a malformed run number', async () => {
@@ -297,10 +297,10 @@ describe('publication cycle (TZ 8.5, decision 041)', () => {
 
     // Правка во время прогона в эту публикацию не попала и остаётся в счётчике.
     tick(ctx);
-    const scen = (await ctx.as('owner')({ method: 'GET', url: '/api/v1/scenarios' })).json();
+    const svc = (await ctx.as('owner')({ method: 'GET', url: '/api/v1/services' })).json();
     await ctx.as('owner')({
       method: 'PATCH',
-      url: `/api/v1/scenarios/${scen.items[0].id}`,
+      url: `/api/v1/services/${svc.items[0].id}`,
       payload: { order: 99 },
     });
 

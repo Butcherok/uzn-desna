@@ -82,7 +82,6 @@ export const NAV: readonly NavItem[] = [
     ],
   },
   { label: 'Послуги', path: '/services/' },
-  { label: 'Куди звертатися', path: '/where-to-ask/' },
   { label: 'Контакти', path: '/contacts/' },
   { label: 'Новини', path: '/news/' },
 ];

@@ -192,6 +192,14 @@ const FORMS: Record<Kind, readonly Field[]> = {
       hint: 'Кожен рядок на сайті — окремим рядком тут, наприклад: «Пн–Пт 08:00–17:00», «Перерва 12:00–13:00», «Сб, Нд — вихідні». Порожньо — номер без підпису.',
     },
     {
+      name: 'role',
+      type: 'lang',
+      max: 300,
+      multiline: true,
+      label: 'Чим допомагає цей номер',
+      hint: 'Одне-два речення під номером на сторінці «Контакти», наприклад для чергового: «Координує роботу підприємства в неробочий час, у вихідні та святкові дні». Порожньо — без пояснення.',
+    },
+    {
       name: 'roundClock',
       type: 'bool',
       label: 'Цілодобово',
@@ -328,40 +336,6 @@ const FORMS: Record<Kind, readonly Field[]> = {
         { value: 'maintenance', label: 'У межах утримання' },
         { value: 'unknown', label: 'Не визначено' },
       ],
-    },
-  ],
-
-  scenarios: [
-    {
-      name: 'situation',
-      type: 'lang',
-      max: 150,
-      required: true,
-      label: 'Ситуація',
-      hint: 'Як скаже мешканець: «Впало дерево на дорогу».',
-    },
-    {
-      name: 'whatWeDo',
-      type: 'lang',
-      max: 300,
-      multiline: true,
-      rich: 'card',
-      label: 'Що ми робимо',
-      hint: 'Коротко: що буде після дзвінка.',
-    },
-    { name: 'phone', type: 'phone', label: 'Телефон', hint: 'Необов’язково. ' + phoneHint },
-    {
-      name: 'hours',
-      type: 'lang',
-      max: 120,
-      label: 'Коли телефонувати',
-      hint: 'Наприклад, «Цілодобово».',
-    },
-    {
-      name: 'emergency',
-      type: 'bool',
-      label: 'Аварійна ситуація',
-      hint: 'Позначка для ситуацій, коли потрібна негайна допомога.',
     },
   ],
 

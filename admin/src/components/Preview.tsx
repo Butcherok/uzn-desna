@@ -78,7 +78,12 @@ function Card({ card }: { card: PreviewCard }) {
       return (
         <table className="specs">
           <tbody>
-            <ContactRow purpose={card.purpose} phone={card.phone} hours={card.hours} />
+            <ContactRow
+              purpose={card.purpose}
+              phone={card.phone}
+              hours={card.hours}
+              role={card.role}
+            />
           </tbody>
         </table>
       );

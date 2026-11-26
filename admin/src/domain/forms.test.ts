@@ -4,7 +4,6 @@ import {
   feedRulesSchema,
   leaderSchema,
   publicDocSchema,
-  scenarioSchema,
   serviceSchema,
   staticBlockSchema,
   vacancySchema,
@@ -17,7 +16,6 @@ import enterprise from '../../../data/enterprise.json';
 import feedRules from '../../../data/feed-rules.json';
 import leaders from '../../../data/leaders.json';
 import publicDocs from '../../../data/public-docs.json';
-import scenarios from '../../../data/scenarios.json';
 import services from '../../../data/services.json';
 import staticBlocks from '../../../data/static-blocks.json';
 import vacancies from '../../../data/vacancies.json';
@@ -29,7 +27,6 @@ const SCHEMAS: Record<Kind, z.ZodType> = {
   contacts: contactSchema,
   leaders: leaderSchema,
   services: serviceSchema,
-  scenarios: scenarioSchema,
   'public-docs': publicDocSchema,
   vacancies: vacancySchema,
   'static-blocks': staticBlockSchema,
@@ -109,7 +106,6 @@ describe('form values', () => {
       ['feed-rules', feedRules],
       ['leaders', leaders],
       ['public-docs', publicDocs],
-      ['scenarios', scenarios],
       ['services', services],
       ['static-blocks', staticBlocks],
       ['vacancies', vacancies],

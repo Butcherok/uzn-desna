@@ -19,7 +19,6 @@ export const EXPORT_FILES = [
   'leaders.json',
   'moderation.json',
   'public-docs.json',
-  'scenarios.json',
   'services.json',
   'static-blocks.json',
   'vacancies.json',

@@ -1,7 +1,9 @@
 ---
 /**
  * «Контакти» (ТЗ 4.6). Состав блоков — утверждённый контент
- * `claude/12_kontent-4-5-4-6.md`, версия 0.3, раздел 4.
+ * `claude/12_kontent-4-5-4-6.md`, версия 0.3, раздел 4; с 26.11.2026 сюда
+ * объединена «Куди звертатися» (ТЗ 4.5; решение 052): оперативний черговий —
+ * строкой перечня телефонов с ролью из данных, без перечня ситуаций.
  *
  * Телефоны и часы — данные `data/contacts.json`, почта — `data/enterprise.json`.
  * Непроверенный телефон не выводится, нет почты — блок почты скрывается
@@ -16,11 +18,10 @@ import { renderStatic } from '../../components/cards/render-static';
 import { mailtoLinkHtml, textLines } from '@uzn/shared';
 import { contacts, enterprise } from '../../gateway/data';
 import { contactBySlug, publishedContacts } from '../../domain/contacts';
-import { ENTERPRISE, withBase } from '../../config/site';
+import { ENTERPRISE } from '../../config/site';
 
 const phones = publishedContacts(contacts);
 const office = contactBySlug(contacts, 'pryimalnia');
-const duty = contactBySlug(contacts, 'operatyvnyi-cherhovyi');
 
 const description =
   'Адреса, телефони та графік роботи КП УЗН Деснянського району: приймальня, бухгалтерія, відділ кадрів, оперативний черговий. Як дістатися та сторінка у Facebook.';
@@ -37,7 +38,6 @@ const description =
       {textLines(office?.hours?.uk).map((line) => (
         <li>{line}</li>
       ))}
-      {duty && <li>Оперативний черговий приймає звернення цілодобово.</li>}
     </ul>
   </div>
 
@@ -51,19 +51,12 @@ const description =
                 purpose: contact.purpose.uk,
                 phone: contact.phone,
                 hours: contact.hours?.uk,
+                role: contact.role?.uk,
               })}
             />
           ))}
         </tbody>
       </table>
-
-      {duty && (
-        <p class="mt-6">
-          Якщо впало дерево, не политі насадження або зламана лавка — телефонуйте оперативному
-          черговому. Перелік ситуацій — на сторінці{' '}
-          <a href={withBase('/where-to-ask/')}>Куди звертатися</a>.
-        </p>
-      )}
     </section>
   )}
 

@@ -46,6 +46,7 @@ const ACTIONS: Record<string, string> = {
   'content.purge': 'Остаточне видалення',
   'content.order': 'Зміна порядку',
   'content.seed': 'Завантаження початкових даних',
+  'content.purge-retired': 'Видалення записів розділу, якого більше немає',
   'upload.create': 'Завантаження файлу',
   'upload.delete': 'Видалення файлу',
   'feed.hide': 'Приховано картку стрічки',

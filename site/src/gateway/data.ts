@@ -12,7 +12,6 @@ import {
   leadersFileSchema,
   moderationFileSchema,
   publicDocsFileSchema,
-  scenariosFileSchema,
   servicesFileSchema,
   staticBlocksFileSchema,
   tendersFileSchema,
@@ -27,7 +26,6 @@ import type {
   FeedFile,
   LangText,
   Leader,
-  Scenario,
   Service,
   TendersFile,
   Vacancy,
@@ -37,7 +35,6 @@ import enterpriseRaw from '../../../data/enterprise.json';
 import leadersRaw from '../../../data/leaders.json';
 import moderationRaw from '../../../data/moderation.json';
 import publicDocsRaw from '../../../data/public-docs.json';
-import scenariosRaw from '../../../data/scenarios.json';
 import servicesRaw from '../../../data/services.json';
 import staticBlocksRaw from '../../../data/static-blocks.json';
 import vacanciesRaw from '../../../data/vacancies.json';
@@ -62,7 +59,6 @@ const enterpriseFile = parseFile('enterprise.json', enterpriseFileSchema, enterp
 const leadersFile = parseFile('leaders.json', leadersFileSchema, leadersRaw);
 const moderationFile = parseFile('moderation.json', moderationFileSchema, moderationRaw);
 const publicDocsFile = parseFile('public-docs.json', publicDocsFileSchema, publicDocsRaw);
-const scenariosFile = parseFile('scenarios.json', scenariosFileSchema, scenariosRaw);
 const servicesFile = parseFile('services.json', servicesFileSchema, servicesRaw);
 const staticBlocksFile = parseFile('static-blocks.json', staticBlocksFileSchema, staticBlocksRaw);
 const vacanciesFile = parseFile('vacancies.json', vacanciesFileSchema, vacanciesRaw);
@@ -75,7 +71,6 @@ for (const [name, file] of [
   ['leaders.json', leadersFile],
   ['moderation.json', moderationFile],
   ['public-docs.json', publicDocsFile],
-  ['scenarios.json', scenariosFile],
   ['services.json', servicesFile],
   ['static-blocks.json', staticBlocksFile],
   ['vacancies.json', vacanciesFile],
@@ -101,7 +96,6 @@ export const contentUpdatedAt: string = [
   leadersFile,
   moderationFile,
   publicDocsFile,
-  scenariosFile,
   servicesFile,
   staticBlocksFile,
   vacanciesFile,
@@ -111,7 +105,6 @@ export const contentUpdatedAt: string = [
 
 export const publicDocs: readonly PublicDoc[] = publicDocsFile.items;
 export const contacts: readonly Contact[] = contactsFile.items;
-export const scenarios: readonly Scenario[] = scenariosFile.items;
 export const leaders: readonly Leader[] = leadersFile.items;
 export const services: readonly Service[] = servicesFile.items;
 export const tenders: TendersFile = tendersFile;

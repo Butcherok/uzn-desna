@@ -1,9 +1,10 @@
 ---
 /**
- * Подвал на всех страницах (ТЗ 3.1, подвал): реквизиты и телефон приймальні,
- * ссылка «Куди звертатися» с телефоном оперативного дежурного, «Підприємства
- * мережі», Facebook; нижняя полоса — © предприятия, дата обновления и
- * разработчик (решение 050).
+ * Подвал на всех страницах (ТЗ 3.1, подвал): реквизиты и телефоны с признаком
+ * «Показувати в підвалі» (в данных — приймальня), «Підприємства мережі»,
+ * Facebook; нижняя полоса — © предприятия, дата обновления и разработчик
+ * (решение 050). Колонки дежурного нет: оперативний черговий — только на
+ * «Контактах» (решение 052).
  *
  * Телефоны и почта приходят параметрами: слой components выводит переданные
  * данные и сам к файлам не обращается (ТЗ 10.2). Почта собрана числовыми
@@ -13,7 +14,7 @@
 import type { Contact } from '@uzn/shared';
 import { mailtoLinkHtml, textLines } from '@uzn/shared';
 import PhoneLink from './PhoneLink.astro';
-import { ENTERPRISE, NETWORK_LINKS, withBase } from '../config/site';
+import { ENTERPRISE, NETWORK_LINKS } from '../config/site';
 
 interface Props {
   /** Точки с признаком `showInFooter`, уже отобранные и отсортированные */
@@ -26,8 +27,8 @@ interface Props {
 
 const { contacts, email, updatedAt } = Astro.props;
 
-const office = contacts.find((contact) => !contact.roundClock);
-const duty = contacts.find((contact) => contact.roundClock);
+/** Часы предприятия — у первой точки подвала (приймальня). */
+const office = contacts[0];
 /** Даты — по киевскому времени: сборка идёт на сервере в UTC. */
 const KYIV = { timeZone: 'Europe/Kyiv' } as const;
 const updated = new Date(updatedAt).toLocaleDateString('uk-UA', KYIV);
@@ -46,21 +47,17 @@ const year = new Intl.DateTimeFormat('en', { ...KYIV, year: 'numeric' }).format(
           <li>{line}</li>
         ))}
       </ul>
-      {office && <p class="mt-2">{office.purpose.uk}</p>}
-      {office && <PhoneLink phone={office.phone} />}
+      {contacts.map((contact) => (
+        <>
+          <p class="mt-2">{contact.purpose.uk}</p>
+          <PhoneLink phone={contact.phone} />
+        </>
+      ))}
       {email && (
         <p class="mt-2">
           <Fragment set:html={mailtoLinkHtml(email)} />
         </p>
       )}
-    </section>
-
-    <section>
-      <h2>
-        <a href={withBase('/where-to-ask/')}>Куди звертатися</a>
-      </h2>
-      {duty && <p>{duty.purpose.uk}</p>}
-      {duty && <PhoneLink phone={duty.phone} hint={duty.hours?.uk} />}
     </section>
 
     <section>
