@@ -35,6 +35,7 @@ export {
 } from './format/rich-text.js';
 export type { Block as RichBlock, Inline as RichInline } from './format/rich-text.js';
 export { formatDate } from './format/date.js';
+export { textLines } from './format/lines.js';
 export {
   tenderSchema,
   tendersFileSchema,

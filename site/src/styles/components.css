@@ -7,7 +7,12 @@
 /* ---------- Основа ---------- */
 *, *::before, *::after { box-sizing: border-box; }
 
-html { -webkit-text-size-adjust: 100%; }
+html {
+  -webkit-text-size-adjust: 100%;
+  /* Шапка липкая (решение 050): якорь и элемент в фокусе не уходят под неё
+     (WCAG 2.2, 2.4.11). Запас — шаг --s-4 над элементом. */
+  scroll-padding-top: calc(var(--h-header) + var(--s-4));
+}
 
 body {
   margin: 0;
@@ -32,7 +37,11 @@ h1, h2, h3, h4 {
   margin: 0 0 var(--s-3);
   text-wrap: balance;
 }
-h1 { font-size: var(--fs-h1); line-height: var(--lh-tight); }
+h1 { font-size: var(--fs-h1); line-height: var(--lh-tight); margin-bottom: var(--s-8); }
+/* Заголовок не первым в блоке — отделён от того, что над ним (решение 050).
+   `:where` без веса: заголовки карточек задают свои поля классом. */
+:where(h2, h3):not(:first-child) { margin-top: var(--section); }
+:where(h4):not(:first-child) { margin-top: var(--stack); }
 h2 { font-size: var(--fs-h2); }
 h3 { font-size: var(--fs-h3); }
 h4 { font-size: var(--fs-h4); font-weight: 600; }
@@ -89,6 +98,13 @@ a,
   padding-inline: var(--gutter);
 }
 .section { padding-block: var(--section); }
+/* Блоки внутри страницы: одно расстояние --section между соседями. Поля
+   (`margin`) соседних блоков схлопываются, отступ не удваивается, как было
+   при `padding` у вложенных секций (решение 050). Внешний `main.section`
+   держит поля страницы своим `padding`. */
+main .section { padding-block: 0; margin-block: var(--section); }
+main h1 + * { margin-top: 0; }
+main > :last-child { margin-bottom: 0; }
 .stack > * + * { margin-top: var(--s-4); }
 
 .grid { display: grid; gap: var(--gap); grid-template-columns: 1fr; }
@@ -172,6 +188,12 @@ a,
 .tel__num { font-variant-numeric: tabular-nums; white-space: nowrap; }
 .tel__hint { display: block; font-weight: 400; font-size: var(--fs-caption); color: var(--c-deep); }
 .tel + .tel { margin-top: var(--tap-gap); }
+/* С 600 px кнопка-телефон шириной по содержимому, а не во всю колонку
+   (решение 050): на широкой колонке рамка в 600+ px читалась как поле ввода.
+   Нижняя граница — чтобы кнопки в столбик не были разной ширины. */
+@media (min-width: 600px) {
+  .tel { width: fit-content; min-width: min(18rem, 100%); max-width: 100%; }
+}
 /* Телефон внутри строки текста: номер не разрывается переносом */
 .tel-text { white-space: nowrap; font-variant-numeric: tabular-nums; }
 
@@ -180,7 +202,7 @@ a,
   background: var(--c-surface);
   border: var(--bw) solid var(--c-line);
   border-radius: var(--r-md);
-  padding: var(--s-4);
+  padding: var(--card-pad);
   display: flex; flex-direction: column; gap: var(--s-3);
 }
 .card > :last-child { margin-bottom: 0; }
@@ -194,8 +216,11 @@ a,
    Одна геометрия на все карточки: иллюстрация 16:9, заголовок и отрывок —
    ровно по три строки места (длинное обрезается многоточием, короткое и пустое
    держат место), низ прижат к краю. */
-.card--feed { padding: 0; overflow: hidden; gap: 0; }
-.card--feed > :not(.card__media) { margin-inline: var(--s-4); }
+/* Нижнее поле карточки — её `padding`, а не `margin` последнего ряда:
+   правило `.card > :last-child` обнуляет поле последнего элемента, и
+   «Детальніше» прилипало к краю (решение 050). */
+.card--feed { padding: 0 0 var(--card-pad); overflow: hidden; gap: 0; }
+.card--feed > :not(.card__media) { margin-inline: var(--card-pad); }
 .card__media { aspect-ratio: 16 / 9; background: var(--c-pale); }
 .card__media svg { display: block; width: 100%; height: 100%; }
 .card__media { position: relative; margin: 0; }
@@ -215,7 +240,7 @@ a,
 .ill-trunk { fill: var(--c-deep); }
 .ill-crown { fill: var(--c-mid); }
 .ill-crown--light { fill: var(--c-mint); }
-.card--feed .card__title { font-size: var(--fs-h4); line-height: var(--lh-head); margin-top: var(--s-4); }
+.card--feed .card__title { font-size: var(--fs-h4); line-height: var(--lh-head); margin-top: var(--card-pad); }
 .card__clamp {
   display: -webkit-box;
   -webkit-box-orient: vertical;
@@ -228,7 +253,7 @@ a,
 .card__excerpt { margin-top: var(--s-3); min-height: calc(3em * var(--lh-body)); }
 .card__meta { margin: auto 0 0; padding-top: var(--s-3); color: var(--c-deep); font-size: var(--fs-caption); }
 .card__actions {
-  margin-block: var(--s-2) var(--s-4);
+  margin-block: var(--s-2) 0;
   display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center;
   gap: var(--s-2) var(--s-4);
   font-size: var(--fs-caption);
@@ -296,7 +321,13 @@ a,
 .num__l { display: block; margin-top: var(--s-1); font-size: var(--fs-caption); line-height: 1.3; color: var(--c-deep); }
 
 /* ---------- Шапка (ТЗ 3.1) ---------- */
-.site-header { background: var(--c-bg); border-bottom: var(--bw) solid var(--c-line); }
+/* Липкая шапка (решение 050): без JavaScript, остаётся сверху при прокрутке.
+   Фон непрозрачный — текст страницы под ней не просвечивает. Слой ниже
+   ссылки «Перейти до вмісту» (20) и верхнего слоя меню-popover. */
+.site-header {
+  position: sticky; top: 0; z-index: 10;
+  background: var(--c-bg); border-bottom: var(--bw) solid var(--c-line);
+}
 .site-header__bar {
   display: flex; align-items: center; justify-content: space-between; gap: var(--s-3);
   min-height: var(--h-header);
@@ -416,7 +447,18 @@ a,
 /* Подпись-часы: на тёмном фоне подвала --c-deep не читается (ТЗ 11.3 п.1) */
 .site-footer .tel__hint { color: var(--c-sand); }
 .site-footer__grid { display: grid; gap: var(--s-6); grid-template-columns: 1fr; }
-.site-footer__note { margin: var(--s-6) 0 0; color: var(--c-sand); }
+/* Нижняя полоса подвала (решение 050): ©, дата обновления, разработчик.
+   На телефоне — столбиком, с 600 px — строкой по краям. */
+.site-footer__bar {
+  display: flex; flex-direction: column; gap: var(--s-2);
+  margin-top: var(--s-8); padding-top: var(--s-6);
+  border-top: var(--bw) solid var(--c-olive);
+  color: var(--c-sand);
+}
+.site-footer__bar p { margin: 0; max-width: none; }
+@media (min-width: 600px) {
+  .site-footer__bar { flex-direction: row; flex-wrap: wrap; justify-content: space-between; gap: var(--s-2) var(--s-6); }
+}
 .ext::after { content: "↗"; margin-left: 0.25em; font-size: 0.9em; }
 @media (min-width: 600px) { .site-footer__grid { grid-template-columns: repeat(2, 1fr); } }
 @media (min-width: 1024px) { .site-footer__grid { grid-template-columns: repeat(4, 1fr); } }
@@ -543,7 +585,7 @@ a,
   a[href^="tel:"]::after { content: ""; }
   /* Телефоны и адрес в подвале печатаются по тексту, а не по тёмной заливке */
   .site-footer { background: var(--c-print-bg); color: var(--c-print-ink); --c-focus: var(--c-print-ink); }
-  .site-footer a, .site-footer h2, .site-footer__note { color: var(--c-print-ink); }
+  .site-footer a, .site-footer h2, .site-footer__bar { color: var(--c-print-ink); }
   .site-footer .tel { border-color: var(--c-print-ink); color: var(--c-print-ink); }
   .site-footer .tel .ico { color: var(--c-print-ink); }
   .card, .specs th, .specs td { break-inside: avoid; }

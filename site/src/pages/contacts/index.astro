@@ -13,7 +13,7 @@
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { ContactRow } from '../../components/cards/ContactRow';
 import { renderStatic } from '../../components/cards/render-static';
-import { mailtoLinkHtml } from '@uzn/shared';
+import { mailtoLinkHtml, textLines } from '@uzn/shared';
 import { contacts, enterprise } from '../../gateway/data';
 import { contactBySlug, publishedContacts } from '../../domain/contacts';
 import { ENTERPRISE, withBase } from '../../config/site';
@@ -34,8 +34,9 @@ const description =
     <ul class="list-bare">
       <li>{ENTERPRISE.address}</li>
       <li>ЄДРПОУ {ENTERPRISE.edrpou}</li>
-      {office?.hours && <li>{office.hours.uk}</li>}
-      <li>Сб, Нд — вихідні</li>
+      {textLines(office?.hours?.uk).map((line) => (
+        <li>{line}</li>
+      ))}
       {duty && <li>Оперативний черговий приймає звернення цілодобово.</li>}
     </ul>
   </div>

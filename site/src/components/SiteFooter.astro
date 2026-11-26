@@ -2,7 +2,8 @@
 /**
  * Подвал на всех страницах (ТЗ 3.1, подвал): реквизиты и телефон приймальні,
  * ссылка «Куди звертатися» с телефоном оперативного дежурного, «Підприємства
- * мережі», Facebook, дата обновления.
+ * мережі», Facebook; нижняя полоса — © предприятия, дата обновления и
+ * разработчик (решение 050).
  *
  * Телефоны и почта приходят параметрами: слой components выводит переданные
  * данные и сам к файлам не обращается (ТЗ 10.2). Почта собрана числовыми
@@ -10,22 +11,28 @@
  * нет (ТЗ 3.1, подвал, п. 1; ТЗ 5.4, п. 7; решение 008).
  */
 import type { Contact } from '@uzn/shared';
-import { mailtoLinkHtml } from '@uzn/shared';
+import { mailtoLinkHtml, textLines } from '@uzn/shared';
 import PhoneLink from './PhoneLink.astro';
-import { CONTENT_UPDATED_AT, ENTERPRISE, NETWORK_LINKS, withBase } from '../config/site';
+import { ENTERPRISE, NETWORK_LINKS, withBase } from '../config/site';
 
 interface Props {
   /** Точки с признаком `showInFooter`, уже отобранные и отсортированные */
   contacts: readonly Contact[];
   /** Почта предприятия из данных; нет почты — строка скрывается */
   email?: string | undefined;
+  /** Время последней правки содержимого, ISO 8601 (`contentUpdatedAt`) */
+  updatedAt: string;
 }
 
-const { contacts, email } = Astro.props;
+const { contacts, email, updatedAt } = Astro.props;
 
 const office = contacts.find((contact) => !contact.roundClock);
 const duty = contacts.find((contact) => contact.roundClock);
-const updated = new Date(CONTENT_UPDATED_AT).toLocaleDateString('uk-UA');
+/** Даты — по киевскому времени: сборка идёт на сервере в UTC. */
+const KYIV = { timeZone: 'Europe/Kyiv' } as const;
+const updated = new Date(updatedAt).toLocaleDateString('uk-UA', KYIV);
+const updatedIso = new Date(updatedAt).toLocaleDateString('sv-SE', KYIV);
+const year = new Intl.DateTimeFormat('en', { ...KYIV, year: 'numeric' }).format(new Date());
 ---
 
 <footer class="site-footer">
@@ -35,7 +42,9 @@ const updated = new Date(CONTENT_UPDATED_AT).toLocaleDateString('uk-UA');
       <ul class="list-bare">
         <li>ЄДРПОУ {ENTERPRISE.edrpou}</li>
         <li>{ENTERPRISE.address}</li>
-        {office?.hours && <li>{office.hours.uk}</li>}
+        {textLines(office?.hours?.uk).map((line) => (
+          <li>{line}</li>
+        ))}
       </ul>
       {office && <p class="mt-2">{office.purpose.uk}</p>}
       {office && <PhoneLink phone={office.phone} />}
@@ -77,5 +86,15 @@ const updated = new Date(CONTENT_UPDATED_AT).toLocaleDateString('uk-UA');
     </section>
   </div>
 
-  <p class="container site-footer__note">Інформація оновлена: {updated}</p>
+  <div class="container">
+    <div class="site-footer__bar">
+      <p>
+        © {year} {ENTERPRISE.nameShort}. Усі права захищено.
+      </p>
+      <p>
+        Оновлено <time datetime={updatedIso}>{updated}</time>
+      </p>
+      <p>Розробка — S#RP</p>
+    </div>
+  </div>
 </footer>
