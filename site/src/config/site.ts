@@ -56,8 +56,21 @@ export const API_ORIGIN: string = new URL(
   import.meta.env.PUBLIC_API_BASE || 'https://uzn-desna-api.onrender.com',
 ).origin;
 
+/**
+ * Дата последней проверки доступности для «Заяви про доступність»
+ * (решение 054). Меняется вместе с повторной проверкой, а не сборкой.
+ */
+export const A11Y_REVIEWED_AT = '2026-11-26';
+
 /** Название сайта для `og:site_name` и разметки Schema.org (решение 039). */
 export const SITE_NAME = 'КП УЗН Деснянського району';
+
+/**
+ * Описание картинки `og:image` (решение 054): это кадр дневного баннера
+ * главной, поэтому текст тот же, что у `alt` баннера.
+ */
+export const OG_IMAGE_ALT =
+  'Парк Деснянського району: алеї з лавками й ліхтарями між деревами ведуть до будівлі районної адміністрації та кінотеатру, позаду житлові багатоповерхівки';
 
 export const NETWORK_LINKS = [
   { label: 'Київзеленбуд', href: 'https://kyivzelenbud.com/' },

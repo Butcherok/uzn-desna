@@ -481,8 +481,10 @@ main > :last-child { margin-bottom: 0; }
   color: var(--c-sand);
 }
 .site-footer__bar p { margin: 0; max-width: none; }
+/* Ссылка полосы — отдельная цель, не слово в предложении: 44 px высоты */
+.site-footer__bar a { display: inline-flex; align-items: center; min-height: var(--tap); }
 @media (min-width: 600px) {
-  .site-footer__bar { flex-direction: row; flex-wrap: wrap; justify-content: space-between; gap: var(--s-2) var(--s-6); }
+  .site-footer__bar { flex-direction: row; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: var(--s-2) var(--s-6); }
 }
 .ext::after { content: "↗"; margin-left: 0.25em; font-size: 0.9em; }
 @media (min-width: 600px) { .site-footer__grid { grid-template-columns: repeat(2, 1fr); } }
@@ -593,6 +595,57 @@ main > :last-child { margin-bottom: 0; }
   .specs tr { padding: var(--s-2) 0; border-bottom: var(--bw) solid var(--c-line); }
   .specs th { border: 0; padding-bottom: 0; font-size: var(--fs-caption); color: var(--c-deep); }
   .specs td { border: 0; padding-top: 0; }
+}
+
+/* ---------- Повышенный контраст и системные цвета (решение 054) ----------
+   `prefers-contrast: more` — значения токенов в tokens.css; здесь только то,
+   что держится не цветом: метки и цифры получают рамку, у карточки — граница
+   элемента вместо декоративной линии, у подписи фото — плотнее подложка. */
+@media screen and (prefers-contrast: more) {
+  .card { border-color: var(--c-border); }
+  .tag, .num { border: var(--bw) solid var(--c-border); }
+  .card__credit { background: rgba(0, 0, 0, 0.85); }
+  .hero__slogan { color: var(--c-ink); }
+}
+
+/* `forced-colors: active` — «Контрастні теми» Windows: цвета задаёт система,
+   заливки браузер снимает. Что держалось заливкой, получает прозрачную рамку —
+   в этом режиме она рисуется цветом текста. Знак в шапке — рисунок: в
+   системных цветах он сливался бы в одно пятно, поэтому цвета у него свои
+   (`forced-color-adjust: none`), а круг отделён от фона обводкой. */
+@media (forced-colors: active) {
+  .tag, .num, .skip, .nav__list span[aria-current="page"] { border: var(--bw) solid transparent; }
+  .card__media { border-bottom: var(--bw) solid transparent; }
+  .brand__mark { forced-color-adjust: none; }
+  .brand__disc { stroke: CanvasText; stroke-width: 1px; }
+  /* Иконку внутри SVG браузер в системные цвета не переводит: цвет задаётся
+     явно — тот же, что у текста ссылки */
+  .tel .ico, .site-footer .tel .ico { color: LinkText; }
+  /* Прозрачная полоса под пунктами ряда меню в этом режиме видна у всех
+     пунктов — метка текущего перестала бы отличаться. Полоса остаётся только
+     у текущего. */
+  .nav__list > li > a { border-bottom-color: Canvas; }
+  :where(a, button, summary, input, [tabindex]):focus-visible { outline-color: Highlight; }
+}
+
+/* ---------- Навигационная цепочка (ТЗ 3.1; решение 054) ----------
+   Только на вложенных страницах. Разделитель — генерируемый знак с пустым
+   текстом для чтения с экрана: цепочку и так объявляет `nav` и список. */
+.crumbs { margin-bottom: var(--s-2); font-size: var(--fs-caption); }
+.crumbs ol { display: flex; flex-wrap: wrap; align-items: center; list-style: none; margin: 0; padding: 0; }
+.crumbs li { display: flex; align-items: center; }
+.crumbs li + li::before { content: "›"; content: "›" / ""; margin-inline: var(--s-2); color: var(--c-deep); }
+/* Ссылки цепочки — самостоятельные цели, не слова в предложении: 44 px высоты */
+.crumbs a { display: inline-flex; align-items: center; min-height: var(--tap); }
+.crumbs [aria-current="page"] { color: var(--c-deep); }
+
+/* ---------- «Заява про доступність» (ТЗ 4.14; решение 054) ---------- */
+.a11y-how h3 { font-size: var(--fs-h4); }
+kbd {
+  font-family: inherit; font-size: 0.9em; font-weight: 600;
+  padding: 0 var(--s-1);
+  border: var(--bw) solid var(--c-border); border-radius: 4px;
+  background: var(--c-surface);
 }
 
 /* ---------- Печать (ТЗ 11.7 п.7) ---------- */

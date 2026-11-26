@@ -10,12 +10,18 @@
  * Пороги WCAG 2.1: текст — 4,5:1, границы элементов управления, иконки,
  * контур фокуса — 3:1. Пары подвала проверяются
  * только по светлому набору: в тёмной теме эти области его сохраняют.
+ *
+ * Повышенный контраст (`prefers-contrast: more`, решение 054) — ещё два
+ * набора, светлый и тёмный, с порогами строже: текст 7:1 (WCAG 1.4.6),
+ * границы и иконки 4,5:1. В подвале этого режима `--c-sand` своё.
  */
 import { readFile } from 'node:fs/promises';
 
 const TOKENS = 'site/src/styles/tokens.css';
 const TEXT = 4.5;
 const UI = 3;
+/** Пороги режима повышенного контраста */
+const MORE = { [TEXT]: 7, [UI]: 4.5 };
 
 /** [цвет, фон, порог, где встречается] — пары страницы, оба набора. */
 const PAGE = [
@@ -94,6 +100,24 @@ if (!lightBlock || !darkBlock) {
 const light = readColors(lightBlock);
 const dark = { ...light, ...readColors(darkBlock) };
 
+const moreBlock = blockAfter(css, '@media screen and (prefers-contrast: more) {');
+const moreDarkBlock = blockAfter(
+  css,
+  '@media screen and (prefers-contrast: more) and (prefers-color-scheme: dark)',
+);
+if (!moreBlock || !moreDarkBlock) {
+  console.error(`contrast:check: в ${TOKENS} не найдены блоки повышенного контраста`);
+  process.exit(1);
+}
+/** Первый блок — `:root, .site-footer`; второй — поправки только подвала */
+const moreRoot = blockAfter(moreBlock, ':root,');
+const footerAt = moreBlock.indexOf('}', moreBlock.indexOf(':root,'));
+const moreFooter = blockAfter(moreBlock.slice(footerAt + 1), '.site-footer');
+const moreLight = readColors(moreRoot ?? '');
+const moreLightFooter = { ...moreLight, ...readColors(moreFooter ?? '') };
+const moreDark = { ...moreLight, ...readColors(moreDarkBlock) };
+const stricter = (pairs) => pairs.map(([fg, bg, min, where]) => [fg, bg, MORE[min], where]);
+
 let failed = 0;
 const check = (setName, set, pairs) => {
   for (const [fg, bg, min, where] of pairs) {
@@ -105,16 +129,19 @@ const check = (setName, set, pairs) => {
     const r = ratio(set[fg], set[bg]);
     const ok = r >= min;
     if (!ok) failed += 1;
-    const line = `${ok ? '✓' : '✗'} ${setName.padEnd(7)} ${r.toFixed(2).padStart(5)}:1 ≥ ${min}  --c-${fg} / --c-${bg} — ${where}`;
+    const line = `${ok ? '✓' : '✗'} ${setName.padEnd(13)} ${r.toFixed(2).padStart(5)}:1 ≥ ${min}  --c-${fg} / --c-${bg} — ${where}`;
     (ok ? console.log : console.error)(line);
   }
 };
 
 check('светлая', light, [...PAGE, ...DEEP_SURFACE]);
 check('тёмная', dark, PAGE);
+check('контраст свет', moreLight, stricter(PAGE));
+check('контраст свет', moreLightFooter, stricter(DEEP_SURFACE));
+check('контраст тёмн', moreDark, stricter(PAGE));
 
 if (failed) {
   console.error(`\ncontrast:check: ${failed} пар(ы) ниже порога`);
   process.exit(1);
 }
-console.log('\ncontrast:check: все пары проходят в обеих темах');
+console.log('\ncontrast:check: все пары проходят в обеих темах и в режиме повышенного контраста');
