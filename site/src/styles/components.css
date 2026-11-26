@@ -22,11 +22,12 @@ body {
   font-size: var(--fs-body);
   line-height: var(--lh-body);
   font-variant-numeric: tabular-nums;
-  /* Боковые предметы первого экрана стоят в полях страницы, то есть снаружи
-     полосы содержимого. `clip` обрезает их по краю окна и не даёт появиться
-     горизонтальной прокрутке (ТЗ 11.1). Именно `clip`, а не `hidden`:
-     `hidden` сделал бы body областью прокрутки и сломал бы `position: sticky`
-     и якоря. Вертикальная прокрутка не затронута. */
+  /* Страховка от горизонтальной прокрутки (ТЗ 11.1): полосы не будет, но
+     переполнение остаётся — скрипт, якорь или фокус сдвигают страницу (урок
+     26.11.2026). Поэтому ничто не должно выходить за окно и само по себе;
+     предметы первого экрана рассчитаны так (решение 051). Именно `clip`, а не
+     `hidden`: `hidden` сделал бы body областью прокрутки и сломал бы
+     `position: sticky` и якоря. */
   overflow-x: clip;
 }
 
@@ -153,7 +154,7 @@ main > :last-child { margin-bottom: 0; }
 }
 .btn--quiet:hover { background: var(--c-pale); color: var(--c-ink); }
 
-/* На тёмной заливке (панель первого экрана) основная кнопка сливается с фоном:
+/* На тёмной заливке (`--c-deep`) основная кнопка сливается с фоном:
    у неё тот же --c-deep. Акцентная — мята с тёмным текстом, 6,82:1. */
 .btn--accent {
   background: var(--c-mint);
@@ -464,93 +465,89 @@ main > :last-child { margin-bottom: 0; }
 @media (min-width: 1024px) { .site-footer__grid { grid-template-columns: repeat(4, 1fr); } }
 
 /* ---------- Первый экран главной (ТЗ 4.1, дизайн-система 7а) ---------- */
-.hero { margin-bottom: var(--s-6); }
+/* Правка 26.11.2026 (решение 051): название и девиз — над рисунком, на фоне
+   страницы; панели под рисунком и кнопки нет. */
+.hero__head { margin-bottom: var(--stack); }
+.hero__title { margin: 0 0 var(--s-2); }
+/* Девиз — подзаголовок: размер h3, обычное начертание. Не заголовок —
+   заголовок на странице один (7а). */
+.hero__slogan {
+  margin: 0;
+  max-width: none;
+  font-family: var(--f-head);
+  font-size: var(--fs-h3);
+  font-weight: 400;
+  line-height: var(--lh-head);
+  color: var(--c-deep);
+  text-wrap: balance;
+}
 
-/* Рисунок и предметы в одной коробке: предметы прижаты к низу рисунка, а не
-   к низу всего блока — иначе урна стояла бы на панели с названием. */
-.hero__media { position: relative; }
+/* Рисунок и предметы в одной коробке шириной с полосу содержимого.
+   `isolation` замыкает слои внутри: предметы под рисунком, но над фоном. */
+.hero__media { position: relative; isolation: isolate; }
 
 .hero__pic {
+  position: relative;
+  z-index: 1;
   display: block;
   width: 100%;
   height: auto;
   aspect-ratio: 4 / 3;
   object-fit: cover;
   object-position: center;
-  border-start-start-radius: var(--r-lg);
-  border-start-end-radius: var(--r-lg);
+  border-radius: var(--r-lg);
+  /* Тень отделяет рисунок от предметов за ним (концепт). Тень в прокрутку
+     не входит: горизонтальной прокрутки не даёт. */
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.18);
   /* Пока рисунка нет, первый экран показывается на фоне цвета палитры
      (ТЗ 4.1, «При отсутствии данных») */
   background: var(--c-mint);
 }
 @media (min-width: 600px) { .hero__pic { aspect-ratio: 3 / 2; } }
-@media (min-width: 1024px) { .hero__pic { aspect-ratio: 21 / 9; } }
+/* 16:9 — кадр исходника целиком: виден передний план парка (было 21:9). */
+@media (min-width: 1024px) { .hero__pic { aspect-ratio: 16 / 9; } }
 
-/* Полоса во всю ширину окна: предметы ставятся в поля страницы, снаружи
-   полосы содержимого (дизайн-система 7а, концепт). Обрезка по краю окна —
-   на `body`, см. «Основа». */
-.hero__frame {
+/* Предметы привязаны к рисунку, а не к окну: стоят на его нижней кромке и
+   выглядывают из-за боковых краёв на --prop-show, остальное спрятано за
+   рисунком. Наружу выходит только --prop-show, и пороги подобраны так, что
+   это меньше поля страницы даже с полосой прокрутки 17 px — поэтому полоса
+   шириной в окно (`100vw`) не нужна и горизонтальной прокрутки нет. */
+.hero__props { position: absolute; inset: 0; z-index: 0; pointer-events: none; }
+.hero__aside {
   position: absolute;
-  inset-block: 0;
-  inset-inline: calc(50% - 50vw);
-  pointer-events: none;
+  bottom: 0;
+  height: auto;
+  display: none;
+  width: var(--prop-w);
+  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.25));
 }
+.hero__aside--bin { left: calc(-1 * var(--prop-show)); }
+.hero__aside--planter { right: calc(-1 * var(--prop-show)); z-index: 1; }
+/* Куст — за вазоном и дальше от рисунка: правый край на --prop-show + 90 px
+   снаружи, левый заходит за вазон. */
+.hero__aside--plants { right: calc(-1 * (var(--prop-show) + 90px)); }
 
-.hero__aside { position: absolute; bottom: 0; height: auto; display: none; }
-@media (min-width: 768px) {
-  /* 110 px: полосе содержимого отведён весь экран, свободного поля нет,
-     и предмет заезжает на край рисунка — там по решению Заказчика высотки,
-     а не главное в кадре. */
-  .hero__aside { display: block; width: 110px; }
-  .hero__aside--bin { left: 0; }
-  .hero__aside--planter { right: 0; }
+/* Пороги — те же, что у `<source media>` в index.astro. Поле страницы при
+   полосе прокрутки 17 px: 1280 — 63 px, 1440 — 143, 1700 — 273. */
+@media (min-width: 1280px) {
+  .hero__media { --prop-w: 100px; --prop-show: 56px; }
+  .hero__aside--bin, .hero__aside--planter { display: block; }
 }
-@media (min-width: 1024px) { .hero__aside { width: 140px; } }
-/* С 1530 px свободного поля хватает на предмет целиком: ширина 165 px — это
-   ровно половина исходных 330 px, то есть честная плотность 2. */
-@media (min-width: 1530px) { .hero__aside { width: 165px; } }
-/* Куст появляется только там, где поле шире одного предмета: на 1920 px его
-   360 px, и один предмет в таком поле смотрится сиротливо. Стоит перед
-   вазоном, поэтому отступ меньше собственной ширины. */
-@media (min-width: 1700px) { .hero__aside--plants { right: 82px; } }
-
-.hero__panel {
-  display: flex;
-  flex-direction: column;
-  gap: var(--s-4);
-  padding: var(--s-5);
-  background: var(--c-deep);
-  color: var(--c-bg);
-  border-end-start-radius: var(--r-lg);
-  border-end-end-radius: var(--r-lg);
-  /* Общий контур фокуса --c-ink на этой заливке даёт 1,36:1 и не виден —
-     как в подвале, берётся светлый (ТЗ 11.3 п.3) */
-  --c-focus: var(--c-bg);
+@media (min-width: 1440px) {
+  .hero__media { --prop-w: 140px; --prop-show: 84px; }
 }
-.hero__title { margin: 0; color: var(--c-bg); }
-@media (min-width: 600px) {
-  .hero__panel {
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--s-6);
-    padding: var(--s-6);
-  }
-  /* Кнопка в строке с названием не ужимается: без этого на 768 px подпись
-     разрывалась на две строки, хотя места на странице хватало. */
-  .hero__panel .btn {
-    flex: none;
-    white-space: nowrap;
-  }
+/* 165 px — половина исходных 330 px, честная плотность 2. */
+@media (min-width: 1700px) {
+  .hero__media { --prop-w: 165px; --prop-show: 100px; }
+  .hero__aside--plants { display: block; }
 }
-
-.hero__slogan { margin-bottom: var(--section); color: var(--c-deep); }
 
 /* Предметы нарисованы при дневном свете. В тёмной теме они гасятся фильтром:
    это дешевле трёх ночных файлов и отменяется одной строкой (решение 020).
    Фильтр меняет только цвет и ничего не двигает. */
 @media (prefers-color-scheme: dark) {
-  .hero__aside { filter: brightness(0.65) saturate(0.85); }
+  .hero__pic { box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5); }
+  .hero__aside { filter: brightness(0.65) saturate(0.85) drop-shadow(0 4px 6px rgba(0, 0, 0, 0.4)); }
 }
 
 /* ---------- Карточка-ссылка: вся карточка — цель нажатия ---------- */

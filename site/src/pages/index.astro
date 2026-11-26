@@ -8,6 +8,9 @@
  * (ТЗ 4.1, версия 2). Блок «Новини галузі» — три последние карточки ленты
  * (решение 027); ленты нет — блока нет.
  *
+ * Первый экран переделан по замечаниям к версии 2 (решение 051): название и
+ * девиз над баннером, баннер без панели, предметы выглядывают из-за него.
+ *
  * Все сведения о предприятии — из данных, придуманного здесь нет
  * (инструкции проекта, п. 5).
  */
@@ -33,7 +36,7 @@ const BANNER_WIDTHS = [400, 600, 800, 1000, 1200, 1400, 1600];
 
 /**
  * Коэффициенты 1,19 и 1,34 — поправка на обрезку. Баннер выводится с
- * `object-fit: cover` в трёх соотношениях (4:3, 3:2, 21:9), и на узких экранах
+ * `object-fit: cover` в трёх соотношениях (4:3, 3:2, 16:9), и на узких экранах
  * браузер показывает кусок кадра уже самого кадра. Без поправки он брал бы
  * ступень мельче, чем нужно для плотности 2 (ТЗ 11.2, п. 1).
  */
@@ -63,8 +66,20 @@ const asidePlanter = await getImage({ src: ASIDES.planter, width: 330, format: '
 const asidePlants = await getImage({ src: ASIDES.plants, width: 330, format: 'webp' });
 
 /**
+ * С какой ширины окна выводится каждый предмет. Те же пороги стоят в
+ * `components.css` (первый экран главной): там — размер и место, здесь —
+ * загрузка файла. Уже 1280 px видимая часть предмета в поле страницы не
+ * помещается, и файл не скачивается вовсе (дизайн-система 7а).
+ */
+const ASIDE_MEDIA = {
+  bin: '(min-width: 1280px)',
+  planter: '(min-width: 1280px)',
+  plants: '(min-width: 1700px)',
+} as const;
+
+/**
  * Пустая картинка-заместитель для `<img>` внутри `<picture>` боковых предметов.
- * Ниже 768 px ни один `<source>` не подходит, и браузер берёт этот адрес —
+ * Ниже 1280 px ни один `<source>` не подходит, и браузер берёт этот адрес —
  * `data:` сетевого запроса не делает. Обычный `<img>` с настоящим файлом
  * скачивался бы и при `display: none`, а предметы на телефоне не выводятся
  * (дизайн-система 7а). Адрес `data:` разрешён политикой содержимого
@@ -135,8 +150,49 @@ const description =
   description={description}
   jsonLd={organization}
 >
-  <section class="hero">
+  {/* Первый экран (ТЗ 4.1, дизайн-система 7а, правка 26.11.2026): название и
+      девиз — над рисунком, на фоне страницы: контраст текста не зависит от
+      рисунка (ТЗ 11.3, п. 1). Кнопки нет — «Контакти» есть в шапке и подвале.
+      Девиз — подзаголовок, не заголовок: заголовок на странице один */}
+  <section class="hero" aria-labelledby="home-title">
+    <div class="hero__head">
+      <h1 id="home-title" class="hero__title">
+        {ENTERPRISE.nameShort}
+      </h1>
+      <p class="hero__slogan">Озеленення й догляд — наша щоденна робота</p>
+    </div>
+
     <div class="hero__media">
+      {/* Предмети виглядають з-за малюнка: декоративні, від 1280 px, там, де
+          їх видима частина вміщується в поле сторінки (дизайн-система 7а).
+          Стоять у розмітці перед малюнком — малюнок над ними за шарами */}
+      <div class="hero__props" aria-hidden="true">
+        <picture>
+          <source media={ASIDE_MEDIA.bin} type="image/webp" srcset={asideBin.src} />
+          <img class="hero__aside hero__aside--bin" src={BLANK} alt="" width="330" height="480" />
+        </picture>
+        <picture>
+          <source media={ASIDE_MEDIA.planter} type="image/webp" srcset={asidePlanter.src} />
+          <img
+            class="hero__aside hero__aside--planter"
+            src={BLANK}
+            alt=""
+            width="330"
+            height="480"
+          />
+        </picture>
+        <picture>
+          <source media={ASIDE_MEDIA.plants} type="image/webp" srcset={asidePlants.src} />
+          <img
+            class="hero__aside hero__aside--plants"
+            src={BLANK}
+            alt=""
+            width="330"
+            height="480"
+          />
+        </picture>
+      </div>
+
       <picture>
         <source
           media="(prefers-color-scheme: dark)"
@@ -156,49 +212,8 @@ const description =
           decoding="async"
         />
       </picture>
-
-      {/* Предмети обабіч смуги вмісту: декоративні, від 768 px (дизайн-система 7а) */}
-      <div class="hero__frame" aria-hidden="true">
-        <picture>
-          <source media="(min-width: 768px)" type="image/webp" srcset={asideBin.src} />
-          <img class="hero__aside hero__aside--bin" src={BLANK} alt="" width="330" height="480" />
-        </picture>
-        <picture>
-          <source media="(min-width: 768px)" type="image/webp" srcset={asidePlanter.src} />
-          <img
-            class="hero__aside hero__aside--planter"
-            src={BLANK}
-            alt=""
-            width="330"
-            height="480"
-          />
-        </picture>
-        <picture>
-          <source media="(min-width: 1700px)" type="image/webp" srcset={asidePlants.src} />
-          <img
-            class="hero__aside hero__aside--plants"
-            src={BLANK}
-            alt=""
-            width="330"
-            height="480"
-          />
-        </picture>
-      </div>
-    </div>
-
-    {/* Название и кнопка — на сплошной панели, а не поверх рисунка: контраст
-        текста на рисунке зависел бы от рисунка и ломался бы при его замене
-        (ТЗ 11.3, п. 1). На панели он известен заранее — 7,18:1 */}
-    <div class="hero__panel">
-      <h1 class="hero__title">{ENTERPRISE.nameShort}</h1>
-      <a class="btn btn--accent" href={withBase('/where-to-ask/')}>
-        Куди звертатися
-      </a>
     </div>
   </section>
-
-  {/* Лозунг — одна строка, не заголовок: заголовок на странице один (7а) */}
-  <p class="lead hero__slogan">Озеленення й догляд — наша щоденна робота</p>
 
   {/* Заголовка у блока нет: на странице он был бы вторым подряд и ничего не
       добавлял бы к названиям карточек. Название блока получает сам раздел —
