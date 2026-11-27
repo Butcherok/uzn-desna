@@ -29,6 +29,7 @@
     "data:check": "tsx scripts/bin/data-check.ts",
     "budget:check": "node scripts/bin/budget-check.mjs",
     "seo:check": "node scripts/bin/seo-check.mjs",
+    "lang:check": "tsx scripts/bin/lang-check.ts",
     "secrets:check": "node scripts/bin/secrets-check.mjs",
     "contrast:check": "node scripts/bin/contrast-check.mjs",
     "docs:check": "node scripts/bin/docs-check.mjs",
@@ -37,7 +38,7 @@
     "publish:export": "tsx scripts/bin/publish-export.ts",
     "hash-password": "tsx server/src/bin/hash-password.ts",
     "server:build": "npm run build --workspace server",
-    "ci": "npm run typecheck && npm run lint && npm run format:check && npm run contrast:check && npm run test && npm run data:check && npm run build && npm run server:build && npm run admin:build && npm run budget:check && npm run seo:check && npm run secrets:check && npm run docs:check",
+    "ci": "npm run typecheck && npm run lint && npm run format:check && npm run contrast:check && npm run test && npm run data:check && npm run build && npm run server:build && npm run admin:build && npm run budget:check && npm run seo:check && npm run lang:check && npm run secrets:check && npm run docs:check",
     "prepare": "husky",
     "admin:build": "npm run build --workspace admin",
     "admin:dev": "npm run dev --workspace admin"

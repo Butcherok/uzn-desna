@@ -15,3 +15,9 @@ describe('formatDate', () => {
     expect(() => formatDate('17.11.2026')).toThrow();
   });
 });
+
+describe('formatDate по-английски (решение 056)', () => {
+  it('ДД/ММ/РРРР — британский порядок', () => {
+    expect(formatDate('2002-01-09', 'en')).toBe('09/01/2002');
+  });
+});

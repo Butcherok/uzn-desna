@@ -23,9 +23,28 @@ export interface LeaderCardProps {
   photo?: LeaderPhoto | undefined;
   /** Биография открыта сразу — в предпросмотре админки. */
   bioOpen?: boolean;
+  /**
+   * Язык подписей карточки и даты (решение 056). Админка подписей не
+   * передаёт — по умолчанию украинский.
+   */
+  lang?: 'uk' | 'en';
 }
 
-export function LeaderCard({ fullName, position, since, bio, photo, bioOpen }: LeaderCardProps) {
+const LABELS = {
+  uk: { since: 'на посаді з', bio: 'Біографія' },
+  en: { since: 'in office since', bio: 'Biography' },
+} as const;
+
+export function LeaderCard({
+  fullName,
+  position,
+  since,
+  bio,
+  photo,
+  bioOpen,
+  lang = 'uk',
+}: LeaderCardProps) {
+  const labels = LABELS[lang];
   return (
     <article className="card leader">
       <div className="leader__head">
@@ -45,14 +64,19 @@ export function LeaderCard({ fullName, position, since, bio, photo, bioOpen }: L
           <h3 className="leader__name">{fullName}</h3>
           <p className="leader__post">
             {position}
-            {since && <> · на посаді з {formatDate(since)}</>}
+            {since && (
+              <>
+                {' '}
+                · {labels.since} {formatDate(since, lang)}
+              </>
+            )}
           </p>
         </div>
       </div>
 
       {bio && (
         <details className="leader__bio" open={bioOpen || undefined}>
-          <summary>Біографія</summary>
+          <summary>{labels.bio}</summary>
           <RichText text={bio} />
         </details>
       )}

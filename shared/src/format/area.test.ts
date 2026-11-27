@@ -14,7 +14,7 @@ describe('площади «Про підприємство»', () => {
   });
 
   it('строки таблицы — как в источнике, с запятой', () => {
-    expect(SOURCE.map(formatHectaresExact)).toEqual([
+    expect(SOURCE.map((value) => formatHectaresExact(value))).toEqual([
       '513,5552',
       '0,65215',
       '24,435506',
@@ -35,5 +35,17 @@ describe('площади «Про підприємство»', () => {
   it('пустой перечень — ноль', () => {
     expect(totalHectares([])).toBe(0);
     expect(formatCount(223)).toBe('223');
+  });
+});
+
+describe('площади и числа по-английски (решение 056)', () => {
+  it('британская запись: запятая — разряды, точка — дробь', () => {
+    expect(formatHectaresExact(1116.638956, 'en')).toBe('1,116.638956');
+    expect(formatHectaresShort(1116.638956, 'en')).toBe('1,116.6');
+    expect(formatCount(1250, 'en')).toBe('1,250');
+  });
+
+  it('по умолчанию — украинская запись, как прежде', () => {
+    expect(plain(formatCount(1250))).toBe(plain(formatCount(1250, 'uk')));
   });
 });

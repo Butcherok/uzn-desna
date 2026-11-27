@@ -15,6 +15,8 @@ import type { Contact } from '@uzn/shared';
 import { mailtoLinkHtml, textLines } from '@uzn/shared';
 import PhoneLink from './PhoneLink.astro';
 import { ENTERPRISE, NETWORK_LINKS, withBase } from '../config/site';
+import { INTL_LOCALE, type Lang } from '../i18n/lang';
+import { UI } from '../i18n/ui';
 
 interface Props {
   /** Точки с признаком `showInFooter`, уже отобранные и отсортированные */
@@ -23,15 +25,26 @@ interface Props {
   email?: string | undefined;
   /** Время последней правки содержимого, ISO 8601 (`contentUpdatedAt`) */
   updatedAt: string;
+  /**
+   * Язык подвала (решение 056). Тексты данных — на языке страницы: английская
+   * страница собирается только при переводе текстов подвала (domain/translation).
+   * Внешние сайты и «Заява про доступність» — украинские: у ссылок `hreflang="uk"`.
+   */
+  lang?: Lang;
 }
 
-const { contacts, email, updatedAt } = Astro.props;
+const { contacts, email, updatedAt, lang = 'uk' } = Astro.props;
+const ui = UI[lang];
+const t = (text: { uk: string; en?: string | undefined } | undefined): string | undefined =>
+  lang === 'uk' ? text?.uk : text?.en;
+/** На английской странице ссылка на украинскую страницу или сайт помечается `hreflang` */
+const ukHref = lang === 'uk' ? undefined : 'uk';
 
 /** Часы предприятия — у первой точки подвала (приймальня). */
 const office = contacts[0];
 /** Даты — по киевскому времени: сборка идёт на сервере в UTC. */
 const KYIV = { timeZone: 'Europe/Kyiv' } as const;
-const updated = new Date(updatedAt).toLocaleDateString('uk-UA', KYIV);
+const updated = new Date(updatedAt).toLocaleDateString(INTL_LOCALE[lang], KYIV);
 const updatedIso = new Date(updatedAt).toLocaleDateString('sv-SE', KYIV);
 const year = new Intl.DateTimeFormat('en', { ...KYIV, year: 'numeric' }).format(new Date());
 ---
@@ -39,17 +52,19 @@ const year = new Intl.DateTimeFormat('en', { ...KYIV, year: 'numeric' }).format(
 <footer class="site-footer">
   <div class="container site-footer__grid">
     <section>
-      <h2>{ENTERPRISE.nameShort}</h2>
+      <h2>{ui.nameShort}</h2>
       <ul class="list-bare">
-        <li>ЄДРПОУ {ENTERPRISE.edrpou}</li>
-        <li>{ENTERPRISE.address}</li>
-        {textLines(office?.hours?.uk).map((line) => (
+        <li>
+          {ui.edrpou} {ENTERPRISE.edrpou}
+        </li>
+        <li>{ui.address}</li>
+        {textLines(t(office?.hours)).map((line) => (
           <li>{line}</li>
         ))}
       </ul>
       {contacts.map((contact) => (
         <>
-          <p class="mt-2">{contact.purpose.uk}</p>
+          <p class="mt-2">{t(contact.purpose)}</p>
           <PhoneLink phone={contact.phone} />
         </>
       ))}
@@ -61,12 +76,18 @@ const year = new Intl.DateTimeFormat('en', { ...KYIV, year: 'numeric' }).format(
     </section>
 
     <section>
-      <h2>Підприємства мережі</h2>
+      <h2>{ui.footer.networkTitle}</h2>
       <ul class="list-bare">
-        {NETWORK_LINKS.map((link) => (
+        {NETWORK_LINKS.map((link, i) => (
           <li>
-            <a class="ext" href={link.href} target="_blank" rel="noopener noreferrer">
-              {link.label}
+            <a
+              class="ext"
+              href={link.href}
+              hreflang={ukHref}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              {ui.footer.networkLinks[i]}
             </a>
           </li>
         ))}
@@ -74,10 +95,16 @@ const year = new Intl.DateTimeFormat('en', { ...KYIV, year: 'numeric' }).format(
     </section>
 
     <section>
-      <h2>Facebook</h2>
+      <h2>{ui.footer.facebookTitle}</h2>
       <p>
-        <a class="ext" href={ENTERPRISE.facebook} target="_blank" rel="noopener noreferrer">
-          Сторінка підприємства
+        <a
+          class="ext"
+          href={ENTERPRISE.facebook}
+          hreflang={ukHref}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          {ui.footer.facebookLink}
         </a>
       </p>
     </section>
@@ -86,15 +113,17 @@ const year = new Intl.DateTimeFormat('en', { ...KYIV, year: 'numeric' }).format(
   <div class="container">
     <div class="site-footer__bar">
       <p>
-        © {year} {ENTERPRISE.nameShort}. Усі права захищено.
+        © {year} {ui.nameShort}. {ui.footer.rights}
       </p>
       <p>
-        Оновлено <time datetime={updatedIso}>{updated}</time>
+        {ui.footer.updated} <time datetime={updatedIso}>{updated}</time>
       </p>
       <p>
-        <a href={withBase('/accessibility/')}>Заява про доступність</a>
+        <a href={withBase('/accessibility/')} hreflang={ukHref}>
+          {ui.footer.accessibility}
+        </a>
       </p>
-      <p>Розробка — S#RP</p>
+      <p>{ui.footer.developer}</p>
     </div>
   </div>
 </footer>

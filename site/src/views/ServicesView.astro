@@ -1,0 +1,74 @@
+---
+/**
+ * «Послуги» (ТЗ 4.4). Перечень работ предприятия группами, карточка — название
+ * и одно-два предложения описания.
+ *
+ * Телефона и контактного лица на карточке нет, получатель и платность не
+ * выводятся (решение Заказчика 17.11.2026, `docs/decisions/012-services-page-data.md`):
+ * номер приймальні выведен один раз в первом блоке по образцу страницы 4.5,
+ * остальные номера — на «Контактах» и в подвале. Цены не публикуются.
+ *
+ * Перечень снят с чинної сторінки `desna.kyivzelenbud.com/poslugy/` и главной
+ * той же страницы 17.11.2026 — в объёме, уже оприлюдненому органом управління
+ * (прецедент решения 011). Придуманных услуг в перечне нет.
+ */
+import { ServiceCard } from '../components/cards/ServiceCard';
+import { renderStatic } from '../components/cards/render-static';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PhoneLink from '../components/PhoneLink.astro';
+import { contacts, services } from '../gateway/data';
+import { contactBySlug } from '../domain/contacts';
+import { groupedServices } from '../domain/services';
+import { withBase } from '../config/site';
+import { localizedPath, type Lang } from '../i18n/lang';
+import { UI } from '../i18n/ui';
+import { pick } from '../i18n/text';
+import { SERVICES_COPY, type ServicesCopy } from '../i18n/copy/services';
+import { copyFor } from '../i18n/copy/types';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const ui = UI[lang];
+const copy = copyFor(SERVICES_COPY, lang) as ServicesCopy;
+const section = ui.sections['/services/'];
+
+const office = contactBySlug(contacts, 'pryimalnia');
+const groups = groupedServices(services);
+---
+
+<BaseLayout section={section} path="/services/" lang={lang} description={copy.description}>
+  <h1>{section}</h1>
+
+  <p class="lead">{copy.lead}</p>
+
+  {office && (
+    <>
+      <p>{copy.orderNote}</p>
+      <PhoneLink phone={office.phone} hint={pick(office.hours, lang)} />
+    </>
+  )}
+
+  {groups.map((group) => (
+    <section class="section">
+      <h2>{pick(group.label, lang)}</h2>
+      <div class="grid grid--2">
+        {group.services.map((service) => (
+          <Fragment
+            set:html={renderStatic(ServiceCard, {
+              title: pick(service.title, lang),
+              summary: pick(service.summary, lang),
+            })}
+          />
+        ))}
+      </div>
+    </section>
+  ))}
+
+  <p class="mt-6">
+    {copy.emergencyBefore}{' '}
+    <a href={withBase(localizedPath('/contacts/', lang))}>{ui.sections['/contacts/']}</a>.
+  </p>
+</BaseLayout>

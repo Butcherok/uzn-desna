@@ -1,6 +1,8 @@
 ---
 /**
- * Общая оболочка публичных страниц версии 1.
+ * Общая оболочка публичных страниц. С версии 3 язык — параметр оболочки
+ * (решение 056): `lang`, `og:locale`, канонический адрес своей версии,
+ * `hreflang` uk/en/x-default (ТЗ 3.2, п. 4–6), подписи — из словаря `i18n/ui`.
  * Метаданные — ТЗ 11.4; закрытие от поисковиков — ТЗ 3.3; политика
  * содержимого — ТЗ 11.5, п. 5; доступность — ТЗ 11.3.
  */
@@ -9,14 +11,10 @@ import SiteFooter from '../components/SiteFooter.astro';
 import { contacts, contentUpdatedAt, enterprise } from '../gateway/data';
 import { footerContacts } from '../domain/contacts';
 import { breadcrumbJsonLd, breadcrumbsFor } from '../domain/breadcrumbs';
-import {
-  ENTERPRISE,
-  INDEXING_ENABLED,
-  NAV,
-  OG_IMAGE_ALT,
-  SITE_NAME,
-  withBase,
-} from '../config/site';
+import { INDEXING_ENABLED, NAV, OG_IMAGE_ALT, SITE_NAME, withBase } from '../config/site';
+import { HTML_LANG, OG_LOCALE, localizedPath, type Lang } from '../i18n/lang';
+import { UI } from '../i18n/ui';
+import { hasEnglish } from '../i18n/availability';
 import headFontUrl from '../fonts/fixel-display-cyrlat-var.woff2?url';
 import '../styles/tokens.css';
 import '../styles/components.css';
@@ -24,8 +22,13 @@ import '../styles/components.css';
 interface Props {
   /** Название раздела: совпадает с пунктом меню и с единственным h1 */
   section: string;
-  /** Путь страницы с завершающей косой чертой */
+  /**
+   * Путь страницы с завершающей косой чертой, без языкового префикса:
+   * `/services/` и для украинской, и для английской версии.
+   */
   path: string;
+  /** Язык страницы; по умолчанию украинский (ТЗ 3.2, п. 4) */
+  lang?: Lang;
   /** До появления заглушки 50 — название раздела */
   description?: string;
   /**
@@ -41,7 +44,7 @@ interface Props {
    */
   errorPage?: boolean;
   /** Разметка Schema.org, выводится как `application/ld+json` */
-  jsonLd?: Record<string, unknown>;
+  jsonLd?: Record<string, unknown> | undefined;
   /**
    * Чужие адреса, к которым страница обращается из скрипта. Нужен одной
    * странице — будильнику `/admin` (решение 040): остальные не обращаются никуда.
@@ -52,6 +55,7 @@ interface Props {
 const {
   section,
   path,
+  lang = 'uk',
   description,
   title: titleOverride,
   indexable = true,
@@ -68,9 +72,27 @@ const {
  */
 const footer = footerContacts(contacts);
 
-const title = titleOverride ?? `${section} — ${ENTERPRISE.nameShort}`;
-const canonical = new URL(withBase(path), Astro.site).href;
-const metaDescription = description ?? `${section} — ${ENTERPRISE.nameShort}`;
+const ui = UI[lang];
+const title = titleOverride ?? `${section} — ${ui.nameShort}`;
+const metaDescription = description ?? `${section} — ${ui.nameShort}`;
+const absolute = (p: string): string => new URL(withBase(p), Astro.site).href;
+const canonical = absolute(localizedPath(path, lang));
+
+/**
+ * Связь языковых версий (ТЗ 3.2, п. 6): только у страницы, у которой есть
+ * обе версии, — `uk`, `en` и `x-default` на украинскую. У страницы без
+ * перевода `hreflang` нет: ссылаться не на что, а на себя — бессмысленно.
+ * Английская страница без украинской не собирается (решение 056).
+ */
+const bilingual = !errorPage && hasEnglish(path);
+const alternates = bilingual
+  ? [
+      { hreflang: HTML_LANG.uk, href: absolute(localizedPath(path, 'uk')) },
+      { hreflang: HTML_LANG.en, href: absolute(localizedPath(path, 'en')) },
+      { hreflang: 'x-default', href: absolute(localizedPath(path, 'uk')) },
+    ]
+  : [];
+const otherLocale = bilingual ? OG_LOCALE[lang === 'uk' ? 'en' : 'uk'] : undefined;
 
 /**
  * Одна настройка на весь сайт (ТЗ 11.4, п. 1). До снятия закрытия — запрет
@@ -79,13 +101,11 @@ const metaDescription = description ?? `${section} — ${ENTERPRISE.nameShort}`;
  */
 const robots = !INDEXING_ENABLED ? 'noindex, nofollow' : indexable ? null : 'noindex, follow';
 
-const absolute = (p: string): string => new URL(withBase(p), Astro.site).href;
-
 /**
  * Навигационная цепочка — только у подпунктов меню (решение 054); вместе с
  * ней — разметка `BreadcrumbList`.
  */
-const crumbs = errorPage ? [] : breadcrumbsFor(NAV, path);
+const crumbs = errorPage || lang !== 'uk' ? [] : breadcrumbsFor(NAV, path);
 const structured = [jsonLd, crumbs.length ? breadcrumbJsonLd(crumbs, absolute) : undefined].filter(
   (item): item is Record<string, unknown> => item !== undefined,
 );
@@ -114,7 +134,7 @@ const csp = [
 ---
 
 <!doctype html>
-<html lang="uk">
+<html lang={HTML_LANG[lang]}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -125,6 +145,9 @@ const csp = [
     <title>{title}</title>
     <meta name="description" content={metaDescription} />
     {!errorPage && <link rel="canonical" href={canonical} />}
+    {alternates.map((alt) => (
+      <link rel="alternate" hreflang={alt.hreflang} href={alt.href} />
+    ))}
     {/* Значок вкладки. Адрес через withBase: корневой /favicon.ico браузера
         до страниц проекта не доходит — сайт живёт в подпапке (ТЗ 5.3, п. 10).
         Метка версии в адресе (`?v=3`): меняется при каждой правке рисунка: кэш значков Chrome держит значок дольше страницы,
@@ -137,16 +160,17 @@ const csp = [
     <link rel="manifest" href={withBase('/manifest.webmanifest')} />
 
     <meta property="og:type" content="website" />
-    <meta property="og:locale" content="uk_UA" />
+    <meta property="og:locale" content={OG_LOCALE[lang]} />
+    {otherLocale && <meta property="og:locale:alternate" content={otherLocale} />}
     <meta property="og:title" content={title} />
     <meta property="og:description" content={metaDescription} />
     {!errorPage && <meta property="og:url" content={canonical} />}
-    <meta property="og:site_name" content={SITE_NAME} />
+    <meta property="og:site_name" content={lang === 'uk' ? SITE_NAME : ui.nameShort} />
     <meta property="og:image" content={ogImage} />
     <meta property="og:image:type" content="image/jpeg" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
-    <meta property="og:image:alt" content={OG_IMAGE_ALT} />
+    <meta property="og:image:alt" content={lang === 'uk' ? OG_IMAGE_ALT : ui.ogImageAlt} />
     {jsonLdTexts.map((text) => (
       <script is:inline type="application/ld+json" set:html={text} />
     ))}
@@ -156,12 +180,12 @@ const csp = [
 
   <body>
     <a class="skip" href="#main">
-      Перейти до вмісту
+      {ui.skip}
     </a>
-    <SiteHeader currentPath={path} />
+    <SiteHeader currentPath={path} lang={lang} />
     <main id="main" class="container section">
       {crumbs.length > 0 && (
-        <nav class="crumbs" aria-label="Ви тут">
+        <nav class="crumbs" aria-label={ui.crumbsLabel}>
           <ol>
             {crumbs.map((crumb, i) =>
               i < crumbs.length - 1 ? (
@@ -179,6 +203,11 @@ const csp = [
       )}
       <slot />
     </main>
-    <SiteFooter contacts={footer} email={enterprise.email} updatedAt={contentUpdatedAt} />
+    <SiteFooter
+      contacts={footer}
+      email={enterprise.email}
+      updatedAt={contentUpdatedAt}
+      lang={lang}
+    />
   </body>
 </html>
