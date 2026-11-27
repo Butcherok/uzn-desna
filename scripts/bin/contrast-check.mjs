@@ -14,6 +14,9 @@
  * Повышенный контраст (`prefers-contrast: more`, решение 054) — ещё два
  * набора, светлый и тёмный, с порогами строже: текст 7:1 (WCAG 1.4.6),
  * границы и иконки 4,5:1. В подвале этого режима `--c-sand` своё.
+ *
+ * Тема по выбору кнопкой (решение 058) — те же наборы вторым правилом;
+ * шаг сверяет, что копии совпадают.
  */
 import { readFile } from 'node:fs/promises';
 
@@ -111,16 +114,44 @@ if (!moreBlock || !moreDarkBlock) {
   console.error(`contrast:check: в ${TOKENS} не найдены блоки повышенного контраста`);
   process.exit(1);
 }
-/** Первый блок — `:root, .site-footer`; второй — поправки только подвала */
-const moreRoot = blockAfter(moreBlock, ':root,');
-const footerAt = moreBlock.indexOf('}', moreBlock.indexOf(':root,'));
-const moreFooter = blockAfter(moreBlock.slice(footerAt + 1), '.site-footer');
+/** Первый блок — `:root:not([data-theme="dark"]), .site-footer`; дальше — поправки подвала */
+const moreRoot = blockAfter(moreBlock, '.site-footer');
+const footerAt = moreBlock.lastIndexOf('.site-footer {');
+const moreFooter = footerAt < 0 ? null : blockAfter(moreBlock.slice(footerAt), '.site-footer');
 const moreLight = readColors(moreRoot ?? '');
 const moreLightFooter = { ...moreLight, ...readColors(moreFooter ?? '') };
 const moreDark = { ...moreLight, ...readColors(moreDarkBlock) };
+
+/**
+ * Тема по выбору кнопкой (решение 058): тёмный набор и тёмный повышенный
+ * подключаются вторым правилом `:root[data-theme="dark"]` с теми же
+ * значениями. Расхождение двух копий — ошибка: выбор кнопкой и настройка
+ * системы дали бы разные цвета.
+ */
+const declarations = (block) =>
+  [...(block ?? '').matchAll(/(--[a-z-]+|color-scheme):\s*([^;]+);/g)]
+    .map((m) => `${m[1]}: ${m[2].trim()}`)
+    .sort()
+    .join('\n');
+const PICKED = ':root[data-theme="dark"] {';
+const pickedDark = blockAfter(css, PICKED);
+const pickedMoreDark = blockAfter(css.slice(css.lastIndexOf(PICKED)), PICKED);
+const twins = [
+  ['тёмная', darkBlock, pickedDark],
+  ['контраст тёмн', moreDarkBlock, pickedMoreDark],
+];
 const stricter = (pairs) => pairs.map(([fg, bg, min, where]) => [fg, bg, MORE[min], where]);
 
 let failed = 0;
+for (const [name, system, picked] of twins) {
+  if (!picked || css.indexOf(PICKED) === css.lastIndexOf(PICKED)) {
+    console.error(`✗ ${name}: нет набора по выбору кнопкой (${PICKED})`);
+    failed += 1;
+  } else if (declarations(system) !== declarations(picked)) {
+    console.error(`✗ ${name}: набор по выбору кнопкой отличается от набора по системе`);
+    failed += 1;
+  } else console.log(`✓ ${name.padEnd(13)} набор по выбору кнопкой совпадает с набором по системе`);
+}
 const check = (setName, set, pairs) => {
   for (const [fg, bg, min, where] of pairs) {
     if (!set[fg] || !set[bg]) {

@@ -66,6 +66,11 @@ export default [
     files: ['site/src/components/**/*.{ts,tsx}'],
     rules: componentRules,
   },
+  // Встроенный скрипт темы публичных страниц (решение 058): код браузера.
+  {
+    files: ['site/src/theme/**/*.js'],
+    languageOptions: { globals: { ...globals.browser } },
+  },
   // Админка (решение 040): код исполняется в браузере; слои — как у сайта.
   {
     files: ['admin/src/**/*.{ts,tsx}'],
