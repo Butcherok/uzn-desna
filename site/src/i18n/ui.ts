@@ -28,6 +28,13 @@ export interface UiStrings {
   langLink: string;
   /** Буквы переключателя */
   langCode: string;
+  /** Переключатель темы (решение 058): видимая подпись строки в меню телефона */
+  themeLabel: string;
+  /** Имя группы кнопок темы — на десктопе видимой подписи нет */
+  themeGroup: string;
+  /** Имена кнопок: значки видимого текста не имеют */
+  themeLight: string;
+  themeDark: string;
   address: string;
   edrpou: string;
   /**
@@ -63,6 +70,10 @@ export const UI: Record<Lang, UiStrings> = {
     langNav: 'Мова сайту',
     langLink: 'українська версія',
     langCode: 'UA',
+    themeLabel: 'Тема',
+    themeGroup: 'Тема оформлення',
+    themeLight: 'Світла тема',
+    themeDark: 'Темна тема',
     address: '02232, м. Київ, вул. Героїв Енергетиків, 26',
     edrpou: 'ЄДРПОУ',
     ogImageAlt:
@@ -96,6 +107,10 @@ export const UI: Record<Lang, UiStrings> = {
     langNav: 'Site language',
     langLink: 'English version',
     langCode: 'EN',
+    themeLabel: 'Theme',
+    themeGroup: 'Colour theme',
+    themeLight: 'Light theme',
+    themeDark: 'Dark theme',
     address: '26 Heroiv Enerhetykiv Street, Kyiv 02232, Ukraine',
     edrpou: 'EDRPOU code',
     ogImageAlt:

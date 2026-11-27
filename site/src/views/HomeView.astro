@@ -183,8 +183,12 @@ const organization = organizationJsonLd({
       </div>
 
       <picture>
+        {/* `data-theme-src`: при теме, выбранной кнопкой (решение 058),
+            встроенный скрипт меняет `media` на `all` или `not all`, и
+            браузер выбирает кадр заново. Без выбора — настройка системы. */}
         <source
           media="(prefers-color-scheme: dark)"
+          data-theme-src
           type="image/webp"
           srcset={bannerNight.srcSet.attribute}
           sizes={BANNER_SIZES}

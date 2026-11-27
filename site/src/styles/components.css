@@ -379,56 +379,128 @@ main > :last-child { margin-bottom: 0; }
 .brand__name { font-family: var(--f-head); font-weight: 700; font-size: var(--fs-body); line-height: var(--lh-tight); }
 .brand__name span { display: block; font-family: var(--f-text); font-weight: 400; font-size: var(--fs-caption); color: var(--c-deep); }
 
-/* Переключатель языка `UA / EN` — сегментная «таблетка» (решения 056 и 057;
-   ДС 1.20, разделы 7 и 10). Ссылки, без JavaScript, в полосе шапки перед
-   кнопкой меню — на телефоне виден всегда, не прячется в меню;
-   `margin-left: auto` прижимает его к меню справа. Две ячейки по 44×44
-   (ТЗ 11.1, п. 4): текущий язык — текст с `aria-current` на тёмной подложке
-   и полужирным, другой — ссылка `--c-mid`: не только цветом (ТЗ 11.3, п. 10).
-   Рамка — псевдоэлемент поверх: в размер ячеек она не входит.
-   Подложка — отдельный элемент: при переходе на другой язык браузер везёт
-   её со старого места на новое (`@view-transition` ниже). */
-.lang-switch { position: relative; display: inline-flex; margin-left: auto; border-radius: var(--r-pill); background: var(--c-surface); }
-.lang-switch::after {
-  content: ""; position: absolute; inset: 0; z-index: 2; pointer-events: none;
+/* «Таблетка» — общий вид переключателей языка и темы (решения 057, 058;
+   ДС 1.21, раздел 7). Видимая часть 72×32, зона нажатия каждой ячейки 44×44:
+   ячейки — коробки 44×44, видимый сегмент 33×26 нарисован внутри, сама
+   «таблетка» — псевдоэлементом с полями 6 и 8 px. Поэтому зоны двух ячеек
+   вместе 88×44, а между соседними «таблетками» при промежутке полосы
+   остаётся не меньше 8 px между зонами (ТЗ 11.1, п. 4).
+   Подложка `--c-deep` с тенью `--shadow-thumb`, отступ от края 3 px.
+   Слои: фон «таблетки», подложка, заливка наведения и текст — внутри
+   `isolation`, поэтому отрицательный `z-index` не уходит под страницу. */
+.pill { position: relative; isolation: isolate; display: inline-flex; flex: none; }
+.pill::before {
+  content: ""; position: absolute; inset: 6px 8px; z-index: -1;
   border: var(--bw) solid var(--c-border); border-radius: var(--r-pill);
+  background: var(--c-surface);
 }
-.lang-switch__thumb {
-  position: absolute; top: 0; left: 0; width: var(--tap); height: 100%;
-  border-radius: var(--r-pill); background: var(--c-deep);
-  view-transition-name: lang-thumb;
+.pill__thumb {
+  position: absolute; top: 9px; left: 11px; z-index: -1;
+  width: 33px; height: 26px; border-radius: var(--r-pill);
+  background: var(--c-deep); box-shadow: var(--shadow-thumb);
 }
-.lang-switch[data-current="en"] .lang-switch__thumb { left: var(--tap); }
-.lang-switch__list { position: relative; z-index: 1; display: flex; list-style: none; margin: 0; padding: 0; }
-.lang-switch__list li { display: flex; }
-.lang-switch__item {
+.pill__item {
+  position: relative; box-sizing: border-box;
   display: inline-flex; align-items: center; justify-content: center;
-  width: var(--tap); height: var(--tap); border-radius: var(--r-pill);
-  font-size: var(--fs-caption); font-weight: 700; letter-spacing: .04em; text-decoration: none;
-  transition: color var(--motion-fast) var(--motion-ease), background-color var(--motion-fast) var(--motion-ease);
+  width: var(--tap); height: var(--tap); margin: 0; border: 0; background: none;
+  font: inherit; font-size: var(--fs-caption); font-weight: 700; letter-spacing: .04em;
+  text-decoration: none; color: var(--c-mid);
+  transition: color var(--motion-fast) var(--motion-ease);
 }
+/* Видимый сегмент — внутренняя часть коробки: у первой ячейки поле слева,
+   у второй справа. Заливка наведения и контур фокуса рисуются по сегменту,
+   а не по всей зоне нажатия. */
+.pill__item--a { padding: 9px 0 9px 11px; }
+.pill__item--b { padding: 9px 11px 9px 0; }
+.pill__item::after {
+  content: ""; position: absolute; z-index: -1; border-radius: var(--r-pill);
+  transition: background-color var(--motion-fast) var(--motion-ease);
+}
+.pill__item--a::after { inset: 9px 0 9px 11px; }
+.pill__item--b::after { inset: 9px 11px 9px 0; }
+a.pill__item:hover::after, button.pill__item:hover::after { background: var(--c-pale); }
+.pill__item:focus-visible { outline: none; }
+.pill__item:focus-visible::after { outline: var(--focus-w) solid var(--c-focus); outline-offset: var(--focus-offset); }
+button.pill__item { cursor: pointer; }
+.pill__item svg { flex: none; }
+
+/* Переключатель языка `UA / EN`, вид «таблетка» — от 1024 px справа после
+   пунктов меню (решения 056–058). Ссылки, без JavaScript: текущий язык —
+   текст с `aria-current` на подложке, цвет `--c-bg`; другой — ссылка `--c-mid`.
+   Подложка — отдельный элемент: при переходе на другой язык браузер везёт её
+   со старого места на новое (`@view-transition` ниже). */
+.lang-switch { display: none; }
+.lang-switch__list { display: flex; list-style: none; margin: 0; padding: 0; }
+.lang-switch__list li { display: flex; }
+.lang-switch__thumb { view-transition-name: lang-thumb; }
+.lang-switch[data-current="en"] .lang-switch__thumb { left: 44px; }
 /* Надписи — свои слои перехода: иначе подложка проехала бы поверх них */
 .lang-switch__item--uk { view-transition-name: lang-uk; }
 .lang-switch__item--en { view-transition-name: lang-en; }
-a.lang-switch__item { color: var(--c-mid); }
-a.lang-switch__item:hover { background: var(--c-pale); }
 .lang-switch__item[aria-current] { color: var(--c-bg); }
 
-/* Шапка с переключателем. До 1024 px промежутки полосы — `--tap-gap` (8 px):
-   между соседними целями не меньше 8 px (ТЗ 11.1, п. 4; правило 1.19 давало 4).
-   Знак 32 + 8, название 149,4, таблетка 88, меню 44, поля 2 × 16: полное
-   название в строку входит от 370 px. 330–369 (360 — частый Android) —
-   без знака; уже 330 — знак и «КП УЗН», вторая строка названия скрыта
-   (полное название остаётся в имени ссылки-логотипа). Замер 27.11.2026. */
+/* «Монетка» языка — до 1024 px в полосе перед кнопкой меню (решение 058).
+   Круг 32 px в зоне 44×44, на нём язык, на который переходишь. Рамка
+   `--c-border`, тень `--shadow-thumb`. */
+.lang-coin { display: flex; margin-left: auto; }
+.lang-coin__link {
+  position: relative; isolation: isolate;
+  display: inline-flex; align-items: center; justify-content: center;
+  width: var(--tap); height: var(--tap);
+  font-size: var(--fs-caption); font-weight: 700; letter-spacing: .04em;
+  color: var(--c-mid); text-decoration: none;
+}
+.lang-coin__link::before {
+  content: ""; position: absolute; inset: 6px; z-index: -1; border-radius: 50%;
+  border: var(--bw) solid var(--c-border); background: var(--c-surface); box-shadow: var(--shadow-thumb);
+  transition: background-color var(--motion-fast) var(--motion-ease);
+}
+.lang-coin__link:hover { color: var(--c-mid); }
+.lang-coin__link:hover::before { background: var(--c-pale); }
+.lang-coin__link:focus-visible { outline: none; }
+.lang-coin__link:focus-visible::before { outline: var(--focus-w) solid var(--c-focus); outline-offset: var(--focus-offset); }
+.lang-coin__link--uk { view-transition-name: lang-coin-uk; }
+.lang-coin__link--en { view-transition-name: lang-coin-en; }
+
+/* Переключатель темы (решение 058): та же «таблетка». Положение подложки и
+   цвет значков — из набора темы (`--theme-at`, tokens.css), а не из
+   `aria-pressed`: тема ставится до отрисовки, `aria-pressed` — позже.
+   Без JavaScript кнопок нет: атрибут `data-js` на `<html>` ставит скрипт. */
+.theme-switch { display: none; }
+.theme-switch__thumb { translate: calc(var(--theme-at) * 33px) 0; }
+.theme-switch__item--light { color: color-mix(in srgb, var(--c-bg) calc((1 - var(--theme-at)) * 100%), var(--c-mid)); }
+.theme-switch__item--dark { color: color-mix(in srgb, var(--c-bg) calc(var(--theme-at) * 100%), var(--c-mid)); }
+.theme-row { display: none; }
+:root[data-js] .theme-switch--menu { display: inline-flex; }
+:root[data-js] .theme-row {
+  display: flex; align-items: center; justify-content: space-between; gap: var(--s-4);
+  min-height: var(--tap); padding: var(--s-2) 0;
+  border-bottom: var(--bw) solid var(--c-line);
+}
+.theme-row__label { font-weight: 600; }
+/* Подложка темы переезжает по нажатию — движение в ответ на действие
+   (ДС, раздел 8, п. 2); при `reduce` его нет. */
+@media (prefers-reduced-motion: no-preference) {
+  .theme-switch__thumb { transition: translate var(--motion-switch) var(--motion-ease); }
+  :root[data-theme-switching] .theme-switch__thumb { transition: translate var(--motion-switch) var(--motion-ease) !important; }
+}
+/* На время смены темы переходы цвета выключены: иначе перекрасилась бы
+   вся страница сразу и заметно (ДС, раздел 10, п. 7). Скрипт снимает
+   атрибут через два кадра. */
+:root[data-theme-switching] *,
+:root[data-theme-switching] *::before,
+:root[data-theme-switching] *::after { transition: none !important; }
+
+/* Шапка с «монеткой»: до 1024 px промежутки полосы — `--tap-gap` (8 px)
+   между соседними целями (ТЗ 11.1, п. 4). Знак 32 + 8, название 149,4,
+   «монетка» 44, меню 44, поля 2 × 16: полное название со знаком входит
+   от 326 px; уже — без знака (полное название — в имени ссылки-логотипа).
+   Замер 27.11.2026, решение 058. */
 @media (max-width: 1023.98px) {
-  .site-header__bar:has(.lang-switch) { gap: var(--tap-gap); }
+  .site-header__bar:has(.lang-coin) { gap: var(--tap-gap); }
 }
-@media (max-width: 369.98px) {
-  .site-header__bar:has(.lang-switch) .brand__mark { display: none; }
-}
-@media (max-width: 329.98px) {
-  .site-header__bar:has(.lang-switch) .brand__mark { display: block; }
-  .site-header__bar:has(.lang-switch) .brand__name span { display: none; }
+@media (max-width: 325.98px) {
+  .site-header__bar:has(.lang-coin) .brand__mark { display: none; }
 }
 
 /* Переход между страницами без JavaScript (решение 057; MDN, BCD 8.1.11:
@@ -443,6 +515,21 @@ a.lang-switch__item:hover { background: var(--c-pale); }
 }
 :root { view-transition-name: none; }
 ::view-transition-group(*) { animation-duration: var(--motion-switch); animation-timing-function: var(--motion-ease); }
+/* Переворот «монетки» (решение 058). Старая и новая монетка — разные слои
+   (`lang-coin-uk`, `lang-coin-en`), у каждого в переходе нет пары
+   (`:only-child`): первая половина — старая встаёт ребром, вторая — новая
+   ложится лицом. При переходе внутри одного языка у слоя есть пара, эти
+   правила не действуют и монетка стоит на месте. */
+::view-transition-old(lang-coin-uk):only-child,
+::view-transition-old(lang-coin-en):only-child {
+  animation: coin-out calc(var(--motion-switch) / 2) ease-in both;
+}
+::view-transition-new(lang-coin-uk):only-child,
+::view-transition-new(lang-coin-en):only-child {
+  animation: coin-in calc(var(--motion-switch) / 2) ease-out calc(var(--motion-switch) / 2) both;
+}
+@keyframes coin-out { from { transform: perspective(200px) rotateY(0); } to { transform: perspective(200px) rotateY(90deg); } }
+@keyframes coin-in { from { transform: perspective(200px) rotateY(-90deg); } to { transform: perspective(200px) rotateY(0); } }
 
 /* Меню без JavaScript: кнопка + popover (ТЗ 11.7 п.4, решение 010).
    Открытое меню живёт в верхнем слое браузера: шапку не раздвигает,
@@ -491,6 +578,12 @@ a.lang-switch__item:hover { background: var(--c-pale); }
    показ и снимает позиционирование верхнего слоя. */
 @media (min-width: 1024px) {
   .nav__toggle { display: none; }
+  /* Решение 058: справа после пунктов меню — «таблетки» языка и темы;
+     «монетка» и строка темы в меню — только до 1024 px. */
+  .nav { margin-left: auto; }
+  .lang-coin, :root[data-js] .theme-row { display: none; }
+  .lang-switch { display: inline-flex; }
+  :root[data-js] .theme-switch--bar { display: inline-flex; }
   .nav__list[popover] {
     display: flex; gap: var(--s-5);
     position: static; inset: auto; width: auto;
@@ -589,7 +682,7 @@ a.lang-switch__item:hover { background: var(--c-pale); }
   border-radius: var(--r-lg);
   /* Тень отделяет рисунок от предметов за ним (концепт). Тень в прокрутку
      не входит: горизонтальной прокрутки не даёт. */
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.18);
+  box-shadow: var(--hero-pic-shadow);
   /* Пока рисунка нет, первый экран показывается на фоне цвета палитры
      (ТЗ 4.1, «При отсутствии данных») */
   background: var(--c-mint);
@@ -610,7 +703,7 @@ a.lang-switch__item:hover { background: var(--c-pale); }
   height: auto;
   display: none;
   width: var(--prop-w);
-  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.25));
+  filter: var(--hero-aside-filter);
 }
 .hero__aside--bin { left: calc(-1 * var(--prop-show)); }
 .hero__aside--planter { right: calc(-1 * var(--prop-show)); z-index: 1; }
@@ -635,11 +728,9 @@ a.lang-switch__item:hover { background: var(--c-pale); }
 
 /* Предметы нарисованы при дневном свете. В тёмной теме они гасятся фильтром:
    это дешевле трёх ночных файлов и отменяется одной строкой (решение 020).
-   Фильтр меняет только цвет и ничего не двигает. */
-@media (prefers-color-scheme: dark) {
-  .hero__pic { box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5); }
-  .hero__aside { filter: brightness(0.65) saturate(0.85) drop-shadow(0 4px 6px rgba(0, 0, 0, 0.4)); }
-}
+   Фильтр меняет только цвет и ничего не двигает. Значения тени и фильтра —
+   токены `--hero-pic-shadow` и `--hero-aside-filter` в наборах темы
+   (tokens.css): тема бывает и по системе, и по выбору кнопкой (решение 058). */
 
 /* ---------- Карточка-ссылка: вся карточка — цель нажатия ---------- */
 .card--link {
@@ -696,9 +787,11 @@ a.lang-switch__item:hover { background: var(--c-pale); }
   :where(a, button, summary, input, [tabindex]):focus-visible { outline-color: Highlight; }
   /* Переключатель языка: подложка и надпись на ней — системной парой
      выделения, рамка — цветом текста */
-  .lang-switch::after { border-color: CanvasText; }
-  .lang-switch__thumb, .lang-switch__item[aria-current] { forced-color-adjust: none; background: Highlight; color: HighlightText; }
-  .lang-switch__item[aria-current] { background: transparent; }
+  .pill::before, .lang-coin__link::before { border-color: CanvasText; }
+  .pill__thumb { forced-color-adjust: none; background: Highlight; }
+  .lang-switch__item[aria-current], .theme-switch__item[aria-pressed="true"] { forced-color-adjust: none; color: HighlightText; }
+  .theme-switch__item[aria-pressed="false"] { color: ButtonText; }
+  .pill__item:focus-visible::after, .lang-coin__link:focus-visible::before { outline-color: Highlight; }
 }
 
 /* ---------- Навигационная цепочка (ТЗ 3.1; решение 054) ----------

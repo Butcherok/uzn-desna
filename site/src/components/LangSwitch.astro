@@ -1,8 +1,15 @@
 ---
 /**
- * Переключатель `UA / EN` (ТЗ 3.2, п. 4 и 6; 12.4; решения 056 и 057) —
- * сегментная «таблетка»: две ячейки 44×44, под текущим языком тёмная
- * подложка. Обычные ссылки, без JavaScript: текущий язык — текст с
+ * Переключатель `UA / EN` (ТЗ 3.2, п. 4 и 6; 12.4; решения 056, 057 и 058).
+ * Два вида, шапка выводит оба, а показывает один по ширине экрана
+ * (другой — `display: none`, программе чтения экрана он не виден):
+ *
+ * - `pill` — от 1024 px, справа после пунктов меню: сегментная «таблетка»
+ *   72×32, под текущим языком тёмная подложка; зона нажатия каждой ячейки
+ *   44×44 — шире видимой части.
+ * - `coin` — до 1024 px, в полосе перед кнопкой меню: «монетка» 32 px в
+ *   зоне 44×44 с языком, на который переходишь («EN» на украинской
+ *   странице). При переходе на другой язык переворачивается (`@view-transition`). Обычные ссылки, без JavaScript: текущий язык — текст с
  * `aria-current`, другой — ссылка с `hreflang` и `lang` на свою языковую
  * версию страницы. У страницы без перевода ссылка ведёт на английскую
  * главную. Английской версии нет вовсе — переключателя нет: ссылке некуда вести.
@@ -24,31 +31,53 @@ interface Props {
   /** Путь страницы без языкового префикса */
   path: string;
   lang: Lang;
+  variant: 'pill' | 'coin';
 }
 
-const { path, lang } = Astro.props;
+const { path, lang, variant } = Astro.props;
 const LANGS: readonly Lang[] = ['uk', 'en'];
 const items = LANGS.map((code) => ({
   code,
   href: code === lang ? undefined : switchTarget(path, code),
 }));
 const enabled = items.every((item) => item.code === lang || item.href !== undefined);
+const other = items.find((item) => item.code !== lang);
 ---
 
-{enabled && (
-  <nav class="lang-switch" data-current={lang} aria-label={UI[lang].langNav}>
-    <span class="lang-switch__thumb" aria-hidden="true"></span>
+{enabled && variant === 'coin' && other?.href !== undefined && (
+  <nav class="lang-coin" aria-label={UI[lang].langNav}>
+    {/* Имя переходу дано по языку страницы: при смене языка старая и новая
+        монетка — разные слои, и переворачиваются только они. Переход внутри
+        одного языка оставляет монетку на месте без движения. */}
+    <a
+      class={`lang-coin__link lang-coin__link--${lang}`}
+      href={withBase(other.href)}
+      hreflang={HTML_LANG[other.code]}
+      lang={HTML_LANG[other.code]}
+    >
+      {UI[other.code].langCode}
+      <span class="vh"> — {UI[other.code].langLink}</span>
+    </a>
+  </nav>
+)}
+
+{enabled && variant === 'pill' && (
+  <nav class="lang-switch pill" data-current={lang} aria-label={UI[lang].langNav}>
+    <span class="pill__thumb lang-switch__thumb" aria-hidden="true"></span>
     <ul class="lang-switch__list">
-      {items.map((item) => (
+      {items.map((item, i) => (
         <li>
           {item.href === undefined ? (
-            <span class={`lang-switch__item lang-switch__item--${item.code}`} aria-current="true">
+            <span
+              class={`pill__item pill__item--${i === 0 ? 'a' : 'b'} lang-switch__item lang-switch__item--${item.code}`}
+              aria-current="true"
+            >
               {UI[item.code].langCode}
               <span class="vh"> — {UI[item.code].langLink}</span>
             </span>
           ) : (
             <a
-              class={`lang-switch__item lang-switch__item--${item.code}`}
+              class={`pill__item pill__item--${i === 0 ? 'a' : 'b'} lang-switch__item lang-switch__item--${item.code}`}
               href={withBase(item.href)}
               hreflang={HTML_LANG[item.code]}
               lang={HTML_LANG[item.code]}

@@ -16,6 +16,8 @@ import { HTML_LANG, OG_LOCALE, localizedPath, type Lang } from '../i18n/lang';
 import { UI } from '../i18n/ui';
 import { hasEnglish } from '../i18n/availability';
 import headFontUrl from '../fonts/fixel-display-cyrlat-var.woff2?url';
+import { createHash } from 'node:crypto';
+import themeBoot from '../theme/boot.js?raw';
 import '../styles/tokens.css';
 import '../styles/components.css';
 
@@ -120,10 +122,20 @@ const jsonLdTexts = structured.map((item) => JSON.stringify(item).replace(/</g, 
  */
 const ogImage = absolute('/og-image.jpg');
 
+/**
+ * Встроенный скрипт темы (решение 058; ТЗ 11.2 — до 2 КБ, В1): ставит
+ * выбранную тему до отрисовки, показывает кнопки темы и обслуживает их.
+ * Политика содержимого пропускает ровно этот текст — по его хэшу, а не
+ * разрешением `'unsafe-inline'`. Хэш считается здесь, из того же текста,
+ * что выводится в `<head>`; совпадение в собранных страницах сверяет
+ * `budget:check`.
+ */
+const themeBootHash = createHash('sha256').update(themeBoot).digest('base64');
+
 const csp = [
   "default-src 'self'",
   "img-src 'self' data:",
-  "script-src 'self'",
+  `script-src 'self' 'sha256-${themeBootHash}'`,
   "style-src 'self'",
   "font-src 'self'",
   ["connect-src 'self'", ...connectSrc].join(' '),
@@ -138,8 +150,12 @@ const csp = [
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="color-scheme" content="light dark" />
+    {/* Политика содержимого действует только на то, что стоит после неё:
+        поэтому она первой, до встроенного скрипта темы (решение 058). Скрипт —
+        сразу за `color-scheme`, до стилей: тема ставится до первой отрисовки. */}
     <meta http-equiv="Content-Security-Policy" content={csp} />
+    <meta name="color-scheme" content="light dark" />
+    <script is:inline set:html={themeBoot} />
     {robots && <meta name="robots" content={robots} />}
 
     <title>{title}</title>

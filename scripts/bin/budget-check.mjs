@@ -25,6 +25,7 @@
 import { readdir, readFile, stat } from 'node:fs/promises';
 import { join, extname, posix } from 'node:path';
 import { gzipSync } from 'node:zlib';
+import { createHash } from 'node:crypto';
 
 const DIST = 'site/dist';
 const KB = 1024;
@@ -37,6 +38,8 @@ const BUDGET = {
   images: 250 * KB,
   mainImage: 150 * KB,
   firstScreen: 500 * KB,
+  /** Встроенный скрипт темы — один на страницу, до 2 КБ без сжатия (ТЗ 11.2, В1) */
+  inlineScript: 2 * KB,
 };
 
 /** Ширины, на которых проверяется первый экран (решение 020). */
@@ -281,7 +284,33 @@ async function main() {
     checks.push([`Первый экран целиком, ${row.label}`, base + row.first, BUDGET.firstScreen]);
   }
 
-  let failed = false;
+  /*
+   * Встроенный скрипт темы (решение 058). На каждой странице — не больше
+   * одного исполняемого встроенного скрипта (`application/ld+json` — данные,
+   * не код), не тяжелее 2 КБ, и его хэш стоит в `script-src` политики
+   * содержимого той же страницы: иначе браузер его не выполнит.
+   */
+  let inlineMax = 0;
+  const inlineErrors = [];
+  for (const file of files.filter((candidate) => bucket(candidate.rel) === 'html')) {
+    const html = await readFile(file.path, 'utf8');
+    const csp = /http-equiv="Content-Security-Policy" content="([^"]*)"/u.exec(html)?.[1] ?? '';
+    const scripts = [...html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/giu)].filter(
+      ([, attrs]) => !/\bsrc=/u.test(attrs) && !/ld\+json/u.test(attrs),
+    );
+    if (scripts.length > 1) inlineErrors.push(`${file.rel}: встроенных скриптов ${scripts.length}`);
+    for (const [, , body] of scripts) {
+      const size = Buffer.byteLength(body);
+      inlineMax = Math.max(inlineMax, size);
+      const hash = createHash('sha256').update(body).digest('base64');
+      if (!csp.includes(`'sha256-${hash}'`))
+        inlineErrors.push(`${file.rel}: хэша скрипта нет в CSP`);
+    }
+  }
+  checks.push(['Встроенный скрипт темы (без сжатия)', inlineMax, BUDGET.inlineScript]);
+
+  let failed = inlineErrors.length > 0;
+  for (const error of inlineErrors) console.error(`НЕТ  ${error}`);
   for (const [label, actual, limit] of checks) {
     const ok = actual <= limit;
     if (!ok) failed = true;

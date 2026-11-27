@@ -10,12 +10,19 @@
  * читается как лампочка, неровный край кроны это снимает (решение 016).
  * Значок вкладки `site/public/favicon.svg` — тот же рисунок, форма Д2:
  * увеличен в 16/15, круг там занимает весь квадрат. Правки держать парой.
+ *
+ * Язык и тема (решение 058). До 1024 px в полосе: бренд, «монетка» языка,
+ * кнопка меню; тема — первой строкой панели меню. От 1024 px: бренд, пункты
+ * меню, «таблетки» языка и темы. Каждый переключатель выведен в двух местах,
+ * виден один по ширине экрана: порядок в разметке совпадает с видимым на
+ * обеих ширинах, и обход с клавиатуры идёт слева направо.
  */
 import { NAV, withBase, type NavItem } from '../config/site';
 import { EN_PAGES } from '../i18n/availability';
 import { localizedPath, type Lang } from '../i18n/lang';
 import { UI } from '../i18n/ui';
 import LangSwitch from './LangSwitch.astro';
+import ThemeSwitch from './ThemeSwitch.astro';
 
 interface Props {
   /** Путь страницы без языкового префикса */
@@ -82,7 +89,7 @@ const href = (path: string): string => withBase(localizedPath(path, lang));
       </span>
     </a>
 
-    <LangSwitch path={currentPath} lang={lang} />
+    <LangSwitch path={currentPath} lang={lang} variant="coin" />
 
     <nav class="nav" aria-label={ui.navLabel}>
       <button class="nav__toggle" type="button" popovertarget="site-nav" aria-label={ui.menuButton}>
@@ -98,6 +105,9 @@ const href = (path: string): string => withBase(localizedPath(path, lang));
       </button>
 
       <ul class="nav__list" id="site-nav" popover>
+        <li class="theme-row">
+          <ThemeSwitch lang={lang} variant="menu" />
+        </li>
         {nav.map((item) => (
           <li>
             {isCurrent(item.path) ? (
@@ -122,5 +132,8 @@ const href = (path: string): string => withBase(localizedPath(path, lang));
         ))}
       </ul>
     </nav>
+
+    <LangSwitch path={currentPath} lang={lang} variant="pill" />
+    <ThemeSwitch lang={lang} variant="bar" />
   </div>
 </header>

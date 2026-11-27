@@ -1,0 +1,77 @@
+---
+/**
+ * Переключатель темы «солнце / месяц» (ТЗ 1.2, 11.2 В1, 11.7 п. 4;
+ * решение 058). Та же «таблетка», что у языка (`.pill`): две кнопки с
+ * `aria-pressed`, подложка `--c-deep`. Видимого текста у кнопок нет —
+ * значки; имя каждой — «Світла тема» / «Темна тема» текстом для чтения с экрана.
+ *
+ * Положение подложки и цвет значков берутся из токенов темы, а не из
+ * `aria-pressed`: тема ставится в `<head>` до отрисовки, а `aria-pressed`
+ * скрипт выставляет к концу разбора страницы — так первая отрисовка не мигает.
+ * Без JavaScript кнопок нет (`:root[data-js]` ставит скрипт): страница в
+ * теме системы. Обработчик нажатия — во встроенном скрипте `theme/boot.js`,
+ * по атрибуту `data-theme-set`.
+ *
+ * `menu` — строка «Тема» первой в панели меню до 1024 px; `bar` — от 1024 px
+ * справа в шапке. Шапка выводит оба; виден один по ширине экрана.
+ */
+import type { Lang } from '../i18n/lang';
+import { UI } from '../i18n/ui';
+
+interface Props {
+  lang: Lang;
+  variant: 'menu' | 'bar';
+}
+
+const { lang, variant } = Astro.props;
+const ui = UI[lang];
+const labelId = `theme-label-${variant}`;
+---
+
+{variant === 'menu' ? (
+  <span class="theme-row__label" id={labelId}>
+    {ui.themeLabel}
+  </span>
+) : null}
+<div
+  class={`theme-switch theme-switch--${variant} pill`}
+  role="group"
+  aria-labelledby={variant === 'menu' ? labelId : undefined}
+  aria-label={variant === 'bar' ? ui.themeGroup : undefined}
+>
+  <span class="pill__thumb theme-switch__thumb" aria-hidden="true"></span>
+  <button
+    class="pill__item pill__item--a theme-switch__item theme-switch__item--light"
+    type="button"
+    data-theme-set="light"
+    aria-pressed="false"
+  >
+    <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+      <circle cx="8" cy="8" r="3" fill="none" stroke="currentColor" stroke-width="1.6"></circle>
+      <path
+        d="M8 1.2v1.6M8 13.2v1.6M1.2 8h1.6M13.2 8h1.6M3.2 3.2l1.1 1.1M11.7 11.7l1.1 1.1M3.2 12.8l1.1-1.1M11.7 4.3l1.1-1.1"
+        stroke="currentColor"
+        stroke-width="1.6"
+        stroke-linecap="round"
+      ></path>
+    </svg>
+    <span class="vh">{ui.themeLight}</span>
+  </button>
+  <button
+    class="pill__item pill__item--b theme-switch__item theme-switch__item--dark"
+    type="button"
+    data-theme-set="dark"
+    aria-pressed="false"
+  >
+    <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+      <path
+        d="M13.3 10.2A5.6 5.6 0 0 1 5.8 2.7a5.6 5.6 0 1 0 7.5 7.5z"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.6"
+        stroke-linejoin="round"
+      ></path>
+    </svg>
+    <span class="vh">{ui.themeDark}</span>
+  </button>
+</div>
