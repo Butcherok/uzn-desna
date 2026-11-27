@@ -8,8 +8,8 @@
  * его чтения, то есть лишние 33 КБ уходили в переписку при каждом старте
  * независимо от задачи. Обещание предел не держит — держит проверка.
  *
- * Карта `docs/kb-map.md` нужна по той же причине: ТЗ занимает 319 КБ, и читать
- * его целиком ради одного подраздела незачем. Карта даёт номера строк, по
+ * Карта `docs/kb-map.md` нужна по той же причине: части ТЗ — до 80 КБ, и читать
+ * часть целиком ради одного подраздела незачем. Карта даёт номера строк, по
  * которым берётся срез.
  *
  * Запуск с `--write` переписывает карту; без него только проверяет.
@@ -20,8 +20,16 @@ import { join } from 'node:path';
 /** Файлы, читаемые при старте сессии, и их пределы в строках (ТЗ 10.3, п. 4). */
 const LIMITS = [
   { path: 'CLAUDE.md', lines: 80 },
-  { path: 'docs/project-context.md', lines: 100 },
+  // Байтовый предел (ТЗ 3.51): при 98 строках файл дорос до 39 КБ — строки длинные.
+  { path: 'docs/project-context.md', lines: 100, bytes: 8 * 1024 },
 ];
+
+/**
+ * Часть документа базы знаний — до 80 КБ (ТЗ 10.3, п. 5): правка заменяет
+ * документ целиком, поэтому крупная часть — крупная переписка. Архивные
+ * части (`*z_*.md`) не правятся и предела не имеют.
+ */
+const KB_PART_BYTES = 80 * 1024;
 
 const KB_DIR = 'docs/knowledge-base';
 const MAP_PATH = 'docs/kb-map.md';
@@ -29,11 +37,12 @@ const MAP_HEAD = `# Карта разделов базы знаний
 
 Файл создаётся шагом \`docs:check\`; руками не правится.
 
-Зачем: документы базы знаний крупные, самый большой — ТЗ. Чтобы прочитать один
-подраздел, не втягивая в переписку весь файл, берётся срез по номерам строк:
+Зачем: ТЗ и дизайн-система хранятся частями до 80 КБ (какую часть читать —
+\`docs/INDEX.md\`). Чтобы прочитать один подраздел, не втягивая в переписку всю
+часть, берётся срез по номерам строк:
 
 \`\`\`
-sed -n '169,200p' docs/knowledge-base/10_tz-sait.md
+sed -n '169,200p' docs/knowledge-base/10b_tz-razdel-4.md
 \`\`\`
 
 Номера строк меняются при каждой правке документа, поэтому карта пересобирается
@@ -71,16 +80,28 @@ async function buildMap() {
 
 const problems = [];
 
-for (const { path, lines } of LIMITS) {
+for (const { path, lines, bytes: maxBytes } of LIMITS) {
   const text = await readFile(path, 'utf8');
   const count = text.split('\n').filter((l, i, a) => i < a.length - 1 || l !== '').length;
   const bytes = Buffer.byteLength(text, 'utf8');
-  const mark = count > lines ? 'не  ' : 'ок  ';
-  console.log(`${mark} ${path}: ${count} строк из ${lines}, ${bytes} Б`);
-  if (count > lines) {
+  const over = count > lines || (maxBytes !== undefined && bytes > maxBytes);
+  const limit = maxBytes === undefined ? '' : ` из ${maxBytes}`;
+  console.log(`${over ? 'не  ' : 'ок  '} ${path}: ${count} строк из ${lines}, ${bytes} Б${limit}`);
+  if (over) {
     problems.push(
-      `${path}: ${count} строк при пределе ${lines}. Этот файл читается при каждом ` +
-        `старте сессии — вынесите исторические разделы в docs/done.md или docs/findings.md.`,
+      `${path}: ${count} строк (предел ${lines}), ${bytes} Б${limit}. Этот файл читается при ` +
+        `каждом старте сессии — историю в docs/done.md, отчёты о проверках в docs/checks/.`,
+    );
+  }
+}
+
+for (const file of (await readdir(KB_DIR)).filter((f) => f.endsWith('.md')).sort()) {
+  if (/^\d+z_/.test(file)) continue;
+  const bytes = (await readFile(join(KB_DIR, file))).length;
+  if (bytes > KB_PART_BYTES) {
+    problems.push(
+      `${KB_DIR}/${file}: ${bytes} Б при пределе ${KB_PART_BYTES}. Разделите часть по границе ` +
+        `раздела и поправьте таблицу частей в оглавлении (ТЗ 10.3, п. 5).`,
     );
   }
 }
