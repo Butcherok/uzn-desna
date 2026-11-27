@@ -379,36 +379,70 @@ main > :last-child { margin-bottom: 0; }
 .brand__name { font-family: var(--f-head); font-weight: 700; font-size: var(--fs-body); line-height: var(--lh-tight); }
 .brand__name span { display: block; font-family: var(--f-text); font-weight: 400; font-size: var(--fs-caption); color: var(--c-deep); }
 
-/* Переключатель языка `UA / EN` (решение 056; ДС 1.19): ссылки, без
-   JavaScript, в полосе шапки перед кнопкой меню — на телефоне виден всегда,
-   не прячется в меню. `margin-left: auto` прижимает его к меню справа.
-   Цель — 44×44 (ТЗ 11.1, п. 4). Текущий язык — текст с `aria-current`,
-   полужирный и с полосой снизу: не только цветом (ТЗ 11.3, п. 10).
-   Уже 480 px текущий язык и косая черта не выводятся: в полосу 320 px
-   знак, название, переключатель и кнопка меню вместе не входят, а текущий
-   язык ничего не делает. Остаётся ссылка на другой язык. */
-.lang-switch { margin-left: auto; }
-.lang-switch__list { display: flex; align-items: center; list-style: none; margin: 0; padding: 0; }
-.lang-switch__list li { display: flex; align-items: center; }
-.lang-switch__sep { padding: 0 var(--s-1); color: var(--c-deep); }
+/* Переключатель языка `UA / EN` — сегментная «таблетка» (решения 056 и 057;
+   ДС 1.20, разделы 7 и 10). Ссылки, без JavaScript, в полосе шапки перед
+   кнопкой меню — на телефоне виден всегда, не прячется в меню;
+   `margin-left: auto` прижимает его к меню справа. Две ячейки по 44×44
+   (ТЗ 11.1, п. 4): текущий язык — текст с `aria-current` на тёмной подложке
+   и полужирным, другой — ссылка `--c-mid`: не только цветом (ТЗ 11.3, п. 10).
+   Рамка — псевдоэлемент поверх: в размер ячеек она не входит.
+   Подложка — отдельный элемент: при переходе на другой язык браузер везёт
+   её со старого места на новое (`@view-transition` ниже). */
+.lang-switch { position: relative; display: inline-flex; margin-left: auto; border-radius: var(--r-pill); background: var(--c-surface); }
+.lang-switch::after {
+  content: ""; position: absolute; inset: 0; z-index: 2; pointer-events: none;
+  border: var(--bw) solid var(--c-border); border-radius: var(--r-pill);
+}
+.lang-switch__thumb {
+  position: absolute; top: 0; left: 0; width: var(--tap); height: 100%;
+  border-radius: var(--r-pill); background: var(--c-deep);
+  view-transition-name: lang-thumb;
+}
+.lang-switch[data-current="en"] .lang-switch__thumb { left: var(--tap); }
+.lang-switch__list { position: relative; z-index: 1; display: flex; list-style: none; margin: 0; padding: 0; }
+.lang-switch__list li { display: flex; }
 .lang-switch__item {
   display: inline-flex; align-items: center; justify-content: center;
-  min-width: var(--tap); min-height: var(--tap);
-  font-weight: 600; font-size: var(--fs-caption); letter-spacing: .04em;
-  color: var(--c-ink); text-decoration: none; border-radius: var(--r-sm);
+  width: var(--tap); height: var(--tap); border-radius: var(--r-pill);
+  font-size: var(--fs-caption); font-weight: 700; letter-spacing: .04em; text-decoration: none;
+  transition: color var(--motion-fast) var(--motion-ease), background-color var(--motion-fast) var(--motion-ease);
 }
-a.lang-switch__item { color: var(--c-mid); text-decoration: underline; text-underline-offset: .2em; }
+/* Надписи — свои слои перехода: иначе подложка проехала бы поверх них */
+.lang-switch__item--uk { view-transition-name: lang-uk; }
+.lang-switch__item--en { view-transition-name: lang-en; }
+a.lang-switch__item { color: var(--c-mid); }
 a.lang-switch__item:hover { background: var(--c-pale); }
-.lang-switch__item[aria-current] { font-weight: 700; box-shadow: inset 0 calc(-1 * var(--bw-mark)) 0 var(--c-mid); border-radius: 0; }
-@media (max-width: 479.98px) {
-  .lang-switch__list li:has(> [aria-current]), .lang-switch__sep { display: none; }
+.lang-switch__item[aria-current] { color: var(--c-bg); }
+
+/* Шапка с переключателем. До 1024 px промежутки полосы — `--tap-gap` (8 px):
+   между соседними целями не меньше 8 px (ТЗ 11.1, п. 4; правило 1.19 давало 4).
+   Знак 32 + 8, название 149,4, таблетка 88, меню 44, поля 2 × 16: полное
+   название в строку входит от 370 px. 330–369 (360 — частый Android) —
+   без знака; уже 330 — знак и «КП УЗН», вторая строка названия скрыта
+   (полное название остаётся в имени ссылки-логотипа). Замер 27.11.2026. */
+@media (max-width: 1023.98px) {
+  .site-header__bar:has(.lang-switch) { gap: var(--tap-gap); }
 }
-/* При 320 px с переключателем «Деснянського району» не входит в строку на 1 px
-   и переносится: промежутки полосы шапки уже 360 px — 4 px вместо 12. Цели
-   по 44 px от этого не сжимаются (ТЗ 11.1, п. 4). */
-@media (max-width: 359.98px) {
-  .site-header__bar:has(.lang-switch) { gap: var(--s-1); }
+@media (max-width: 369.98px) {
+  .site-header__bar:has(.lang-switch) .brand__mark { display: none; }
 }
+@media (max-width: 329.98px) {
+  .site-header__bar:has(.lang-switch) .brand__mark { display: block; }
+  .site-header__bar:has(.lang-switch) .brand__name span { display: none; }
+}
+
+/* Переход между страницами без JavaScript (решение 057; MDN, BCD 8.1.11:
+   Chrome и Edge 126, Safari 18.2, Firefox 162). Браузер без поддержки
+   переходит как обычно, без движения. При `prefers-reduced-motion: reduce`
+   правило не действует вовсе — перехода нет (ТЗ 11.3, п. 11).
+   Корень в переходе не участвует (`none`): страница меняется сразу, едет
+   только подложка, надписи меняют цвет. При переходе по меню подложка стоит
+   на месте — движения нет. */
+@media (prefers-reduced-motion: no-preference) {
+  @view-transition { navigation: auto; }
+}
+:root { view-transition-name: none; }
+::view-transition-group(*) { animation-duration: var(--motion-switch); animation-timing-function: var(--motion-ease); }
 
 /* Меню без JavaScript: кнопка + popover (ТЗ 11.7 п.4, решение 010).
    Открытое меню живёт в верхнем слое браузера: шапку не раздвигает,
@@ -660,6 +694,11 @@ a.lang-switch__item:hover { background: var(--c-pale); }
   /* Заливка текущей страницы снята системой: её отмечает толстая рамка. */
   .pager__link--current { border-width: 3px; border-color: CanvasText; }
   :where(a, button, summary, input, [tabindex]):focus-visible { outline-color: Highlight; }
+  /* Переключатель языка: подложка и надпись на ней — системной парой
+     выделения, рамка — цветом текста */
+  .lang-switch::after { border-color: CanvasText; }
+  .lang-switch__thumb, .lang-switch__item[aria-current] { forced-color-adjust: none; background: Highlight; color: HighlightText; }
+  .lang-switch__item[aria-current] { background: transparent; }
 }
 
 /* ---------- Навигационная цепочка (ТЗ 3.1; решение 054) ----------
