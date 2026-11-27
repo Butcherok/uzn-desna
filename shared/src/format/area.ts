@@ -11,24 +11,39 @@ export function totalHectares(areas: readonly { hectares: number }[]): number {
   return micro / MICRO;
 }
 
-const exact = new Intl.NumberFormat('uk-UA', { maximumFractionDigits: 6 });
-const tenth = new Intl.NumberFormat('uk-UA', {
-  minimumFractionDigits: 1,
-  maximumFractionDigits: 1,
+/**
+ * Язык вывода чисел (ТЗ 3.2; решение 056): украинский — «1 116,6», английский
+ * (британская запись) — «1,116.6». По умолчанию — украинский.
+ */
+export type NumberLang = 'uk' | 'en';
+
+const LOCALE: Record<NumberLang, string> = { uk: 'uk-UA', en: 'en-GB' };
+
+const formats = (lang: NumberLang) => ({
+  exact: new Intl.NumberFormat(LOCALE[lang], { maximumFractionDigits: 6 }),
+  tenth: new Intl.NumberFormat(LOCALE[lang], {
+    minimumFractionDigits: 1,
+    maximumFractionDigits: 1,
+  }),
+  whole: new Intl.NumberFormat(LOCALE[lang], { maximumFractionDigits: 0 }),
 });
-const whole = new Intl.NumberFormat('uk-UA', { maximumFractionDigits: 0 });
+
+const BY_LANG: Record<NumberLang, ReturnType<typeof formats>> = {
+  uk: formats('uk'),
+  en: formats('en'),
+};
 
 /** Как в источнике: 513,5552; 0,65215; 1 116,638956. */
-export function formatHectaresExact(value: number): string {
-  return exact.format(value);
+export function formatHectaresExact(value: number, lang: NumberLang = 'uk'): string {
+  return BY_LANG[lang].exact.format(value);
 }
 
 /** Для карточки «У цифрах»: 1 116,6 (решение Заказчика 26.11.2026). */
-export function formatHectaresShort(value: number): string {
-  return tenth.format(value);
+export function formatHectaresShort(value: number, lang: NumberLang = 'uk'): string {
+  return BY_LANG[lang].tenth.format(value);
 }
 
-/** Целое число с разделителем разрядов по-украински: 223; 1 250. */
-export function formatCount(value: number): string {
-  return whole.format(value);
+/** Целое число с разделителем разрядов: 223; 1 250 (en — 1,250). */
+export function formatCount(value: number, lang: NumberLang = 'uk'): string {
+  return BY_LANG[lang].whole.format(value);
 }

@@ -1,30 +1,44 @@
 ---
-/** Страница 404 по правилу ТЗ 3.3. Код ответа задаёт GitHub Pages. */
+/**
+ * Страница 404 по правилу ТЗ 3.3. Код ответа задаёт GitHub Pages: он отдаёт
+ * эту одну страницу на любой несуществующий адрес, в том числе `/en/…`,
+ * поэтому она двуязычная — украинский блок и английский (решение 056).
+ * Английской главной ещё нет — английские ссылки ведут на украинские
+ * страницы и говорят об этом.
+ */
 import BaseLayout from '../layouts/BaseLayout.astro';
 import PhoneInline from '../components/PhoneInline.astro';
 import { contacts } from '../gateway/data';
 import { contactBySlug } from '../domain/contacts';
 import { withBase } from '../config/site';
+import { NOT_FOUND_COPY } from '../i18n/copy/not-found';
+import { hasEnglish } from '../i18n/availability';
+import { localizedPath } from '../i18n/lang';
 
 const office = contactBySlug(contacts, 'pryimalnia');
+const uk = NOT_FOUND_COPY.uk;
+const en = NOT_FOUND_COPY.en;
+const enHome = hasEnglish('/');
+const enContacts = hasEnglish('/contacts/');
+const officeEn = office?.purpose.en?.trim();
 ---
 
 <BaseLayout
-  section="Сторінку не знайдено"
+  section={uk.title}
   path="/404.html"
-  description="Такої сторінки немає. Посилання на головну, «Контакти» і телефон приймальні."
+  description={uk.description}
   indexable={false}
   errorPage
 >
-  <h1>Сторінку не знайдено</h1>
-  <p>Можливо, адреса набрана з помилкою або сторінку перенесено.</p>
+  <h1>{uk.title}</h1>
+  <p>{uk.text}</p>
 
   <ul class="list-bare mt-6">
     <li>
-      <a href={withBase('/')}>Головна</a>
+      <a href={withBase('/')}>{uk.home}</a>
     </li>
     <li>
-      <a href={withBase('/contacts/')}>Контакти</a>
+      <a href={withBase('/contacts/')}>{uk.contacts}</a>
     </li>
   </ul>
 
@@ -33,4 +47,34 @@ const office = contactBySlug(contacts, 'pryimalnia');
       {office.purpose.uk}: <PhoneInline phone={office.phone} />
     </p>
   )}
+
+  <section class="section" lang="en" aria-labelledby="not-found-en">
+    <h2 id="not-found-en">{en.title}</h2>
+    <p>{en.text}</p>
+    <ul class="list-bare mt-6">
+      <li>
+        {enHome ? (
+          <a href={withBase(localizedPath('/', 'en'))}>{en.home}</a>
+        ) : (
+          <a href={withBase('/')} hreflang="uk">
+            {en.homeUk}
+          </a>
+        )}
+      </li>
+      <li>
+        {enContacts ? (
+          <a href={withBase(localizedPath('/contacts/', 'en'))}>{en.contacts}</a>
+        ) : (
+          <a href={withBase('/contacts/')} hreflang="uk">
+            {en.contactsUk}
+          </a>
+        )}
+      </li>
+    </ul>
+    {office && officeEn && (
+      <p class="mt-6">
+        {officeEn}: <PhoneInline phone={office.phone} />
+      </p>
+    )}
+  </section>
 </BaseLayout>

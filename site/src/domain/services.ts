@@ -2,11 +2,13 @@
  * Правила страницы «Послуги» (ТЗ 4.4). Слой domain:
  * чистые функции над переданными данными, без чтения файлов и сети.
  */
-import type { Service } from '@uzn/shared';
+import type { LangText, Service } from '@uzn/shared';
 
 export type ServiceGroup = {
   /** Название группы на украинском — ключ группировки */
   readonly name: string;
+  /** Название группы на обоих языках — из первой услуги группы (решение 056) */
+  readonly label: LangText;
   readonly services: readonly Service[];
 };
 
@@ -31,7 +33,7 @@ export function groupedServices(services: readonly Service[]): ServiceGroup[] {
     if (bucket === undefined) {
       bucket = [];
       byName.set(name, bucket);
-      groups.push({ name, services: bucket });
+      groups.push({ name, label: service.group, services: bucket });
     }
     bucket.push(service);
   }

@@ -1,0 +1,262 @@
+---
+/**
+ * «Про підприємство» (ТЗ 4.2). Состав блоков — решение Заказчика 17.11.2026:
+ * описание деятельности, история, реквизиты, руководство, ссылки на
+ * подразделы. Блока структуры предприятия нет (решение 011).
+ *
+ * Все сведения — данные `data/enterprise.json` и `data/leaders.json`;
+ * придуманных сведений о предприятии в коде страницы нет (инструкции
+ * проекта, п. 5). Нет текста — блок скрывается, пустых заголовков нет
+ * (ТЗ 3.3, 4.2).
+ *
+ * Биография раскрывается элементом `details` — без JavaScript
+ * (ТЗ 11.7, п. 4; дизайн-система, раздел 7).
+ *
+ * «У цифрах» и «Що доглядаємо» (решение 053): численность и площади —
+ * поля `staffCount` и `areas`. Итог площади — сумма строк таблицы, в данных
+ * его нет, поэтому строки и итог на странице сходятся всегда (решение 018).
+ * От 1024 px текст и «У цифрах» стоят рядом; ниже — друг под другом.
+ */
+import { getImage } from 'astro:assets';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { LeaderCard, type LeaderCardProps, type LeaderPhoto } from '../components/cards/LeaderCard';
+import { renderStatic } from '../components/cards/render-static';
+import {
+  formatCount,
+  formatDate,
+  formatHectaresExact,
+  formatHectaresShort,
+  totalHectares,
+} from '@uzn/shared';
+import { enterprise, leaders, staticBlockText } from '../gateway/data';
+import { leaderPhoto } from '../gateway/media';
+import { publishedLeaders } from '../domain/leaders';
+import { RichText } from '../components/cards/RichText';
+import { withBase } from '../config/site';
+import type { Lang } from '../i18n/lang';
+import { UI } from '../i18n/ui';
+import { pick } from '../i18n/text';
+import { ABOUT_COPY, type AboutCopy } from '../i18n/copy/about';
+import { copyFor } from '../i18n/copy/types';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const copy = copyFor(ABOUT_COPY, lang) as AboutCopy;
+const section = UI[lang].sections['/about/'];
+
+const summary = pick(enterprise.infoReference, lang)?.trim() ?? '';
+const areas = enterprise.areas ?? [];
+const total = totalHectares(areas);
+const facts: { value: string; label: string }[] = [
+  ...(enterprise.staffCount
+    ? [{ value: formatCount(enterprise.staffCount, lang), label: copy.staffLabel }]
+    : []),
+  ...(areas.length > 0 ? [{ value: formatHectaresShort(total, lang), label: copy.areaLabel }] : []),
+  ...areas
+    .filter((a) => a.inSummary && a.count)
+    .map((a) => ({ value: formatCount(a.count ?? 0, lang), label: pick(a.name, lang) })),
+];
+const historyBlock = staticBlockText('about.history');
+const history = pick(historyBlock, lang)?.trim() ?? '';
+// Фото — WebP 88 px с плотностями 1 и 2, нарезанные сборкой (ТЗ 5.3); фото
+// без описания не выводится (ТЗ 11.3).
+const cards: LeaderCardProps[] = await Promise.all(
+  publishedLeaders(leaders).map(async (leader) => {
+    let photo: LeaderPhoto | undefined;
+    if (leader.photoPath && leader.photoAlt) {
+      const image = await getImage({
+        src: leaderPhoto(leader.photoPath),
+        width: 88,
+        height: 88,
+        densities: [1, 2],
+        format: 'webp',
+      });
+      photo = { src: image.src, srcSet: image.srcSet.attribute, alt: pick(leader.photoAlt, lang) };
+    }
+    return {
+      fullName: pick(leader.fullName, lang),
+      position: pick(leader.position, lang),
+      since: leader.since,
+      bio: pick(leader.bio, lang),
+      photo,
+      lang,
+    };
+  }),
+);
+---
+
+<BaseLayout section={section} path="/about/" lang={lang} description={copy.description}>
+  <h1>{section}</h1>
+
+  {(summary || facts.length > 0 || areas.length > 0) && (
+    <section class="section" aria-labelledby="about-what">
+      <h2 id="about-what">{copy.whatTitle}</h2>
+      <div class={summary && facts.length > 0 ? 'about-split' : undefined}>
+        {summary && (
+          <div>
+            <Fragment
+              set:html={renderStatic(RichText, { text: summary, firstClassName: 'lead' })}
+            />
+          </div>
+        )}
+        {facts.length > 0 && (
+          <aside class="card facts" aria-labelledby="about-facts">
+            <h3 id="about-facts" class="facts__title">
+              {copy.factsTitle}
+            </h3>
+            <ul class="nums nums--2 list-bare">
+              {facts.map((f) => (
+                <li class="num">
+                  <span class="num__v">{f.value}</span>
+                  <span class="num__l">{f.label}</span>
+                </li>
+              ))}
+            </ul>
+          </aside>
+        )}
+      </div>
+      {areas.length > 0 && (
+        <>
+          <h3 id="about-areas">{copy.areasTitle}</h3>
+          <table class="figures" aria-labelledby="about-areas">
+            <thead>
+              <tr>
+                <th scope="col">{copy.colCategory}</th>
+                <th scope="col" class="figures__n">
+                  {copy.colCount}
+                </th>
+                <th scope="col" class="figures__n">
+                  {copy.colArea}
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {areas.map((a) => (
+                <tr>
+                  <th scope="row">{pick(a.name, lang)}</th>
+                  <td class="figures__n">
+                    {a.count ? (
+                      formatCount(a.count, lang)
+                    ) : (
+                      <>
+                        <span aria-hidden="true">—</span>
+                        <span class="vh">{copy.noData}</span>
+                      </>
+                    )}
+                  </td>
+                  <td class="figures__n">{formatHectaresExact(a.hectares, lang)}</td>
+                </tr>
+              ))}
+            </tbody>
+            <tfoot>
+              <tr>
+                <th scope="row">{copy.total}</th>
+                <td class="figures__n" />
+                <td class="figures__n">{formatHectaresExact(total, lang)}</td>
+              </tr>
+            </tfoot>
+          </table>
+        </>
+      )}
+    </section>
+  )}
+
+  {history && (
+    <section class="section">
+      <h2>{copy.historyTitle}</h2>
+      <Fragment set:html={renderStatic(RichText, { text: history })} />
+    </section>
+  )}
+
+  <section class="section">
+    <h2>{copy.requisitesTitle}</h2>
+    <table class="specs">
+      <tbody>
+        <tr>
+          <th scope="row">{copy.fullName}</th>
+          <td>{pick(enterprise.nameFull, lang)}</td>
+        </tr>
+        <tr>
+          <th scope="row">{copy.edrpou}</th>
+          <td>{enterprise.edrpou}</td>
+        </tr>
+        <tr>
+          <th scope="row">{copy.legalForm}</th>
+          <td>{pick(enterprise.legalForm, lang)}</td>
+        </tr>
+        {enterprise.registeredAt && (
+          <tr>
+            <th scope="row">{copy.registeredAt}</th>
+            <td>{formatDate(enterprise.registeredAt, lang)}</td>
+          </tr>
+        )}
+        <tr>
+          <th scope="row">{copy.owner}</th>
+          <td>{pick(enterprise.ownerBody, lang)}</td>
+        </tr>
+        <tr>
+          <th scope="row">{copy.governedBy}</th>
+          <td>{pick(enterprise.governedBy, lang)}</td>
+        </tr>
+        {enterprise.coordinatedBy && (
+          <tr>
+            <th scope="row">{copy.coordinatedBy}</th>
+            <td>{pick(enterprise.coordinatedBy, lang)}</td>
+          </tr>
+        )}
+        {enterprise.kved && enterprise.kved.length > 0 && (
+          <tr>
+            <th scope="row">{copy.kved}</th>
+            <td>
+              <ul class="list-bare">
+                {enterprise.kved.map((kved) => (
+                  <li>
+                    {kved.code} — {pick(kved.title, lang)}
+                  </li>
+                ))}
+              </ul>
+            </td>
+          </tr>
+        )}
+      </tbody>
+    </table>
+
+    {enterprise.legalBasis && enterprise.legalBasis.length > 0 && (
+      <>
+        <h3>{copy.legalBasisTitle}</h3>
+        <ul class="list-bare">
+          {enterprise.legalBasis.map((item) => (
+            <li>{pick(item, lang)}</li>
+          ))}
+        </ul>
+      </>
+    )}
+  </section>
+
+  {cards.length > 0 && (
+    <section class="section">
+      <h2>{copy.leadersTitle}</h2>
+      <div class="grid grid--2">
+        {cards.map((card) => (
+          <Fragment set:html={renderStatic(LeaderCard, card)} />
+        ))}
+      </div>
+    </section>
+  )}
+
+  {copy.more.length > 0 && (
+    <section class="section">
+      <h2>{copy.moreTitle}</h2>
+      <ul class="list-bare">
+        {copy.more.map((item) => (
+          <li>
+            <a href={withBase(item.path)}>{item.label}</a> {item.text}
+          </li>
+        ))}
+      </ul>
+    </section>
+  )}
+</BaseLayout>

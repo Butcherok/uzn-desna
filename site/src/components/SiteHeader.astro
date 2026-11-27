@@ -11,19 +11,38 @@
  * Значок вкладки `site/public/favicon.svg` — тот же рисунок, форма Д2:
  * увеличен в 16/15, круг там занимает весь квадрат. Правки держать парой.
  */
-import { ENTERPRISE, NAV, withBase } from '../config/site';
+import { NAV, withBase, type NavItem } from '../config/site';
+import { EN_PAGES } from '../i18n/availability';
+import { localizedPath, type Lang } from '../i18n/lang';
+import { UI } from '../i18n/ui';
+import LangSwitch from './LangSwitch.astro';
 
 interface Props {
+  /** Путь страницы без языкового префикса */
   currentPath: string;
+  lang?: Lang;
 }
 
-const { currentPath } = Astro.props;
+const { currentPath, lang = 'uk' } = Astro.props;
+const ui = UI[lang];
 const isCurrent = (path: string): boolean => path === currentPath;
+
+/**
+ * Английское меню (решение 056): только собранные английские страницы, без
+ * подпунктов — подразделы не переводятся (ТЗ 4.13). Главная — ссылка-логотип.
+ */
+const nav: readonly NavItem[] =
+  lang === 'uk'
+    ? NAV
+    : [...EN_PAGES]
+        .filter((path) => path !== '/')
+        .map((path) => ({ label: ui.sections[path], path }));
+const href = (path: string): string => withBase(localizedPath(path, lang));
 ---
 
 <header class="site-header">
   <div class="container site-header__bar">
-    <a class="brand" href={withBase('/')} aria-label={`${ENTERPRISE.nameShort}, головна`}>
+    <a class="brand" href={href('/')} aria-label={`${ui.nameShort}, ${ui.brandHome}`}>
       <svg
         class="brand__mark"
         width="32"
@@ -59,12 +78,14 @@ const isCurrent = (path: string): boolean => path === currentPath;
           `aria-label`. Это нарушение AA (WCAG 2.1, 2.5.3 «Label in Name») и
           отказ управления голосом. Сущность сжатие не трогает. */}
       <span class="brand__name">
-        КП УЗН&#32;<span>Деснянського району</span>
+        {ui.brandMain}&#32;<span>{ui.brandSub}</span>
       </span>
     </a>
 
-    <nav class="nav" aria-label="Розділи сайту">
-      <button class="nav__toggle" type="button" popovertarget="site-nav" aria-label="Меню розділів">
+    <LangSwitch path={currentPath} lang={lang} />
+
+    <nav class="nav" aria-label={ui.navLabel}>
+      <button class="nav__toggle" type="button" popovertarget="site-nav" aria-label={ui.menuButton}>
         <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
           <path
             d="M3 6h18M3 12h18M3 18h18"
@@ -77,12 +98,12 @@ const isCurrent = (path: string): boolean => path === currentPath;
       </button>
 
       <ul class="nav__list" id="site-nav" popover>
-        {NAV.map((item) => (
+        {nav.map((item) => (
           <li>
             {isCurrent(item.path) ? (
               <span aria-current="page">{item.label}</span>
             ) : (
-              <a href={withBase(item.path)}>{item.label}</a>
+              <a href={href(item.path)}>{item.label}</a>
             )}
             {item.children && (
               <ul class="nav__sub">
@@ -91,7 +112,7 @@ const isCurrent = (path: string): boolean => path === currentPath;
                     {isCurrent(child.path) ? (
                       <span aria-current="page">{child.label}</span>
                     ) : (
-                      <a href={withBase(child.path)}>{child.label}</a>
+                      <a href={href(child.path)}>{child.label}</a>
                     )}
                   </li>
                 ))}

@@ -1,0 +1,33 @@
+---
+/**
+ * Английская версия (ТЗ 3.2, п. 4; 4.13; решение 056): `/en/`, `/en/about/`,
+ * `/en/services/`, `/en/contacts/` — только страницы с полным переводом
+ * (`i18n/availability`). Страницы без перевода не собираются вовсе: ни
+ * украинского текста под английским адресом, ни пустой страницы (ТЗ 4.13,
+ * «При отсутствии данных»).
+ */
+import type { GetStaticPaths } from 'astro';
+import { EN_PAGES } from '../../i18n/availability';
+import type { EnSection } from '../../i18n/lang';
+import HomeView from '../../views/HomeView.astro';
+import AboutView from '../../views/AboutView.astro';
+import ServicesView from '../../views/ServicesView.astro';
+import ContactsView from '../../views/ContactsView.astro';
+
+export const getStaticPaths = (() =>
+  [...EN_PAGES].map((page) => ({
+    params: { section: page === '/' ? undefined : page.slice(1, -1) },
+    props: { page },
+  }))) satisfies GetStaticPaths;
+
+interface Props {
+  page: EnSection;
+}
+
+const { page } = Astro.props;
+---
+
+{page === '/' && <HomeView lang="en" />}
+{page === '/about/' && <AboutView lang="en" />}
+{page === '/services/' && <ServicesView lang="en" />}
+{page === '/contacts/' && <ContactsView lang="en" />}

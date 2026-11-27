@@ -78,6 +78,11 @@ jobs:
       - name: Check build for secrets
         run: npm run secrets:check
 
+      # Языковые версии на опубликованных данных (решение 056): английский
+      # текст из админки не больше украинского — закон, а не обещание.
+      - name: Check language versions
+        run: npm run lang:check
+
       - uses: actions/upload-pages-artifact@v5
         with:
           path: site/dist

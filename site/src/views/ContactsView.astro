@@ -1,0 +1,108 @@
+---
+/**
+ * «Контакти» (ТЗ 4.6) на языке `lang` (решение 056): страница
+ * `pages/contacts/` и английская `pages/en/[...section].astro`. Состав блоков — утверждённый контент
+ * `claude/12_kontent-4-5-4-6.md`, версия 0.3, раздел 4; с 26.11.2026 сюда
+ * объединена «Куди звертатися» (ТЗ 4.5; решение 052): оперативний черговий —
+ * строкой перечня телефонов с ролью из данных, без перечня ситуаций.
+ *
+ * Телефоны и часы — данные `data/contacts.json`, почта — `data/enterprise.json`.
+ * Непроверенный телефон не выводится, нет почты — блок почты скрывается
+ * (ТЗ 4.6). Почта собрана HTML-сущностями: простого текстового `mailto:`
+ * в исходном коде страницы нет (ТЗ 5.4, п. 7; решение 008).
+ *
+ * Встроенной карты нет, блока приёма граждан нет, форм ввода нет (ТЗ 4.6, 1.2).
+ */
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { ContactRow } from '../components/cards/ContactRow';
+import { renderStatic } from '../components/cards/render-static';
+import { mailtoLinkHtml, textLines } from '@uzn/shared';
+import { contacts, enterprise } from '../gateway/data';
+import { contactBySlug, publishedContacts } from '../domain/contacts';
+import { ENTERPRISE } from '../config/site';
+import type { Lang } from '../i18n/lang';
+import { UI } from '../i18n/ui';
+import { pick } from '../i18n/text';
+import { CONTACTS_COPY, type ContactsCopy } from '../i18n/copy/contacts';
+import { copyFor } from '../i18n/copy/types';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const ui = UI[lang];
+const copy = copyFor(CONTACTS_COPY, lang) as ContactsCopy;
+const section = ui.sections['/contacts/'];
+
+const phones = publishedContacts(contacts);
+const office = contactBySlug(contacts, 'pryimalnia');
+---
+
+<BaseLayout section={section} path="/contacts/" lang={lang} description={copy.description}>
+  <h1>{section}</h1>
+
+  <div class="card">
+    <p class="card__title">{ui.nameShort}</p>
+    <ul class="list-bare">
+      <li>{ui.address}</li>
+      <li>
+        {ui.edrpou} {ENTERPRISE.edrpou}
+      </li>
+      {textLines(pick(office?.hours, lang)).map((line) => (
+        <li>{line}</li>
+      ))}
+    </ul>
+  </div>
+
+  {phones.length > 0 && (
+    <section class="section">
+      <table class="specs">
+        <tbody>
+          {phones.map((contact) => (
+            <Fragment
+              set:html={renderStatic(ContactRow, {
+                purpose: pick(contact.purpose, lang),
+                phone: contact.phone,
+                hours: pick(contact.hours, lang),
+                role: pick(contact.role, lang),
+              })}
+            />
+          ))}
+        </tbody>
+      </table>
+    </section>
+  )}
+
+  {enterprise.email && (
+    <section class="section">
+      <h2>{copy.emailTitle}</h2>
+      <p>
+        <strong>
+          <Fragment set:html={mailtoLinkHtml(enterprise.email)} />
+        </strong>{' '}
+        {copy.emailNote}
+      </p>
+    </section>
+  )}
+
+  <section class="section">
+    <h2>{copy.routeTitle}</h2>
+    <p>
+      {copy.addressLabel} {ui.address}.
+    </p>
+    <p>
+      <a class="ext" href={ENTERPRISE.mapsUrl} target="_blank" rel="noopener noreferrer">
+        {copy.mapLink}
+      </a>{' '}
+      {copy.newTab}
+    </p>
+  </section>
+
+  <p>
+    <a class="ext" href={ENTERPRISE.facebook} target="_blank" rel="noopener noreferrer">
+      {copy.facebookLink}
+    </a>{' '}
+    {copy.newTab}
+  </p>
+</BaseLayout>
