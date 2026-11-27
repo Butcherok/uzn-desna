@@ -69,8 +69,11 @@ cd D:\backup
 ```
 
 ```
-age -d -i key.txt -o uzn.archive (Get-ChildItem *.age).Name
+age -d -i key.txt -o uzn.archive uzn-backup-ГГГГ-ММ-ДД-runНОМЕР.archive.gz.age
 ```
+
+Имя файла — полностью, как в папке (`Get-ChildItem *.age`). Маска вместо имени
+при двух копиях в папке даёт `too many INPUT arguments`.
 
 Должно: команда завершилась без сообщений, появился файл `uzn.archive`
 размером в десятки килобайт (24.11.2026 — 14 379 байт: архив сжат). Размер:
