@@ -1,17 +1,61 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-11-23T18:29:34.360Z",
+  "generatedAt": "2026-11-27T07:04:49.445Z",
   "source": "sync",
   "items": [
     {
-      "source": "kyivzelenbud",
-      "lastRunAt": "2026-11-20T08:48:40.822Z",
-      "lastSuccessAt": "2026-11-20T08:48:40.822Z",
+      "source": "desna",
+      "lastRunAt": "2026-11-27T07:04:49.445Z",
+      "lastSuccessAt": "2026-11-27T07:04:49.445Z",
       "result": "ok",
       "errorCode": null,
       "errorMessage": null,
-      "itemsFetched": 13,
-      "itemsNew": 13,
+      "itemsFetched": 66,
+      "itemsNew": 61,
+      "consecutiveFailures": 0
+    },
+    {
+      "source": "dnipro",
+      "lastRunAt": "2026-11-27T07:04:49.445Z",
+      "lastSuccessAt": "2026-11-27T07:04:49.445Z",
+      "result": "ok",
+      "errorCode": null,
+      "errorMessage": null,
+      "itemsFetched": 90,
+      "itemsNew": 73,
+      "consecutiveFailures": 0
+    },
+    {
+      "source": "hmarochos",
+      "lastRunAt": "2026-11-27T07:04:49.445Z",
+      "lastSuccessAt": "2026-11-27T07:04:49.445Z",
+      "result": "ok",
+      "errorCode": null,
+      "errorMessage": null,
+      "itemsFetched": 14,
+      "itemsNew": 14,
+      "consecutiveFailures": 0
+    },
+    {
+      "source": "kyivzelenbud",
+      "lastRunAt": "2026-11-27T07:04:49.445Z",
+      "lastSuccessAt": "2026-11-27T07:04:49.445Z",
+      "result": "ok",
+      "errorCode": null,
+      "errorMessage": null,
+      "itemsFetched": 12,
+      "itemsNew": 0,
+      "consecutiveFailures": 0
+    },
+    {
+      "source": "podol",
+      "lastRunAt": "2026-11-27T07:04:49.445Z",
+      "lastSuccessAt": "2026-11-27T07:04:49.445Z",
+      "result": "ok",
+      "errorCode": null,
+      "errorMessage": null,
+      "itemsFetched": 83,
+      "itemsNew": 82,
       "consecutiveFailures": 0
     },
     {
@@ -27,13 +71,13 @@
     },
     {
       "source": "theconversation",
-      "lastRunAt": "2026-11-20T08:48:40.822Z",
-      "lastSuccessAt": "2026-11-20T08:48:40.822Z",
+      "lastRunAt": "2026-11-27T07:04:49.445Z",
+      "lastSuccessAt": "2026-11-27T07:04:49.445Z",
       "result": "ok",
       "errorCode": null,
       "errorMessage": null,
       "itemsFetched": 175,
-      "itemsNew": 27,
+      "itemsNew": 0,
       "consecutiveFailures": 0
     }
   ]
