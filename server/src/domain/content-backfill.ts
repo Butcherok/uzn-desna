@@ -36,7 +36,7 @@ export interface Backfill {
 function feedSources2026(data: Record<string, unknown>): Record<string, unknown> {
   const sources = (normalizeFeedSources(data['sources']) as Record<string, unknown>[]).map((s) => {
     if (s['id'] !== 'hmarochos') return s;
-    const rest = { ...s, enabled: true };
+    const rest: Record<string, unknown> = { ...s, enabled: true };
     delete rest['note'];
     return rest;
   });

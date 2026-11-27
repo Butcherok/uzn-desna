@@ -74,6 +74,22 @@ jobs:
           echo "list=$steps" >> "$GITHUB_OUTPUT"
           echo "Шаги прогона: ${steps:-нет}"
 
+      # Источники и словарь ленты правит владелец в админке («Словник
+      # стрічки»); опубликованное лежит в ветке `content-data` (решение 041).
+      # До решения 055 синхронизация брала файл из `main`, и правки админки
+      # до неё не доходили. Нет ветки или файла — `data/feed-rules.json` из `main`.
+      - name: Take published feed rules
+        if: contains(steps.steps.outputs.list, 'feed')
+        run: |
+          if git ls-remote --exit-code --heads origin content-data > /dev/null \
+            && git fetch --depth=1 origin content-data \
+            && git cat-file -e FETCH_HEAD:data/feed-rules.json 2> /dev/null; then
+            git show FETCH_HEAD:data/feed-rules.json > data/feed-rules.json
+            echo "Правила ленты из content-data $(git rev-parse --short FETCH_HEAD)"
+          else
+            echo "Правила ленты из main"
+          fi
+
       - name: Restore previous sync data
         if: steps.steps.outputs.list != ''
         run: |

@@ -607,7 +607,6 @@ main > :last-child { margin-bottom: 0; }
   .card__credit { background: rgba(0, 0, 0, 0.85); }
   .hero__slogan { color: var(--c-ink); }
   .pager__link { border-color: var(--c-border); }
-  .pager__link--off { opacity: 1; }
 }
 
 /* `forced-colors: active` — «Контрастні теми» Windows: цвета задаёт система,
@@ -685,11 +684,14 @@ kbd {
 a.pager__link:hover { background: var(--c-pale); color: var(--c-ink); }
 /* Текущая — заливкой и рамкой: рамка видна и в системных цветах Windows. */
 .pager__link--current { background: var(--c-deep); border-color: var(--c-deep); color: var(--c-surface); }
-.pager__link--off { color: var(--c-deep); border-style: dashed; opacity: .6; }
+.pager__link--off { color: var(--c-deep); border-style: dashed; }
 .pager__gap { min-width: var(--s-4); text-align: center; color: var(--c-deep); }
 /* На узком экране «Новіші» и «Старіші» — строкой над номерами. */
 @media (max-width: 599px) {
-  .pager__step { flex: 1 1 40%; }
+  /* Номера с пропусками — в одну строку и на 320 px: 5 номеров по 44 px. */
+  .pager__list { column-gap: var(--s-1); }
+  .pager__gap { min-width: 0; width: var(--s-3); }
+  .pager__step { flex: 1 1 calc(50% - var(--s-1)); }
   .pager__step .pager__link { width: 100%; }
   .pager__step:first-child { order: -2; }
   .pager__step:last-child { order: -1; }
