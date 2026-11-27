@@ -70,7 +70,10 @@ describe('backfillContent', () => {
     const store = new MemoryStore();
     await seedContent(store, INITIAL_DATA, now);
     expect(await backfillContent(store, INITIAL_DATA, now)).toEqual({});
-    expect(await store.listBackfills()).toEqual(['2026-11-enterprise-figures']);
+    expect((await store.listBackfills()).sort()).toEqual([
+      '2026-11-enterprise-figures',
+      '2026-11-feed-sources',
+    ]);
     const log = await store.listLog({ skip: 0, limit: 10 });
     expect(log.items.map((e) => e.action)).toEqual(['content.seed']);
   });
@@ -79,5 +82,57 @@ describe('backfillContent', () => {
     const store = new MemoryStore();
     expect(await backfillContent(store, INITIAL_DATA, now)).toEqual({});
     expect(await store.listBackfills()).toEqual([]);
+  });
+
+  it('feed sources: drops КМДА and GDELT, adds district sites, enables Хмарочос, keeps owner settings', async () => {
+    const store = new MemoryStore();
+    const seed = INITIAL_DATA['feed-rules'] as { items: Record<string, unknown>[] };
+    // Перечень, как в рабочей БД до решения 055 (уривок у Київзеленбуду включил владелец).
+    const old = {
+      ...seed.items[0]!,
+      sources: [
+        { id: 'kmda', name: 'КМДА', enabled: false, excerptAllowed: true, note: 'x' },
+        { id: 'kyivzelenbud', name: 'Київзеленбуд', enabled: true, excerptAllowed: true },
+        { id: 'theconversation', name: 'The Conversation', enabled: true, excerptAllowed: true },
+        { id: 'hmarochos', name: 'Хмарочос', enabled: false, excerptAllowed: false, note: 'y' },
+        { id: 'gdelt', name: 'GDELT Project', enabled: false, excerptAllowed: false, note: 'z' },
+      ],
+    };
+    const rec = await store.insertContent(
+      newContent('singleton', {
+        kind: 'feed-rules',
+        data: old,
+        status: 'published',
+        updatedAt: published,
+      }),
+    );
+    expect(await backfillContent(store, INITIAL_DATA, now)).toEqual({
+      '2026-11-feed-sources': ['sources'],
+    });
+    const got = await store.findContent('feed-rules', rec.id);
+    expect(got?.data.sources).toEqual([
+      { id: 'kyivzelenbud', name: 'Київзеленбуд', enabled: true, excerptAllowed: true },
+      { id: 'theconversation', name: 'The Conversation', enabled: true, excerptAllowed: true },
+      { id: 'hmarochos', name: 'Хмарочос', enabled: true, excerptAllowed: false },
+      { id: 'desna', name: 'КП УЗН Деснянського району', enabled: true, excerptAllowed: true },
+      { id: 'podol', name: 'КП УЗН Подільського району', enabled: true, excerptAllowed: false },
+      { id: 'dnipro', name: 'КП УЗН Дніпровського району', enabled: true, excerptAllowed: false },
+    ]);
+    expect(got?.data.dictionary).toEqual(seed.items[0]!['dictionary']);
+    expect(await store.countContentChangedSince(published)).toBe(1);
+    const log = await store.listLog({ skip: 0, limit: 10 });
+    expect(log.items.map((e) => [e.action, e.entity])).toEqual([['content.patch', 'feed-rules']]);
+
+    // Владелец потом выключил Хмарочос — повторный запуск это не отменяет.
+    const off = (got!.data.sources as Record<string, unknown>[]).map((x) =>
+      x['id'] === 'hmarochos' ? { ...x, enabled: false } : x,
+    );
+    await store.replaceContent({ ...got!, data: { ...got!.data, sources: off } }, got!.updatedAt);
+    expect(await backfillContent(store, INITIAL_DATA, now)).toEqual({});
+    const again = await store.findContent('feed-rules', rec.id);
+    expect(
+      (again?.data.sources as { id: string; enabled: boolean }[]).find((x) => x.id === 'hmarochos')
+        ?.enabled,
+    ).toBe(false);
   });
 });

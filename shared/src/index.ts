@@ -66,8 +66,11 @@ export {
   feedRulesSchema,
   feedRulesFileSchema,
   feedSourceIdSchema,
-  FEED_ITEMS_KEPT,
-  FEED_ITEMS_SHOWN,
+  normalizeFeedSources,
+  FEED_SOURCES,
+  FEED_KEEP_DAYS,
+  FEED_ITEMS_MAX,
+  FEED_PAGE_SIZE,
   FEED_ITEMS_ON_HOME,
 } from './schemas/feed.js';
 export type {

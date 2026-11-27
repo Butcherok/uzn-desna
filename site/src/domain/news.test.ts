@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { FeedFile, FeedItem } from '@uzn/shared';
-import { feedCards } from './news';
+import { feedCards, feedPages, newsPagePath, pageLinks } from './news';
 
 function item(n: number, publishedAt: string, lang: 'uk' | 'en' = 'uk'): FeedItem {
   return {
@@ -33,7 +33,7 @@ function file(items: FeedItem[], state: FeedFile['state'] = 'data'): FeedFile {
   };
 }
 
-describe('Новини галузі (ТЗ 4.8)', () => {
+describe('Новини (ТЗ 4.8)', () => {
   it('новые первыми, не больше лимита', () => {
     const items = Array.from({ length: 12 }, (_, i) =>
       item(i, new Date(Date.UTC(2026, 0, 1 + i)).toISOString()),
@@ -83,5 +83,47 @@ describe('Новини галузі (ТЗ 4.8)', () => {
     // Скрыты все — карточек нет, блок скрывается.
     const all = new Set(items.map((i) => i.urlKey));
     expect(feedCards(file(items), 3, all)).toEqual([]);
+  });
+});
+
+describe('Новини: страницы (решение 055)', () => {
+  it('все карточки по 24 на страницу, новые первыми, без потерь', () => {
+    const items = Array.from({ length: 50 }, (_, i) =>
+      item(i, new Date(Date.UTC(2026, 0, 1 + i)).toISOString()),
+    );
+    const pages = feedPages(feedCards(file(items)));
+    expect(pages.map((p) => [p.page, p.total, p.cards.length])).toEqual([
+      [1, 3, 24],
+      [2, 3, 24],
+      [3, 3, 2],
+    ]);
+    expect(pages[0]?.cards[0]?.title).toBe('Новина 49');
+    expect(pages[2]?.cards.at(-1)?.title).toBe('Новина 0');
+  });
+
+  it('пустая лента — одна страница без карточек', () => {
+    expect(feedPages([])).toEqual([{ page: 1, total: 1, cards: [] }]);
+  });
+
+  it('адреса страниц: первая — /news/', () => {
+    expect([newsPagePath(1), newsPagePath(2), newsPagePath(17)]).toEqual([
+      '/news/',
+      '/news/2/',
+      '/news/17/',
+    ]);
+  });
+
+  const show = (current: number, total: number) =>
+    pageLinks(current, total)
+      .map((l) => ('gap' in l ? '…' : l.current ? `[${l.page}]` : String(l.page)))
+      .join(' ');
+
+  it('номера: первая, последняя, соседние с текущей; пропуск в одну страницу — номером', () => {
+    expect(show(1, 1)).toBe('[1]');
+    expect(show(1, 3)).toBe('[1] 2 3');
+    expect(show(1, 10)).toBe('[1] 2 … 10');
+    expect(show(4, 10)).toBe('1 2 3 [4] 5 … 10');
+    expect(show(6, 10)).toBe('1 … 5 [6] 7 … 10');
+    expect(show(10, 10)).toBe('1 … 9 [10]');
   });
 });

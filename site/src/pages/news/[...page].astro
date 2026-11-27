@@ -1,0 +1,67 @@
+---
+/**
+ * «Новини» (ТЗ 4.8; решения 027, 031, 055): одна лента без второго
+ * заголовка — новости предприятия, сети «Київзеленбуд» и сторонних
+ * источников. Все карточки по дате, новые первыми, страницами по
+ * `FEED_PAGE_SIZE`: первая — `/news/`, следующие — `/news/<n>/`. Блока
+ * Facebook нет (ТЗ 4.7, решение 029).
+ *
+ * Подпись ленты — `news.feed.note` в `data/static-blocks.json`, под
+ * карточками мелким шрифтом.
+ */
+import type { GetStaticPaths } from 'astro';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import FeedCards from '../../components/FeedCards.astro';
+import Pagination from '../../components/Pagination.astro';
+import { RichText } from '../../components/cards/RichText';
+import { renderStatic } from '../../components/cards/render-static';
+import { ENTERPRISE } from '../../config/site';
+import { feed, hiddenFeedKeys, staticBlockText } from '../../gateway/data';
+import { feedCards, feedPages, newsPagePath } from '../../domain/news';
+import type { FeedPage } from '../../domain/news';
+
+export const getStaticPaths = (() =>
+  feedPages(feedCards(feed, undefined, hiddenFeedKeys)).map((p) => ({
+    params: { page: p.page === 1 ? undefined : String(p.page) },
+    props: { feedPage: p },
+  }))) satisfies GetStaticPaths;
+
+interface Props {
+  feedPage: FeedPage;
+}
+
+const { feedPage } = Astro.props;
+const { page, total, cards } = feedPage;
+const note = staticBlockText('news.feed.note');
+
+const first = page === 1;
+const description = first
+  ? 'Новини про парки, сквери, озеленення й міські зелені зони — від підприємства, мережі «Київзеленбуд» та інших джерел.'
+  : `Новини про парки, сквери й озеленення, сторінка ${page} з ${total}.`;
+const titleProp = first ? {} : { title: `Новини, сторінка ${page} — ${ENTERPRISE.nameShort}` };
+---
+
+{/* Лента — в основном чужие публикации: вне индекса и после снятия закрытия (решение 039) */}
+<BaseLayout
+  section="Новини"
+  path={newsPagePath(page)}
+  {...titleProp}
+  description={description}
+  indexable={false}
+>
+  <h1>Новини{!first && <span class="vh">, сторінка {page}</span>}</h1>
+
+  {cards.length === 0 && <p class="lead">Новин поки немає.</p>}
+
+  {cards.length > 0 && (
+    <>
+      <FeedCards cards={cards} heading="h2" />
+      {note && (
+        <div class="feed-note">
+          <Fragment set:html={renderStatic(RichText, { text: note.uk })} />
+        </div>
+      )}
+      <Pagination page={page} total={total} />
+    </>
+  )}
+</BaseLayout>

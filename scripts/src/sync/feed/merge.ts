@@ -1,13 +1,12 @@
 /**
  * Сборка `feed.json` из прежнего файла и исходов источников (ТЗ 6.3, 6.5, 7.4).
  *
- * Порядок и вытеснение — по дате публикации: новые записи вытесняют самые
- * старые, по возрасту ничего не удаляется. Дата получения для этого не
- * годится: The Conversation отдаёт по 25 записей на тему за годы, и
- * вытесненная старая запись при следующем прогоне вернулась бы «новой»
- * (решение 027).
+ * Хранятся публикации за год по дате публикации (решение 055): старше —
+ * уходят. Дата получения для этого не годится: The Conversation отдаёт по
+ * 25 записей на тему за годы, и ушедшая старая запись при следующем прогоне
+ * вернулась бы «новой» (решение 027).
  */
-import { FEED_ITEMS_KEPT, SCHEMA_VERSION } from '@uzn/shared';
+import { FEED_ITEMS_MAX, FEED_KEEP_DAYS, SCHEMA_VERSION } from '@uzn/shared';
 import type { FeedFile, FeedItem, FeedRuleSource, FeedSourceId, SyncErrorCode } from '@uzn/shared';
 import type { RawEntry } from './parse.js';
 import type { FeedVia } from './sources.js';
@@ -15,7 +14,14 @@ import { SOURCES } from './sources.js';
 import { excerptOf, normalizedTitle, urlKey } from './text.js';
 
 export type FeedOutcome =
-  | { source: FeedRuleSource; ok: true; via: FeedVia; entries: RawEntry[] }
+  | {
+      source: FeedRuleSource;
+      ok: true;
+      via: FeedVia;
+      entries: RawEntry[];
+      /** Отсеяны словарём в этом прогоне: уходят и из сохранённых. */
+      rejected?: readonly string[];
+    }
   | { source: FeedRuleSource; ok: false; code: SyncErrorCode };
 
 export function emptyFeedFile(now: string): FeedFile {
@@ -61,25 +67,31 @@ function byNewest(a: FeedItem, b: FeedItem): number {
 
 /**
  * Прежние записи сохраняют своё `fetchedAt`; запись источника, выключенного
- * в правилах, уходит из файла: выключение означает «не показывать».
+ * в правилах, уходит из файла: выключение означает «не показывать». Так же
+ * уходит сохранённая запись, которую словарь отсеял в этом прогоне (словарь
+ * правится в админке), и запись старше `FEED_KEEP_DAYS`.
  */
 export function mergeItems(
   previous: readonly FeedItem[],
   incoming: readonly FeedItem[],
   enabled: ReadonlySet<FeedSourceId>,
+  now: string,
+  rejected: ReadonlySet<string> = new Set(),
 ): FeedItem[] {
+  const oldest = new Date(Date.parse(now) - FEED_KEEP_DAYS * 86_400_000).toISOString();
   const seenUrl = new Set<string>();
   const seenTitle = new Set<string>();
   const out: FeedItem[] = [];
   for (const item of [...previous, ...incoming]) {
-    if (!enabled.has(item.sourceId)) continue;
+    if (!enabled.has(item.sourceId) || rejected.has(item.urlKey)) continue;
+    if (new Date(item.publishedAt).toISOString() < oldest) continue;
     const title = normalizedTitle(item.title);
     if (seenUrl.has(item.urlKey) || seenTitle.has(title)) continue;
     seenUrl.add(item.urlKey);
     seenTitle.add(title);
     out.push(item);
   }
-  return out.sort(byNewest).slice(0, FEED_ITEMS_KEPT);
+  return out.sort(byNewest).slice(0, FEED_ITEMS_MAX);
 }
 
 /**
@@ -100,7 +112,8 @@ export function nextFeedFile(
   const incoming = answered.flatMap((o) =>
     o.entries.map((e) => toFeedItem(o.source, o.via, e, now)),
   );
-  const items = mergeItems(previous.items, incoming, enabled);
+  const rejected = new Set(answered.flatMap((o) => o.rejected ?? []));
+  const items = mergeItems(previous.items, incoming, enabled, now, rejected);
 
   if (answered.length === 0) {
     return { ...previous, items, state: 'unknown', sourceErrors };

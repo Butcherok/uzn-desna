@@ -1,5 +1,5 @@
 /**
- * «Новини галузі» (ТЗ 9.5; 9.1; решение 043): карточки ленты, которые пишет
+ * «Стрічка новин» (ТЗ 9.5; 9.1; решение 043): карточки ленты, которые пишет
  * синхронизация. Редактор только скрывает и возвращает карточку; текст
  * чужой публикации здесь не правится. Скрытие сразу предлагает публикацию:
  * счётчик в полосе внизу растёт, сообщение говорит, куда нажать (ТЗ 8.5).
@@ -10,7 +10,7 @@ import {
   FEED_HINT,
   FEED_PLACE_HINT,
   LANG_LABEL,
-  PLACE_LABEL,
+  placeLabel,
   applyHidden,
   formatDay,
   hiddenNotice,
@@ -82,7 +82,7 @@ export function FeedPage() {
 
   return (
     <>
-      <h1>Новини галузі</h1>
+      <h1>Стрічка новин</h1>
       <p className="lead">{FEED_HINT}</p>
       {error && <ErrorBox text={error} onRetry={() => setAttempt((a) => a + 1)} />}
       {list === null && !error && <p>Завантажуємо…</p>}
@@ -123,7 +123,7 @@ export function FeedPage() {
                     {formatDateTime(card.hiddenAt)}
                   </>
                 ) : (
-                  card.place && PLACE_LABEL[card.place]
+                  card.place && placeLabel(card.place, card.page)
                 )}
               </p>
             </div>

@@ -1,12 +1,12 @@
 /**
- * Модерация ленты «Новини галузі» (ТЗ 9.5; 6.3, п. 4; решение 043).
+ * Модерация ленты новостей («Стрічка новин» в админке) (ТЗ 9.5; 6.3, п. 4; решение 043).
  *
  * Карточки ленты в БД не хранятся: их пишет синхронизация в ветку
  * `sync-data`, а админка читает тот же файл через `FeedSource`. В БД живёт
  * только решение редактора — `ModerationRecord`. Текст чужой публикации не
  * правится (ТЗ 9.5, п. 4): доступно только скрытие и возврат.
  */
-import { FEED_ITEMS_ON_HOME, FEED_ITEMS_SHOWN, type FeedFile } from '@uzn/shared';
+import { FEED_ITEMS_ON_HOME, FEED_PAGE_SIZE, type FeedFile } from '@uzn/shared';
 import { ApiError } from './errors.js';
 import type { ModerationRecord, Store, User } from './model.js';
 
@@ -21,8 +21,12 @@ export interface FeedSource {
   load(): Promise<FeedLoad>;
 }
 
-/** Где окажется карточка после публикации при нынешних решениях. */
-export type FeedPlace = 'home' | 'news' | 'reserve';
+/**
+ * Где окажется карточка после публикации при нынешних решениях: на главной
+ * (и первой странице «Новин») или только в «Новинах»; `page` — страница
+ * «Новин» (решение 055: выводятся все карточки, страницами).
+ */
+export type FeedPlace = 'home' | 'news';
 
 export interface FeedItemView {
   urlKey: string;
@@ -36,6 +40,8 @@ export interface FeedItemView {
   hiddenAt: string | null;
   /** У скрытой — `null`. */
   place: FeedPlace | null;
+  /** Страница «Новин», с 1; у скрытой — `null`. */
+  page: number | null;
 }
 
 export interface FeedView {
@@ -46,10 +52,11 @@ export interface FeedView {
 
 export const CARD_NOT_FOUND_MESSAGE = 'Картку не знайдено у стрічці. Оновіть сторінку';
 
-function placeOf(index: number): FeedPlace {
-  if (index < FEED_ITEMS_ON_HOME) return 'home';
-  if (index < FEED_ITEMS_SHOWN) return 'news';
-  return 'reserve';
+function placeOf(index: number): { place: FeedPlace; page: number } {
+  return {
+    place: index < FEED_ITEMS_ON_HOME ? 'home' : 'news',
+    page: Math.floor(index / FEED_PAGE_SIZE) + 1,
+  };
 }
 
 /**
@@ -80,9 +87,10 @@ export function feedView(load: FeedLoad, decisions: readonly ModerationRecord[])
         hidden: true,
         hiddenAt: decision.updatedAt.toISOString(),
         place: null,
+        page: null,
       });
     } else {
-      visible.push({ ...view, hidden: false, hiddenAt: null, place: placeOf(visible.length) });
+      visible.push({ ...view, hidden: false, hiddenAt: null, ...placeOf(visible.length) });
     }
   }
   const state = !load.fresh ? 'unknown' : items.length === 0 ? 'empty' : 'data';

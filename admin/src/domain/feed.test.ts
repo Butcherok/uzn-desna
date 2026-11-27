@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { applyHidden, formatDay, type FeedItemView } from './feed';
+import { applyHidden, formatDay, placeLabel, type FeedItemView } from './feed';
 
 const item = (n: number): FeedItemView => ({
   urlKey: `e.com/${n}`,
@@ -11,6 +11,7 @@ const item = (n: number): FeedItemView => ({
   hidden: false,
   hiddenAt: null,
   place: null,
+  page: null,
 });
 
 describe('feed list in the admin (TZ 9.5)', () => {
@@ -25,8 +26,9 @@ describe('feed list in the admin (TZ 9.5)', () => {
       'news',
       'news',
       'news',
-      'reserve',
+      'news',
     ]);
+    expect(items.every((i) => i.page === 1)).toBe(true);
     const after = applyHidden(items, 'e.com/9', true, '2026-11-22T10:00:00.000Z');
     expect(after.at(-1)).toMatchObject({ urlKey: 'e.com/9', hidden: true, place: null });
     expect(after[0]?.title).toBe('Новина 8');
@@ -38,6 +40,18 @@ describe('feed list in the admin (TZ 9.5)', () => {
       hiddenAt: null,
       place: 'home',
     });
+  });
+
+  it('pages of «Новини» by 24 cards', () => {
+    const many = applyHidden(
+      Array.from({ length: 50 }, (_, n) => item(n + 1)),
+      'e.com/1',
+      false,
+      '',
+    );
+    expect([many[0]?.page, many[23]?.page, many[24]?.page, many[49]?.page]).toEqual([1, 1, 2, 3]);
+    expect(placeLabel('home', 1)).toBe('Показується на головній і на 1-й сторінці «Новин»');
+    expect(placeLabel('news', 3)).toBe('Показується в «Новинах», сторінка 3');
   });
 
   it('dates are Kyiv dates', () => {

@@ -42,10 +42,11 @@ export interface SystemInfo {
 const SOURCES: Record<string, string> = {
   prozorro: 'Закупівлі Prozorro',
   kyivzelenbud: 'Новини: Київзеленбуд',
-  theconversation: 'Новини: The Conversation',
-  kmda: 'Новини: КМДА',
+  desna: 'Новини: КП УЗН Деснянського району',
+  podol: 'Новини: КП УЗН Подільського району',
+  dnipro: 'Новини: КП УЗН Дніпровського району',
   hmarochos: 'Новини: Хмарочос',
-  gdelt: 'Новини: GDELT',
+  theconversation: 'Новини: The Conversation',
 };
 
 export const sourceLabel = (id: string): string => SOURCES[id] ?? 'Інше джерело';

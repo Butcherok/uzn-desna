@@ -1,12 +1,12 @@
 /**
- * Правила раздела «Новини», блок «Новини галузі» (ТЗ 4.8; решение 027).
- * Слой domain: чистые функции над переданными данными.
+ * Правила раздела «Новини» (ТЗ 4.8; решения 027, 055). Слой domain: чистые
+ * функции над переданными данными.
  */
-import { FEED_ITEMS_ON_HOME, FEED_ITEMS_SHOWN, formatDate } from '@uzn/shared';
+import { FEED_ITEMS_ON_HOME, FEED_PAGE_SIZE, formatDate } from '@uzn/shared';
 import type { FeedFile } from '@uzn/shared';
 import { kyivDate } from './vacancies';
 
-export { FEED_ITEMS_ON_HOME, FEED_ITEMS_SHOWN };
+export { FEED_ITEMS_ON_HOME, FEED_PAGE_SIZE };
 
 /** Язык оригинала словом: своего перевода нет (отчёт 08, раздел 2; решение 031). */
 export const LANG_LABELS = { uk: 'Українською', en: 'Англійською' } as const;
@@ -48,7 +48,7 @@ export interface FeedCard {
  */
 export function feedCards(
   file: FeedFile,
-  limit: number,
+  limit: number = Number.POSITIVE_INFINITY,
   hidden: ReadonlySet<string> = new Set(),
 ): FeedCard[] {
   return file.items
@@ -72,4 +72,48 @@ export function feedCards(
         imagePath: item.imagePath,
       };
     });
+}
+
+/** Адрес страницы «Новин»: первая — `/news/`, следующие — `/news/<n>/`. */
+export function newsPagePath(page: number): string {
+  return page <= 1 ? '/news/' : `/news/${page}/`;
+}
+
+export interface FeedPage {
+  page: number;
+  total: number;
+  cards: FeedCard[];
+}
+
+/**
+ * Все карточки страницами по `size`, новые первыми (решение 055): ни одна
+ * карточка не отбрасывается. Пустая лента — одна страница без карточек.
+ */
+export function feedPages(cards: readonly FeedCard[], size = FEED_PAGE_SIZE): FeedPage[] {
+  const total = Math.max(1, Math.ceil(cards.length / size));
+  return Array.from({ length: total }, (_, i) => ({
+    page: i + 1,
+    total,
+    cards: cards.slice(i * size, (i + 1) * size),
+  }));
+}
+
+/** Пункт навигации по страницам: номер или пропуск («…»). */
+export type PageLink = { page: number; current: boolean } | { gap: true };
+
+/**
+ * Номера для навигации: первая, последняя и по одной рядом с текущей;
+ * пропуск длиной в одну страницу заменяется её номером.
+ */
+export function pageLinks(current: number, total: number): PageLink[] {
+  const shown = new Set([1, total, current - 1, current, current + 1]);
+  const out: PageLink[] = [];
+  let last = 0;
+  for (let page = 1; page <= total; page += 1) {
+    if (!shown.has(page) && !(shown.has(page - 1) && shown.has(page + 1))) continue;
+    if (page - last > 1) out.push({ gap: true });
+    out.push({ page, current: page === current });
+    last = page;
+  }
+  return out;
 }

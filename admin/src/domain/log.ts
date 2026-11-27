@@ -48,6 +48,7 @@ const ACTIONS: Record<string, string> = {
   'content.seed': 'Завантаження початкових даних',
   'content.purge-retired': 'Видалення записів розділу, якого більше немає',
   'content.backfill': 'Доповнення запису новими полями з початкових даних',
+  'content.patch': 'Оновлення запису за рішенням Замовника',
   'upload.create': 'Завантаження файлу',
   'upload.delete': 'Видалення файлу',
   'feed.hide': 'Приховано картку стрічки',
@@ -97,7 +98,7 @@ const RUN_STATE: Record<string, string> = {
 const RUN_ACTIONS = new Set(['publish.start', 'publish.finish', 'backup.start']);
 
 const ENTITIES: Record<string, string> = {
-  feed: 'Новини галузі',
+  feed: 'Стрічка новин',
   user: 'Обліковий запис',
 };
 
