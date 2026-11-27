@@ -1,9 +1,39 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-11-27T07:04:49.445Z",
+  "generatedAt": "2026-11-27T14:24:36.677Z",
   "source": "sync",
   "state": "data",
   "items": [
+    {
+      "urlKey": "desna.kyivzelenbud.com/news/na-prospekti-chervonoyi-kalyny-vysadzhuyut-yevropejski-lypy",
+      "url": "https://desna.kyivzelenbud.com/news/na-prospekti-chervonoyi-kalyny-vysadzhuyut-yevropejski-lypy/",
+      "title": "На проспекті Червоної Калини висаджують європейські липи",
+      "sourceId": "desna",
+      "sourceName": "КП УЗН Деснянського району",
+      "sourceDomain": "desna.kyivzelenbud.com",
+      "lang": "uk",
+      "publishedAt": "2026-11-27T11:49:14.000Z",
+      "excerpt": "Працівники КП УЗН Деснянського району розпочали висаджування молодих дерев на проспекті Червоної Калини. Для озеленення обрали липу європейську сорту Tilia europaea ‘Pallida’. Це витривалі дерева…",
+      "category": null,
+      "imagePath": "media/feed/5f0cc834074f.webp",
+      "via": "tag",
+      "fetchedAt": "2026-11-27T14:24:36.677Z"
+    },
+    {
+      "urlKey": "podol.kyivzelenbud.com/news/dbayemo-pro-zeleni-nasadzhennya-podolu",
+      "url": "https://podol.kyivzelenbud.com/news/dbayemo-pro-zeleni-nasadzhennya-podolu/",
+      "title": "Дбаємо про зелені насадження Подолу 🌿",
+      "sourceId": "podol",
+      "sourceName": "КП УЗН Подільського району",
+      "sourceDomain": "podol.kyivzelenbud.com",
+      "lang": "uk",
+      "publishedAt": "2026-11-27T09:20:56.000Z",
+      "excerpt": null,
+      "category": null,
+      "imagePath": "media/feed/8de5127664b0.webp",
+      "via": "tag",
+      "fetchedAt": "2026-11-27T14:24:36.677Z"
+    },
     {
       "urlKey": "podol.kyivzelenbud.com/news/podilskyj-rajon-staye-shhe-zelenishym",
       "url": "https://podol.kyivzelenbud.com/news/podilskyj-rajon-staye-shhe-zelenishym/",
@@ -495,7 +525,7 @@
       "publishedAt": "2026-11-06T07:48:02.000Z",
       "excerpt": null,
       "category": null,
-      "imagePath": null,
+      "imagePath": "media/feed/0ec491648c5e.webp",
       "via": "tag",
       "fetchedAt": "2026-11-27T07:04:49.445Z"
     },
@@ -510,7 +540,7 @@
       "publishedAt": "2026-11-05T08:22:17.000Z",
       "excerpt": null,
       "category": null,
-      "imagePath": null,
+      "imagePath": "media/feed/544a60ca8329.webp",
       "via": "tag",
       "fetchedAt": "2026-11-27T07:04:49.445Z"
     },
@@ -525,7 +555,7 @@
       "publishedAt": "2026-11-05T07:46:55.000Z",
       "excerpt": null,
       "category": null,
-      "imagePath": null,
+      "imagePath": "media/feed/623e6ebe0182.webp",
       "via": "tag",
       "fetchedAt": "2026-11-27T07:04:49.445Z"
     },
@@ -540,7 +570,7 @@
       "publishedAt": "2026-11-05T07:00:46.000Z",
       "excerpt": "Осінь у наших парках і скверах — це не лише золото дерев, а й особлива краса квітів, декоративних злаків та яскравих плодів декоративних яблунь! 🍎🌾 Квіткові композиції продовжують тішити своїми…",
       "category": null,
-      "imagePath": null,
+      "imagePath": "media/feed/49a20cb06425.webp",
       "via": "tag",
       "fetchedAt": "2026-11-27T07:04:49.445Z"
     },
@@ -555,7 +585,7 @@
       "publishedAt": "2026-11-04T09:47:17.000Z",
       "excerpt": null,
       "category": null,
-      "imagePath": null,
+      "imagePath": "media/feed/c496fa958684.webp",
       "via": "tag",
       "fetchedAt": "2026-11-27T07:04:49.445Z"
     },
@@ -570,7 +600,7 @@
       "publishedAt": "2026-11-04T07:45:27.000Z",
       "excerpt": null,
       "category": null,
-      "imagePath": null,
+      "imagePath": "media/feed/e3e44d690cd7.webp",
       "via": "tag",
       "fetchedAt": "2026-11-27T07:04:49.445Z"
     },
@@ -585,7 +615,7 @@
       "publishedAt": "2026-11-04T05:28:46.000Z",
       "excerpt": null,
       "category": null,
-      "imagePath": null,
+      "imagePath": "media/feed/e204aca59765.webp",
       "via": "tag",
       "fetchedAt": "2026-11-27T07:04:49.445Z"
     },
@@ -600,7 +630,7 @@
       "publishedAt": "2026-11-03T10:20:35.000Z",
       "excerpt": "Поки погода сприяє висаджуванню, комунальні підприємства по утриманню зелених насаджень продовжують поповнювати зелені зони столиці новими рослинами. Зокрема, працівники КП УЗН Деснянського району…",
       "category": null,
-      "imagePath": null,
+      "imagePath": "media/feed/baf968a56077.webp",
       "via": "tag",
       "fetchedAt": "2026-11-27T07:04:49.445Z"
     },
@@ -615,7 +645,7 @@
       "publishedAt": "2026-11-03T05:04:46.000Z",
       "excerpt": null,
       "category": null,
-      "imagePath": null,
+      "imagePath": "media/feed/7b3152a5c6a2.webp",
       "via": "tag",
       "fetchedAt": "2026-11-27T07:04:49.445Z"
     },
@@ -630,7 +660,7 @@
       "publishedAt": "2026-11-02T07:43:55.000Z",
       "excerpt": null,
       "category": null,
-      "imagePath": null,
+      "imagePath": "media/feed/716bd5bd6ea5.webp",
       "via": "tag",
       "fetchedAt": "2026-11-27T07:04:49.445Z"
     },
@@ -645,7 +675,7 @@
       "publishedAt": "2026-11-02T05:17:57.000Z",
       "excerpt": null,
       "category": null,
-      "imagePath": null,
+      "imagePath": "media/feed/34b33d0eca17.webp",
       "via": "tag",
       "fetchedAt": "2026-11-27T07:04:49.445Z"
     },
@@ -660,7 +690,7 @@
       "publishedAt": "2026-11-02T05:09:54.000Z",
       "excerpt": null,
       "category": null,
-      "imagePath": null,
+      "imagePath": "media/feed/2648fd643f6f.webp",
       "via": "tag",
       "fetchedAt": "2026-11-27T07:04:49.445Z"
     },
@@ -675,7 +705,7 @@
       "publishedAt": "2026-10-29T12:57:39.000Z",
       "excerpt": null,
       "category": null,
-      "imagePath": null,
+      "imagePath": "media/feed/a6350763ec70.webp",
       "via": "tag",
       "fetchedAt": "2026-11-27T07:04:49.445Z"
     },
@@ -690,7 +720,7 @@
       "publishedAt": "2026-10-29T08:43:31.000Z",
       "excerpt": "Вже багато років працюю в екологічній сфері, і щосезону повертаюся до тієї самої розмови: не спалюйте листя. Розповідаємо про заборону, пояснюємо наслідки, нагадуємо про штрафи. А потім знову…",
       "category": null,
-      "imagePath": null,
+      "imagePath": "media/feed/a7037d22e8c2.webp",
       "via": "tag",
       "fetchedAt": "2026-11-27T07:04:49.445Z"
     },
@@ -705,7 +735,7 @@
       "publishedAt": "2026-10-29T07:21:49.000Z",
       "excerpt": null,
       "category": null,
-      "imagePath": null,
+      "imagePath": "media/feed/78264d1085a3.webp",
       "via": "tag",
       "fetchedAt": "2026-11-27T07:04:49.445Z"
     },
@@ -720,7 +750,7 @@
       "publishedAt": "2026-10-28T13:03:56.000Z",
       "excerpt": "Працівники КП УЗН Деснянського району продовжують роботи з відновлення та ремонту газонів на балансових територіях 🌿 🚧 Аби зберегти зелені острівці від пошкоджень, фахівці також встановлюють…",
       "category": null,
-      "imagePath": null,
+      "imagePath": "media/feed/37fc6e352949.webp",
       "via": "tag",
       "fetchedAt": "2026-11-27T07:04:49.445Z"
     },
@@ -735,7 +765,7 @@
       "publishedAt": "2026-10-28T12:43:47.000Z",
       "excerpt": null,
       "category": null,
-      "imagePath": null,
+      "imagePath": "media/feed/27f736d4a9aa.webp",
       "via": "tag",
       "fetchedAt": "2026-11-27T07:04:49.445Z"
     },
@@ -750,7 +780,7 @@
       "publishedAt": "2026-10-28T07:56:08.000Z",
       "excerpt": null,
       "category": null,
-      "imagePath": null,
+      "imagePath": "media/feed/e329d1c1a7ad.webp",
       "via": "tag",
       "fetchedAt": "2026-11-27T07:04:49.445Z"
     },
@@ -765,7 +795,7 @@
       "publishedAt": "2026-10-28T05:19:36.000Z",
       "excerpt": null,
       "category": null,
-      "imagePath": null,
+      "imagePath": "media/feed/e1f81ba6b3d8.webp",
       "via": "tag",
       "fetchedAt": "2026-11-27T07:04:49.445Z"
     },
@@ -780,7 +810,7 @@
       "publishedAt": "2026-10-27T12:55:20.000Z",
       "excerpt": null,
       "category": null,
-      "imagePath": null,
+      "imagePath": "media/feed/9e08fb49b517.webp",
       "via": "tag",
       "fetchedAt": "2026-11-27T07:04:49.445Z"
     },
@@ -795,7 +825,7 @@
       "publishedAt": "2026-10-27T09:50:44.000Z",
       "excerpt": null,
       "category": null,
-      "imagePath": null,
+      "imagePath": "media/feed/b0c44b3de16c.webp",
       "via": "tag",
       "fetchedAt": "2026-11-27T07:04:49.445Z"
     },
@@ -810,7 +840,7 @@
       "publishedAt": "2026-10-27T09:23:47.000Z",
       "excerpt": null,
       "category": null,
-      "imagePath": null,
+      "imagePath": "media/feed/6065cf8894c9.webp",
       "via": "tag",
       "fetchedAt": "2026-11-27T07:04:49.445Z"
     },
@@ -825,7 +855,7 @@
       "publishedAt": "2026-10-27T07:59:10.000Z",
       "excerpt": null,
       "category": null,
-      "imagePath": null,
+      "imagePath": "media/feed/1e1ae3c6a2c5.webp",
       "via": "tag",
       "fetchedAt": "2026-11-27T07:04:49.445Z"
     },
@@ -840,7 +870,7 @@
       "publishedAt": "2026-10-27T07:57:39.000Z",
       "excerpt": null,
       "category": null,
-      "imagePath": null,
+      "imagePath": "media/feed/56fbb49b0875.webp",
       "via": "tag",
       "fetchedAt": "2026-11-27T07:04:49.445Z"
     },
@@ -855,7 +885,7 @@
       "publishedAt": "2026-10-27T05:35:36.000Z",
       "excerpt": null,
       "category": null,
-      "imagePath": null,
+      "imagePath": "media/feed/42f7071ec178.webp",
       "via": "tag",
       "fetchedAt": "2026-11-27T07:04:49.445Z"
     },
@@ -870,7 +900,7 @@
       "publishedAt": "2026-10-26T09:17:08.000Z",
       "excerpt": "Є місця, де осінь розкриває всю свою магію… І парк Кіото зараз саме такий! 😍🌳 Золоте листя мерехтить у променях сонця, жовті та багряні відтінки створюють неймовірні пейзажі, а декоративні злаки…",
       "category": null,
-      "imagePath": null,
+      "imagePath": "media/feed/69829db86669.webp",
       "via": "tag",
       "fetchedAt": "2026-11-27T07:04:49.445Z"
     },
@@ -885,7 +915,7 @@
       "publishedAt": "2026-10-26T08:00:39.000Z",
       "excerpt": null,
       "category": null,
-      "imagePath": null,
+      "imagePath": "media/feed/98f3d81c719c.webp",
       "via": "tag",
       "fetchedAt": "2026-11-27T07:04:49.445Z"
     },
@@ -3890,7 +3920,7 @@
       "fetchedAt": "2026-11-20T08:48:40.822Z"
     }
   ],
-  "fetchedAt": "2026-11-27T07:04:49.445Z",
-  "lastSuccessAt": "2026-11-27T07:04:49.445Z",
+  "fetchedAt": "2026-11-27T14:24:36.677Z",
+  "lastSuccessAt": "2026-11-27T14:24:36.677Z",
   "sourceErrors": []
 }

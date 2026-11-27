@@ -1,9 +1,31 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-11-26T14:30:37.886Z",
+  "generatedAt": "2026-11-27T14:24:36.677Z",
   "source": "sync",
   "state": "data",
   "items": [
+    {
+      "tenderID": "UA-2026-11-27-010735-a",
+      "title": "Сіль технічна",
+      "status": "active.tendering",
+      "amount": 163400,
+      "currency": "UAH",
+      "vatIncluded": false,
+      "datePublished": "2026-11-27",
+      "tenderEndDate": "2026-12-02T11:00:00+02:00",
+      "url": "https://prozorro.gov.ua/tender/UA-2026-11-27-010735-a"
+    },
+    {
+      "tenderID": "UA-2026-11-27-005431-a",
+      "title": "Наліпки 100 на 60 см",
+      "status": "complete",
+      "amount": 2160,
+      "currency": "UAH",
+      "vatIncluded": true,
+      "datePublished": "2026-11-27",
+      "tenderEndDate": null,
+      "url": "https://prozorro.gov.ua/tender/UA-2026-11-27-005431-a"
+    },
     {
       "tenderID": "UA-2026-11-26-015434-a",
       "title": "Дизельне пальне (у формі облікових карток–талонів)",
@@ -29,7 +51,7 @@
     {
       "tenderID": "UA-2026-11-24-012602-a",
       "title": "Бензин А-95 (у формі облікових карток–талонів)",
-      "status": "active.tendering",
+      "status": "active.awarded",
       "amount": 369000,
       "currency": "UAH",
       "vatIncluded": false,
@@ -201,31 +223,9 @@
       "datePublished": "2026-11-06",
       "tenderEndDate": null,
       "url": "https://prozorro.gov.ua/tender/UA-2026-11-06-013509-a"
-    },
-    {
-      "tenderID": "UA-2026-11-06-013407-a",
-      "title": "Вапно гашене",
-      "status": "complete",
-      "amount": 8400,
-      "currency": "UAH",
-      "vatIncluded": true,
-      "datePublished": "2026-11-06",
-      "tenderEndDate": null,
-      "url": "https://prozorro.gov.ua/tender/UA-2026-11-06-013407-a"
-    },
-    {
-      "tenderID": "UA-2026-11-06-003076-a",
-      "title": "Складові частини зрошувального обладнання",
-      "status": "active.awarded",
-      "amount": 295940.02,
-      "currency": "UAH",
-      "vatIncluded": false,
-      "datePublished": "2026-11-06",
-      "tenderEndDate": "2026-11-23T10:00:00+02:00",
-      "url": "https://prozorro.gov.ua/tender/UA-2026-11-06-003076-a"
     }
   ],
-  "fetchedAt": "2026-11-26T14:30:37.886Z",
-  "lastSuccessAt": "2026-11-26T14:30:37.886Z",
+  "fetchedAt": "2026-11-27T14:24:36.677Z",
+  "lastSuccessAt": "2026-11-27T14:24:36.677Z",
   "sourceErrors": []
 }
