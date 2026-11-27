@@ -1,10 +1,16 @@
 ---
 /**
- * Переключатель `UA / EN` (ТЗ 3.2, п. 4 и 6; 12.4; решение 056). Обычные
- * ссылки, без JavaScript: текущий язык — текст с `aria-current`, другой —
- * ссылка с `hreflang` и `lang` на свою языковую версию страницы. У страницы
- * без перевода ссылка ведёт на английскую главную. Английской версии нет
- * вовсе — переключателя нет: ссылке некуда вести.
+ * Переключатель `UA / EN` (ТЗ 3.2, п. 4 и 6; 12.4; решения 056 и 057) —
+ * сегментная «таблетка»: две ячейки 44×44, под текущим языком тёмная
+ * подложка. Обычные ссылки, без JavaScript: текущий язык — текст с
+ * `aria-current`, другой — ссылка с `hreflang` и `lang` на свою языковую
+ * версию страницы. У страницы без перевода ссылка ведёт на английскую
+ * главную. Английской версии нет вовсе — переключателя нет: ссылке некуда вести.
+ *
+ * Подложка — отдельный элемент перед списком: при переходе на страницу
+ * другого языка браузер передвигает её из старого места в новое
+ * (`@view-transition`, `view-transition-name`), без скрипта. Браузер без
+ * поддержки показывает новое состояние сразу.
  *
  * Видимые буквы входят в имя ссылки («EN — English version»): так требует
  * WCAG 2.5.3 «Label in Name», и так её называют голосом.
@@ -30,23 +36,19 @@ const enabled = items.every((item) => item.code === lang || item.href !== undefi
 ---
 
 {enabled && (
-  <nav class="lang-switch" aria-label={UI[lang].langNav}>
+  <nav class="lang-switch" data-current={lang} aria-label={UI[lang].langNav}>
+    <span class="lang-switch__thumb" aria-hidden="true"></span>
     <ul class="lang-switch__list">
-      {items.map((item, i) => (
+      {items.map((item) => (
         <li>
-          {i > 0 && (
-            <span class="lang-switch__sep" aria-hidden="true">
-              /
-            </span>
-          )}
           {item.href === undefined ? (
-            <span class="lang-switch__item" aria-current="true">
+            <span class={`lang-switch__item lang-switch__item--${item.code}`} aria-current="true">
               {UI[item.code].langCode}
               <span class="vh"> — {UI[item.code].langLink}</span>
             </span>
           ) : (
             <a
-              class="lang-switch__item"
+              class={`lang-switch__item lang-switch__item--${item.code}`}
               href={withBase(item.href)}
               hreflang={HTML_LANG[item.code]}
               lang={HTML_LANG[item.code]}
