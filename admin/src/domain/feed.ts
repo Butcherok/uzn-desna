@@ -1,9 +1,10 @@
 /**
- * «Новини галузі» в админке (ТЗ 9.5; решение 043): подписи и порядок
+ * Стрічка новин в админке (ТЗ 9.5; решения 043, 055): подписи и порядок
  * карточек ленты. Слой domain: чистые функции.
  */
+import { FEED_ITEMS_ON_HOME, FEED_PAGE_SIZE } from '@uzn/shared';
 
-export type FeedPlace = 'home' | 'news' | 'reserve';
+export type FeedPlace = 'home' | 'news';
 
 export interface FeedItemView {
   urlKey: string;
@@ -15,6 +16,8 @@ export interface FeedItemView {
   hidden: boolean;
   hiddenAt: string | null;
   place: FeedPlace | null;
+  /** Страница «Новин», с 1; у скрытой — `null`. */
+  page: number | null;
 }
 
 export interface FeedList {
@@ -31,11 +34,11 @@ export const FEED_HINT =
 export const FEED_PLACE_HINT =
   'Місце картки показано з урахуванням ваших змін. На сайті воно з’явиться після публікації.';
 
-export const PLACE_LABEL: Record<FeedPlace, string> = {
-  home: 'Показується на головній і в «Новинах»',
-  news: 'Показується в «Новинах»',
-  reserve: 'У запасі: з’явиться, якщо приховати новішу',
-};
+/** Где показывается карточка: главная — это и первая страница «Новин». */
+export function placeLabel(place: FeedPlace, page: number | null): string {
+  if (place === 'home') return 'Показується на головній і на 1-й сторінці «Новин»';
+  return `Показується в «Новинах», сторінка ${page ?? 1}`;
+}
 
 export const LANG_LABEL = { uk: 'Українською', en: 'Англійською' } as const;
 
@@ -60,7 +63,7 @@ export const shownNotice = (title: string): string =>
 /**
  * Список после решения по одной карточке, не дожидаясь ответа на `GET /feed`:
  * видимые по дате, затем скрытые; места пересчитываются так же, как на
- * сервере (3 на главной, ещё 5 в «Новинах», остальные в запасе).
+ * сервере (3 на главной, все — в «Новинах» страницами).
  */
 export function applyHidden(
   items: readonly FeedItemView[],
@@ -77,8 +80,9 @@ export function applyHidden(
   return [
     ...visible.map((i, n) => ({
       ...i,
-      place: (n < 3 ? 'home' : n < 8 ? 'news' : 'reserve') as FeedPlace,
+      place: (n < FEED_ITEMS_ON_HOME ? 'home' : 'news') as FeedPlace,
+      page: Math.floor(n / FEED_PAGE_SIZE) + 1,
     })),
-    ...rest.map((i) => ({ ...i, place: null })),
+    ...rest.map((i) => ({ ...i, place: null, page: null })),
   ];
 }

@@ -184,12 +184,38 @@ function respond(map: Record<string, string | number>): FetchDeps {
 const NOW = new Date('2026-11-20T05:10:00.000Z');
 
 describe('лента: основной и запасной путь (ТЗ 7.4)', () => {
-  it('основной путь ответил — via tag, словарь не применяется', async () => {
+  it('сайт сети без рубрик: основной путь тоже через словарь, отсеянные — в rejected', async () => {
     const got = await fetchSource('kyivzelenbud', RULES, respond({ 'wp-json': WP }), NOW);
     expect(got.via).toBe('tag');
-    expect(got.entries).toHaveLength(2);
+    expect(got.entries.map((e) => e.url)).toEqual(['https://kyivzelenbud.com/news/kleny/']);
+    expect(got.rejected).toEqual(['kyivzelenbud.com/news/tyulpany']);
     expect(got.mainError).toBeNull();
   });
+
+  it('источник с тематическими тегами — словарь не применяется', async () => {
+    const got = await fetchSource('hmarochos', RULES, respond({ 'wp-json': WP }), NOW);
+    expect(got.entries).toHaveLength(2);
+    expect(got.rejected).toEqual([]);
+  });
+
+  it.each(['desna', 'podol', 'dnipro'] as const)(
+    'районный сайт %s: свой адрес, словарь, запасной путь — /feed/',
+    async (id) => {
+      const urls: string[] = [];
+      const deps = respond({ 'wp-json': 500, '/feed/': RSS });
+      const spy: FetchDeps = {
+        ...deps,
+        fetch: (async (input: string | URL | Request, init?: RequestInit) => {
+          urls.push(String(input));
+          return deps.fetch(input, init);
+        }) as typeof fetch,
+      };
+      const got = await fetchSource(id, RULES, spy, NOW);
+      expect(urls.every((u) => u.startsWith(`https://${id}.kyivzelenbud.com/`))).toBe(true);
+      expect(got.via).toBe('rss');
+      expect(got.entries.map((e) => e.title)).toEqual(['У парку висадили дерева']);
+    },
+  );
 
   it('основной путь упал — RSS через словарь, с кодом сбоя основного', async () => {
     const got = await fetchSource(
@@ -234,11 +260,14 @@ describe('лента: основной и запасной путь (ТЗ 7.4)',
     };
     await fetchSource('kyivzelenbud', RULES, spy, NOW);
     expect(urls[0]).toContain('after=2026-05-24T05:10:00');
+    expect(urls[0]).toContain('per_page=100');
   });
 });
 
 const KZB = RULES.sources.find((s) => s.id === 'kyivzelenbud') as FeedRuleSource;
 const TC = RULES.sources.find((s) => s.id === 'theconversation') as FeedRuleSource;
+
+const MERGE_NOW = '2026-11-20T00:00:00.000Z';
 
 function raw(n: number, date: string, host = 'kyivzelenbud.com'): RawEntry {
   return {
@@ -269,33 +298,43 @@ describe('лента: слияние и вытеснение', () => {
     const old = item(KZB, 1, '2026-11-01T00:00:00.000Z', '2026-11-01T00:00:00.000Z');
     const again = item(KZB, 1, '2026-11-01T00:00:00.000Z', '2026-11-20T00:00:00.000Z');
     const sameTitle = { ...item(KZB, 2, '2026-11-02T00:00:00.000Z'), title: 'Новина 1!' };
-    const merged = mergeItems([old], [again, sameTitle], new Set(['kyivzelenbud']));
+    const merged = mergeItems([old], [again, sameTitle], new Set(['kyivzelenbud']), MERGE_NOW);
     expect(merged).toEqual([old]);
   });
 
-  it('хранит 40 самых новых по дате публикации; выключенный источник уходит', () => {
-    const many = Array.from({ length: 45 }, (_, i) =>
-      item(KZB, i, new Date(Date.UTC(2026, 0, 1 + i)).toISOString()),
+  it('хранит публикации за год, новые первыми; выключенный источник уходит', () => {
+    const many = Array.from({ length: 60 }, (_, i) =>
+      item(KZB, i, new Date(Date.UTC(2026, 0, 1 + i * 5)).toISOString()),
     );
     const merged = mergeItems(
-      [item(TC, 99, '2026-12-31T00:00:00.000Z')],
+      [item(TC, 99, '2026-11-19T00:00:00.000Z')],
       many,
       new Set(['kyivzelenbud']),
+      MERGE_NOW,
     );
-    expect(merged).toHaveLength(40);
-    expect(merged[0]?.title).toBe('Новина 44');
-    expect(merged.at(-1)?.title).toBe('Новина 5');
+    expect(merged).toHaveLength(60);
+    expect(merged[0]?.title).toBe('Новина 59');
     expect(merged.some((i) => i.sourceId === 'theconversation')).toBe(false);
   });
 
-  it('вытесненная старая запись не возвращается следующим прогоном', () => {
-    const kept = Array.from({ length: 40 }, (_, i) =>
-      item(KZB, i, new Date(Date.UTC(2026, 5, 1 + i)).toISOString()),
-    );
+  it('старше года — уходит и не возвращается следующим прогоном', () => {
+    const fresh = item(KZB, 1, '2026-06-01T00:00:00.000Z');
+    const edge = item(KZB, 2, '2025-11-21T00:00:00.000Z');
+    const stale = item(KZB, 3, '2025-11-19T00:00:00.000Z');
     const oldOne = item(KZB, 100, '2020-01-01T00:00:00.000Z', '2026-11-20T00:00:00.000Z');
-    const merged = mergeItems(kept, [oldOne], new Set(['kyivzelenbud']));
-    expect(merged).toHaveLength(40);
-    expect(merged.some((i) => i.urlKey === oldOne.urlKey)).toBe(false);
+    const merged = mergeItems([fresh, edge, stale], [oldOne], new Set(['kyivzelenbud']), MERGE_NOW);
+    expect(merged.map((i) => i.title)).toEqual(['Новина 1', 'Новина 2']);
+  });
+
+  it('сохранённая запись, отсеянная словарём в этом прогоне, уходит', () => {
+    const offTopic = item(KZB, 1, '2026-11-01T00:00:00.000Z');
+    const kept = item(KZB, 2, '2026-11-02T00:00:00.000Z');
+    const next = nextFeedFile(
+      { ...emptyFeedFile('2026-11-19T00:00:00.000Z'), state: 'data', items: [offTopic, kept] },
+      [{ source: KZB, ok: true, via: 'tag', entries: [], rejected: [offTopic.urlKey] }],
+      MERGE_NOW,
+    );
+    expect(next.items.map((i) => i.urlKey)).toEqual([kept.urlKey]);
   });
 
   it('не ответил ни один источник — unknown с прежними записями', () => {
@@ -359,16 +398,25 @@ describe('лента: прогон sync-external', () => {
         ? {
             via: 'rss',
             entries: [raw(1, '2026-11-01T00:00:00.000Z')],
+            rejected: [],
             mainError: new SourceError('SRC_HTTP_4XX', 'x'),
           }
         : {
             via: 'tag',
             entries: [raw(2, '2026-11-02T00:00:00.000Z', 'theconversation.com')],
+            rejected: [],
             mainError: null,
           };
     });
     const result = await runSync(['feed'], io);
-    expect(asked).toEqual(['kyivzelenbud', 'theconversation']);
+    expect(asked).toEqual([
+      'kyivzelenbud',
+      'desna',
+      'podol',
+      'dnipro',
+      'hmarochos',
+      'theconversation',
+    ]);
     expect(result).toMatchObject({ siteChanged: true, anyChanged: true, failed: false });
     const state = io.files['sync-state.json'] as {
       items: { source: string; result: string; errorCode: string | null }[];
@@ -385,13 +433,18 @@ describe('лента: прогон sync-external', () => {
   });
 
   it('«новые» — только записи, вошедшие в файл впервые', async () => {
-    const deep = Array.from({ length: 50 }, (_, i) =>
-      raw(i, new Date(Date.UTC(2025, 0, 1 + i)).toISOString(), 'theconversation.com'),
+    // 50 записей за этот год и 10 старше года: в файл входят только первые.
+    const deep = Array.from({ length: 60 }, (_, i) =>
+      raw(
+        i,
+        new Date(Date.UTC(2026, 0, 1 + i) - (i >= 50 ? 400 : 0) * 86_400_000).toISOString(),
+        'theconversation.com',
+      ),
     );
     const io = feedIo({}, async (id) =>
       id === 'theconversation'
-        ? { via: 'tag', entries: deep, mainError: null }
-        : { via: 'tag', entries: [], mainError: null },
+        ? { via: 'tag', entries: deep, rejected: [], mainError: null }
+        : { via: 'tag', entries: [], rejected: [], mainError: null },
     );
     await runSync(['feed'], io);
     await runSync(['feed'], io);
@@ -399,8 +452,8 @@ describe('лента: прогон sync-external', () => {
       items: { source: string; itemsNew: number; itemsFetched: number }[];
     };
     expect(state.items.find((s) => s.source === 'theconversation')).toMatchObject({
-      itemsFetched: 50,
-      itemsNew: 40,
+      itemsFetched: 60,
+      itemsNew: 50,
     });
   });
 
@@ -409,7 +462,7 @@ describe('лента: прогон sync-external', () => {
       ['feed'],
       feedIo({}, async (id) => {
         if (id === 'kyivzelenbud') throw new SourceError('SRC_TIMEOUT', 'x');
-        return { via: 'tag', entries: [], mainError: null };
+        return { via: 'tag', entries: [], rejected: [], mainError: null };
       }),
     );
     expect(partial.failed).toBe(false);
@@ -425,7 +478,7 @@ describe('лента: прогон sync-external', () => {
   it('третий сбой подряд одного источника роняет прогон', async () => {
     const io = feedIo({}, async (id) => {
       if (id === 'kyivzelenbud') throw new SourceError('SRC_TIMEOUT', 'x');
-      return { via: 'tag', entries: [], mainError: null };
+      return { via: 'tag', entries: [], rejected: [], mainError: null };
     });
     expect((await runSync(['feed'], io)).failed).toBe(false);
     expect((await runSync(['feed'], io)).failed).toBe(false);

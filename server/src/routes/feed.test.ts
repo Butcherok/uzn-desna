@@ -110,7 +110,7 @@ describe('GET /feed (TZ 9.5)', () => {
     expect(body.pendingChanges).toBe(0);
   });
 
-  it('newest first; places follow the build: 3 home, 5 more news, rest reserve', async () => {
+  it('newest first; places follow the build: 3 home, all in news by pages', async () => {
     const ctx = await setup();
     const { items } = await list(ctx);
     expect(items[0].title).toBe('Новина 10');
@@ -123,15 +123,17 @@ describe('GET /feed (TZ 9.5)', () => {
       'news',
       'news',
       'news',
-      'reserve',
-      'reserve',
+      'news',
+      'news',
     ]);
+    expect(items.map((i: { page: number }) => i.page)).toEqual(Array(10).fill(1));
     // Только поля для показа: текст чужой публикации редактировать нечем.
     expect(Object.keys(items[0]).sort()).toEqual(
       [
         'hidden',
         'hiddenAt',
         'lang',
+        'page',
         'place',
         'publishedAt',
         'sourceName',
@@ -166,6 +168,7 @@ describe('POST /feed/hidden (TZ 9.5)', () => {
       hidden: true,
       hiddenAt: new Date(T0).toISOString(),
       place: null,
+      page: null,
     });
     expect(items[0].title).toBe('Новина 9');
     expect(items[7]).toMatchObject({ title: 'Новина 2', place: 'news' });

@@ -1,6 +1,6 @@
 ---
 /**
- * Карточки «Новини галузі» (ТЗ 4.8; решение 031). Геометрия одна на все
+ * Карточки ленты «Новини» (ТЗ 4.8; решения 031, 055). Геометрия одна на все
  * карточки: иллюстрация 16:9, заголовок до трёх строк, отрывок до трёх строк
  * (место держится и там, где отрывка нет), внизу источник и дата, ниже —
  * «Машинний переклад» (только у неукраинских публикаций) и справа
@@ -19,9 +19,15 @@ import { feedPhoto } from '../gateway/media';
 
 interface Props {
   cards: readonly FeedCard[];
+  /**
+   * Уровень заголовка карточки: на «Новинах» карточки идут сразу под h1
+   * (второго заголовка нет, решение 055), на главной — под h2 блока.
+   */
+  heading?: 'h2' | 'h3';
 }
 
-const { cards } = Astro.props;
+const { cards, heading = 'h3' } = Astro.props;
+const Heading = heading;
 ---
 
 <ul class="grid grid--3 grid--even list-bare">
@@ -58,9 +64,9 @@ const { cards } = Astro.props;
           </div>
         );
       })()}
-      <h3 class="card__title card__clamp" lang={card.lang}>
+      <Heading class="card__title card__clamp" lang={card.lang}>
         {card.title}
-      </h3>
+      </Heading>
       <p class="card__text card__clamp card__excerpt" lang={card.lang}>
         {card.excerpt ?? ''}
       </p>

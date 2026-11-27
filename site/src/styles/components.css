@@ -213,7 +213,7 @@ main > :last-child { margin-bottom: 0; }
 /* Сетка с карточками одной высоты: все ряды равны самому высокому (решение 031) */
 .grid--even { grid-auto-rows: 1fr; }
 
-/* ---------- Карточка ленты «Новини галузі» (решение 031) ----------
+/* ---------- Карточка ленты «Новини» (решения 031, 055) ----------
    Одна геометрия на все карточки: иллюстрация 16:9, заголовок и отрывок —
    ровно по три строки места (длинное обрезается многоточием, короткое и пустое
    держат место), низ прижат к краю. */
@@ -606,6 +606,8 @@ main > :last-child { margin-bottom: 0; }
   .tag, .num { border: var(--bw) solid var(--c-border); }
   .card__credit { background: rgba(0, 0, 0, 0.85); }
   .hero__slogan { color: var(--c-ink); }
+  .pager__link { border-color: var(--c-border); }
+  .pager__link--off { opacity: 1; }
 }
 
 /* `forced-colors: active` — «Контрастні теми» Windows: цвета задаёт система,
@@ -625,6 +627,8 @@ main > :last-child { margin-bottom: 0; }
      пунктов — метка текущего перестала бы отличаться. Полоса остаётся только
      у текущего. */
   .nav__list > li > a { border-bottom-color: Canvas; }
+  /* Заливка текущей страницы снята системой: её отмечает толстая рамка. */
+  .pager__link--current { border-width: 3px; border-color: CanvasText; }
   :where(a, button, summary, input, [tabindex]):focus-visible { outline-color: Highlight; }
 }
 
@@ -665,6 +669,32 @@ kbd {
   .card, .specs th, .specs td { break-inside: avoid; }
   .ext::after { content: ""; }
 }
+
+/* ---------- Страницы «Новин» (решение 055) ---------- */
+.pager { margin-top: var(--section); }
+.pager__list { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: var(--tap-gap); }
+.pager__list.list-bare li + li { margin-top: 0; }
+.pager__link {
+  display: inline-flex; align-items: center; justify-content: center; gap: var(--s-1);
+  min-width: var(--tap); min-height: var(--tap);
+  padding: 0 var(--s-3);
+  border: var(--bw) solid var(--c-line);
+  border-radius: var(--r-md);
+  font-weight: 600; text-decoration: none;
+}
+a.pager__link:hover { background: var(--c-pale); color: var(--c-ink); }
+/* Текущая — заливкой и рамкой: рамка видна и в системных цветах Windows. */
+.pager__link--current { background: var(--c-deep); border-color: var(--c-deep); color: var(--c-surface); }
+.pager__link--off { color: var(--c-deep); border-style: dashed; opacity: .6; }
+.pager__gap { min-width: var(--s-4); text-align: center; color: var(--c-deep); }
+/* На узком экране «Новіші» и «Старіші» — строкой над номерами. */
+@media (max-width: 599px) {
+  .pager__step { flex: 1 1 40%; }
+  .pager__step .pager__link { width: 100%; }
+  .pager__step:first-child { order: -2; }
+  .pager__step:last-child { order: -1; }
+}
+.feed-note { margin-top: var(--stack); font-size: var(--fs-caption); color: var(--c-deep); }
 
 /* ---------- Утилиты (вместо встроенных стилей, ТЗ 11.5 п.5) ---------- */
 .mt-2 { margin-top: var(--s-2); }

@@ -94,7 +94,7 @@ export const SECTIONS: readonly Section[] = [
   {
     kind: 'feed-rules',
     label: 'Словник стрічки',
-    where: 'Слова, за якими добираються «Новини галузі», і перелік джерел.',
+    where: 'Слова, за якими добирається «Стрічка новин», і перелік джерел.',
     addLabel: '',
     singleton: true,
     ordered: false,

@@ -27,11 +27,12 @@ export type SyncErrorCode = z.infer<typeof syncErrorCodeSchema>;
  */
 export const syncSourceSchema = z.enum([
   'prozorro',
-  'kmda',
   'kyivzelenbud',
+  'desna',
+  'podol',
+  'dnipro',
   'theconversation',
   'hmarochos',
-  'gdelt',
 ]);
 
 export type SyncSource = z.infer<typeof syncSourceSchema>;

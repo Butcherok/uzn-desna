@@ -158,7 +158,13 @@ export async function runSync(steps: readonly Step[], io: RunIo): Promise<RunRes
       let outcome: FeedOutcome;
       try {
         fetched = await io.fetchFeedSource(source.id, rules);
-        outcome = { source, ok: true, via: fetched.via, entries: fetched.entries };
+        outcome = {
+          source,
+          ok: true,
+          via: fetched.via,
+          entries: fetched.entries,
+          rejected: fetched.rejected,
+        };
       } catch (error) {
         const code = error instanceof SourceError ? error.code : 'SRC_PARSE';
         outcome = { source, ok: false, code };
@@ -204,7 +210,7 @@ export async function runSync(steps: readonly Step[], io: RunIo): Promise<RunRes
         nextFeed = { ...nextFeed, items };
     }
 
-    // «Новые» — вошедшие в файл впервые, а не вся выдача мимо хранимых 40:
+    // «Новые» — вошедшие в файл впервые, а не вся выдача мимо хранимых:
     // у The Conversation выдача — годы записей (решение 027).
     const before = new Set(previousFeed.items.map((i) => i.urlKey));
     for (const outcome of outcomes) {

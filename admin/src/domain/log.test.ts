@@ -48,7 +48,7 @@ describe('action log labels (TZ 9.7)', () => {
 
   it('entity as the admin section; filter sends only what is set', () => {
     expect(entityLabel('vacancies')).toBe('Вакансії');
-    expect(entityLabel('feed')).toBe('Новини галузі');
+    expect(entityLabel('feed')).toBe('Стрічка новин');
     expect(entityLabel(null)).toBeNull();
     expect(filterQuery({ user: '', from: '2026-11-01', to: '' }, 1)).toEqual({
       from: '2026-11-01',

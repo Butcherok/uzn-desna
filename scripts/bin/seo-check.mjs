@@ -13,7 +13,7 @@
  *    GitHub Pages отдаёт её на любой адрес.
  * 5. Пока `INDEXING_ENABLED` в `site/src/config/site.ts` равен `false`, на
  *    каждой странице `noindex, nofollow` (ТЗ 3.3). После снятия закрытия
- *    `noindex` остаётся у 404 и «Новин».
+ *    `noindex` остаётся у 404 и у всех страниц «Новин».
  * 6. `application/ld+json` разбирается как JSON; на главной он есть.
  */
 import { readdir, readFile } from 'node:fs/promises';
@@ -25,6 +25,8 @@ const TITLE_MAX = 60;
 const DESCRIPTION_MAX = 160;
 /** Страницы вне индекса и после снятия закрытия (решения 039, 040) */
 const NOT_INDEXABLE = new Set(['404.html', 'news/index.html', 'admin/index.html']);
+/** Страницы «Новин» после первой (решение 055): `news/<n>/index.html` */
+const NEWS_PAGE = /^news\/\d+\/index\.html$/;
 
 async function htmlFiles(dir) {
   const out = [];
@@ -137,7 +139,7 @@ for (const file of files) {
   if (m.robots.length > 1) fail('robots meta больше одной');
   if (!indexing) {
     if (robots !== 'noindex, nofollow') fail(`сайт закрыт, а robots = ${robots ?? 'нет'}`);
-  } else if (NOT_INDEXABLE.has(page)) {
+  } else if (NOT_INDEXABLE.has(page) || NEWS_PAGE.test(page)) {
     if (!robots?.includes('noindex')) fail('страница вне индекса без noindex');
   } else if (robots?.includes('noindex')) {
     fail('индексация включена, а у страницы noindex');

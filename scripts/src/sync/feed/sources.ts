@@ -1,13 +1,9 @@
 /**
- * Источники ленты (ТЗ 7.4): основной путь — тематическая выборка, запасной —
- * RSS через словарь. Какие источники опрашиваются, решает `feed-rules.json`
- * (п. 1), а не этот файл.
- *
- * Не сделано нарочно (решение 027):
- * - HTML-выборка КМДА по тегу 19: раннерам GitHub kyivcity.gov.ua отвечает
- *   проверкой Cloudflare (403), разметку выдачи с раннера не получить, а
- *   разбор вслепую не проверить. Описан только запасной путь — RSS.
- * - GDELT: выключен до удачного повторного прогона (ТЗ 7.4).
+ * Источники ленты (ТЗ 7.4; решение 055): основной путь — выборка по датам
+ * (у Хмарочоса и The Conversation — по тематическим тегам), запасной — RSS.
+ * Какие источники опрашиваются, решает `feed-rules.json` (п. 1), а не этот
+ * файл. Сайты сети «Київзеленбуд» тематических рубрик не имеют: их записи
+ * проходят словарь и основным путём (`topicFilter`).
  */
 import type { FeedRules, FeedSourceId } from '@uzn/shared';
 import { SourceError, fetchText } from '../http.js';
@@ -15,13 +11,15 @@ import type { FetchDeps } from '../http.js';
 import { parseAtom, parseRss, parseWpPosts } from './parse.js';
 import type { RawEntry } from './parse.js';
 import { matchesTopic } from './topic.js';
-import { stripHtml } from './text.js';
+import { stripHtml, urlKey } from './text.js';
 
 export type FeedVia = 'tag' | 'rss';
 
 export interface SourceFetch {
   via: FeedVia;
   entries: RawEntry[];
+  /** Адреса записей, отсеянных словарём: такие уходят и из сохранённых. */
+  rejected: string[];
   /** Код сбоя основного пути, если сработал запасной. */
   mainError: SourceError | null;
 }
@@ -29,6 +27,8 @@ export interface SourceFetch {
 export interface SourceSpec {
   domain: string;
   lang: 'uk' | 'en';
+  /** Записи основного пути тоже проходят словарь: у источника нет тематических тегов. */
+  topicFilter: boolean;
   main?: (deps: FetchDeps, now: Date) => Promise<RawEntry[]>;
   rss?: (deps: FetchDeps) => Promise<RawEntry[]>;
 }
@@ -51,7 +51,7 @@ function get(deps: FetchDeps, label: string, url: string): Promise<string> {
 function wpRest(base: string, query: string) {
   return async (deps: FetchDeps, now: Date): Promise<RawEntry[]> => {
     const after = new Date(now.getTime() - WINDOW_DAYS * 86_400_000).toISOString().slice(0, 19);
-    const url = `${base}/wp-json/wp/v2/posts?after=${after}&per_page=20${query}&_fields=date_gmt,link,title,excerpt`;
+    const url = `${base}/wp-json/wp/v2/posts?after=${after}&per_page=100${query}&_fields=date_gmt,link,title,excerpt`;
     return parseWpPosts(await get(deps, new URL(base).hostname, url));
   };
 }
@@ -97,39 +97,51 @@ async function conversation(deps: FetchDeps): Promise<RawEntry[]> {
   return ok.flatMap((r) => r.value);
 }
 
-export const SOURCES: Readonly<Partial<Record<FeedSourceId, SourceSpec>>> = {
-  kmda: {
-    domain: 'kyivcity.gov.ua',
+/** Сайт сети «Київзеленбуд»: один WordPress, рубрик по теме нет (исследование 15, раздел 2). */
+function network(domain: string): SourceSpec {
+  return {
+    domain,
     lang: 'uk',
-    rss: rss('https://kyivcity.gov.ua/rss/'),
-  },
-  kyivzelenbud: {
-    domain: 'kyivzelenbud.com',
-    lang: 'uk',
-    main: wpRest('https://kyivzelenbud.com', ''),
-    rss: rss('https://kyivzelenbud.com/feed/'),
-  },
+    topicFilter: true,
+    main: wpRest(`https://${domain}`, ''),
+    rss: rss(`https://${domain}/feed/`),
+  };
+}
+
+export const SOURCES: Readonly<Record<FeedSourceId, SourceSpec>> = {
+  kyivzelenbud: network('kyivzelenbud.com'),
+  desna: network('desna.kyivzelenbud.com'),
+  podol: network('podol.kyivzelenbud.com'),
+  dnipro: network('dnipro.kyivzelenbud.com'),
   theconversation: {
     domain: 'theconversation.com',
     lang: 'en',
+    topicFilter: false,
     main: (deps) => conversation(deps),
   },
   hmarochos: {
     domain: 'hmarochos.kiev.ua',
     lang: 'uk',
+    topicFilter: false,
     main: wpRest('https://hmarochos.kiev.ua', '&tags=317,5445,1705,1644'),
     rss: rss('https://hmarochos.kiev.ua/tag/ozelenennya/feed/'),
   },
 };
 
-/** Записи RSS проходят словарь языка источника (ТЗ 7.4, п. 2). */
+/** Записи без тематического тега проходят словарь языка источника (ТЗ 7.4, п. 2). */
 export function filterByTopic(
   rules: FeedRules,
   lang: 'uk' | 'en',
   entries: readonly RawEntry[],
-): RawEntry[] {
+): { entries: RawEntry[]; rejected: string[] } {
   const dictionary = rules.dictionary[lang];
-  return entries.filter((item) => matchesTopic(dictionary, item.title, stripHtml(item.html)));
+  const kept: RawEntry[] = [];
+  const rejected: string[] = [];
+  for (const item of entries) {
+    if (matchesTopic(dictionary, item.title, stripHtml(item.html))) kept.push(item);
+    else rejected.push(urlKey(item.url));
+  }
+  return { entries: kept, rejected };
 }
 
 /**
@@ -143,11 +155,12 @@ export async function fetchSource(
   now: Date,
 ): Promise<SourceFetch> {
   const spec = SOURCES[id];
-  if (spec === undefined) throw new SourceError('SRC_PARSE', `source ${id}: no fetcher`);
   let mainError: SourceError | null = null;
   if (spec.main !== undefined) {
     try {
-      return { via: 'tag', entries: await spec.main(deps, now), mainError: null };
+      const entries = await spec.main(deps, now);
+      if (!spec.topicFilter) return { via: 'tag', entries, rejected: [], mainError: null };
+      return { via: 'tag', ...filterByTopic(rules, spec.lang, entries), mainError: null };
     } catch (error) {
       mainError =
         error instanceof SourceError ? error : new SourceError('SRC_PARSE', (error as Error).name);
@@ -157,8 +170,7 @@ export async function fetchSource(
   }
   if (spec.rss === undefined) throw new SourceError('SRC_PARSE', `source ${id}: no path`);
   try {
-    const entries = filterByTopic(rules, spec.lang, await spec.rss(deps));
-    return { via: 'rss', entries, mainError };
+    return { via: 'rss', ...filterByTopic(rules, spec.lang, await spec.rss(deps)), mainError };
   } catch (error) {
     throw mainError ?? error;
   }

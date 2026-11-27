@@ -13,8 +13,12 @@
 import { createHash } from 'node:crypto';
 import type { FeedItem } from '@uzn/shared';
 
-/** Сколько записей без фото пробовать за прогон: выводится 8, на главной 3. */
-export const IMAGES_PER_RUN = 12;
+/**
+ * Сколько записей без фото пробовать за прогон, свежие первыми (решение 055):
+ * при запуске новых источников сотни записей получают фото за несколько дней,
+ * а один прогон не нагружает сайты источников.
+ */
+export const IMAGES_PER_RUN = 30;
 /** Больше — не фото для карточки, а что-то другое. */
 export const IMAGE_MAX_BYTES = 8 * 1024 * 1024;
 export const IMAGE_DIR = 'media/feed';

@@ -1,0 +1,68 @@
+---
+/**
+ * Переключение страниц «Новин» (решение 055): ссылки, без JavaScript (ТЗ 11.2).
+ * «Новіші» и «Старіші» — соседние страницы; номера — первая, последняя и
+ * соседние с текущей. Текущая — не ссылка, `aria-current="page"`.
+ */
+import { withBase } from '../config/site';
+import { newsPagePath, pageLinks } from '../domain/news';
+
+interface Props {
+  page: number;
+  total: number;
+}
+
+const { page, total } = Astro.props;
+const links = pageLinks(page, total);
+const href = (n: number): string => withBase(newsPagePath(n));
+---
+
+{total > 1 && (
+  <nav class="pager" aria-label="Сторінки новин">
+    <ul class="pager__list list-bare">
+      <li class="pager__step">
+        {page > 1 ? (
+          <a class="pager__link" href={href(page - 1)} rel="prev">
+            <span aria-hidden="true">←</span> Новіші
+          </a>
+        ) : (
+          <span class="pager__link pager__link--off" aria-hidden="true">
+            ← Новіші
+          </span>
+        )}
+      </li>
+      {links.map((l) =>
+        'gap' in l ? (
+          <li class="pager__gap" aria-hidden="true">
+            …
+          </li>
+        ) : (
+          <li>
+            {l.current ? (
+              <span class="pager__link pager__link--current" aria-current="page">
+                <span class="vh">Сторінка </span>
+                {l.page}
+              </span>
+            ) : (
+              <a class="pager__link" href={href(l.page)}>
+                <span class="vh">Сторінка </span>
+                {l.page}
+              </a>
+            )}
+          </li>
+        ),
+      )}
+      <li class="pager__step">
+        {page < total ? (
+          <a class="pager__link" href={href(page + 1)} rel="next">
+            Старіші <span aria-hidden="true">→</span>
+          </a>
+        ) : (
+          <span class="pager__link pager__link--off" aria-hidden="true">
+            Старіші →
+          </span>
+        )}
+      </li>
+    </ul>
+  </nav>
+)}
